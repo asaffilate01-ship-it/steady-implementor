@@ -21,6 +21,7 @@ const DICT = {
     "nav.skip": "Skip to content",
     "nav.menu": "Menu",
     "nav.close": "Close menu",
+    "nav.onpage": "On this page",
     "step.of": "of",
 
     "home.badge": "Parking OS",
