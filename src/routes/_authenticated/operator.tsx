@@ -8,8 +8,8 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
-import { euros, useSites, useSessions, useUpdateSite, useAddSite, useRealtimeSync, type Site } from "@/lib/parkpunkt-db";
-import { Building2, Plus, TrendingUp, Users, Euro, Activity } from "lucide-react";
+import { euros, useSites, useSessions, useUpdateSite, useAddSite, useMyPayments, useRealtimeSync, type Site } from "@/lib/parkpunkt-db";
+import { Building2, Plus, TrendingUp, Users, Euro, Activity, BarChart3 } from "lucide-react";
 import { RoleGate } from "@/components/RoleGate";
 import { useI18n } from "@/lib/i18n";
 
@@ -36,16 +36,36 @@ function OperatorGated() {
 }
 
 function OperatorDashboard() {
-  useRealtimeSync(["sites", "sessions"]);
+  useRealtimeSync(["sites", "sessions", "payments"]);
   const { data: sites = [] } = useSites();
   const { data: sessions = [] } = useSessions();
+  const { data: payments = [] } = useMyPayments();
   const { t } = useI18n();
   const totals = useMemo(() => {
     const capacity = sites.reduce((a, s) => a + s.capacity, 0);
     const occupied = sites.reduce((a, s) => a + s.occupied, 0);
-    const revenue = sessions.reduce((a, s) => a + s.amount_cents, 0);
+    const revenue = payments.filter((p) => p.status === "paid").reduce((a, p) => a + p.amount_cents, 0);
     return { capacity, occupied, revenue, pct: capacity ? Math.round((occupied/capacity)*100) : 0 };
-  }, [sites, sessions]);
+  }, [sites, payments]);
+
+  // Group payments by day for last 14 days.
+  const revByDay = useMemo(() => {
+    const days: { day: string; cents: number }[] = [];
+    const today = new Date(); today.setHours(0,0,0,0);
+    for (let i = 13; i >= 0; i--) {
+      const d = new Date(today); d.setDate(today.getDate() - i);
+      days.push({ day: d.toISOString().slice(5,10), cents: 0 });
+    }
+    for (const p of payments) {
+      if (p.status !== "paid") continue;
+      const d = new Date(p.created_at); d.setHours(0,0,0,0);
+      const key = d.toISOString().slice(5,10);
+      const bucket = days.find((x) => x.day === key);
+      if (bucket) bucket.cents += p.amount_cents;
+    }
+    return days;
+  }, [payments]);
+  const maxDay = Math.max(1, ...revByDay.map((d) => d.cents));
 
   return (
       <div className="mx-auto max-w-7xl space-y-6 px-4 py-6">
@@ -88,6 +108,21 @@ function OperatorDashboard() {
                 );
               })}
             </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader><CardTitle className="flex items-center gap-2"><BarChart3 className="h-4 w-4"/>{t("op.revenue14")}</CardTitle></CardHeader>
+          <CardContent>
+            <div className="flex h-40 items-end gap-1">
+              {revByDay.map((d) => (
+                <div key={d.day} className="flex flex-1 flex-col items-center gap-1">
+                  <div className="w-full rounded-t bg-primary/70 transition-all hover:bg-primary" style={{ height: `${(d.cents / maxDay) * 100}%` }} title={`${d.day}: ${euros(d.cents)}`} />
+                  <div className="text-[10px] text-muted-foreground">{d.day}</div>
+                </div>
+              ))}
+            </div>
+            <div className="mt-3 text-xs text-muted-foreground">{t("op.revenue14.hint")}</div>
           </CardContent>
         </Card>
       </div>
