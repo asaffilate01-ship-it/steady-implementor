@@ -81,6 +81,10 @@ export const syncProviderFn = createServerFn({ method: "POST" })
     const upstream = await adapter.listSites();
     let created = 0, updated = 0;
     for (const u of upstream) {
+      const normalizedType: "street" | "garage" | "lot" =
+        u.type === "on-street" || u.type === "street" ? "street"
+        : u.type === "lot" ? "lot" : "garage";
+      const address = u.address ?? u.name;
       // upsert site by (provider_id, external_site_id)
       const { data: existingMap } = await supabaseAdmin
         .from("site_provider_mapping")
@@ -91,9 +95,9 @@ export const syncProviderFn = createServerFn({ method: "POST" })
 
       if (existingMap?.site_id) {
         await supabaseAdmin.from("sites").update({
-          name: u.name, address: u.address, lat: u.lat, lng: u.lng,
+          name: u.name, address, lat: u.lat, lng: u.lng,
           capacity: u.capacity, occupied: u.occupied ?? 0,
-          price_cents_per_hour: u.price_cents_per_hour, type: u.type, operator_name: u.operator_name,
+          price_cents_per_hour: u.price_cents_per_hour, type: normalizedType, operator_name: u.operator_name,
         }).eq("id", existingMap.site_id);
         await supabaseAdmin.from("site_provider_mapping")
           .update({ last_synced_at: new Date().toISOString() })
@@ -101,9 +105,9 @@ export const syncProviderFn = createServerFn({ method: "POST" })
         updated++;
       } else {
         const { data: newSite, error: sErr } = await supabaseAdmin.from("sites").insert({
-          name: u.name, address: u.address, lat: u.lat, lng: u.lng,
+          name: u.name, address, lat: u.lat, lng: u.lng,
           capacity: u.capacity, occupied: u.occupied ?? 0,
-          price_cents_per_hour: u.price_cents_per_hour, type: u.type, operator_name: u.operator_name,
+          price_cents_per_hour: u.price_cents_per_hour, type: normalizedType, operator_name: u.operator_name,
         }).select().single();
         if (sErr || !newSite) continue;
         await supabaseAdmin.from("site_provider_mapping").insert({
