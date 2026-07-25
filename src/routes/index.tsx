@@ -708,7 +708,7 @@ function Footer() {
 /* Additional spec sections sourced verbatim from the ParkPunkt brief */
 /* ------------------------------------------------------------------ */
 
-function SectionHeader({
+function SpecHeader({
   eyebrow,
   title,
   lead,
