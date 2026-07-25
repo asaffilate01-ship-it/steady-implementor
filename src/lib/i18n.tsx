@@ -21,6 +21,7 @@ const DICT = {
     "nav.skip": "Skip to content",
     "nav.menu": "Menu",
     "nav.close": "Close menu",
+    "nav.onpage": "On this page",
     "step.of": "of",
 
     "home.badge": "Parking OS",
@@ -290,6 +291,7 @@ const DICT = {
     "nav.skip": "Zum Inhalt springen",
     "nav.menu": "Menü",
     "nav.close": "Menü schließen",
+    "nav.onpage": "Auf dieser Seite",
     "step.of": "von",
 
     "home.badge": "Park-Betriebssystem",
