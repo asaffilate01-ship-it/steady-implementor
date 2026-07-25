@@ -36,36 +36,48 @@ function OperatorGated() {
 }
 
 function OperatorDashboard() {
-  useRealtimeSync(["sites", "sessions", "payments"]);
+  useRealtimeSync(["sites", "sessions", "payments", "payouts"]);
   const { data: sites = [] } = useSites();
   const { data: sessions = [] } = useSessions();
   const { data: payments = [] } = useMyPayments();
+  const { data: payouts = [] } = usePayouts();
   const { t } = useI18n();
   const totals = useMemo(() => {
     const capacity = sites.reduce((a, s) => a + s.capacity, 0);
     const occupied = sites.reduce((a, s) => a + s.occupied, 0);
-    const revenue = payments.filter((p) => p.status === "paid").reduce((a, p) => a + p.amount_cents, 0);
-    return { capacity, occupied, revenue, pct: capacity ? Math.round((occupied/capacity)*100) : 0 };
+    const paid = payments.filter((p) => p.status === "paid");
+    const gross = paid.reduce((a, p) => a + p.amount_cents, 0);
+    const platformFee = paid.reduce((a, p) => a + p.platform_fee_cents, 0);
+    const net = paid.reduce((a, p) => a + p.operator_net_cents, 0);
+    return { capacity, occupied, gross, platformFee, net, pct: capacity ? Math.round((occupied/capacity)*100) : 0 };
   }, [sites, payments]);
 
-  // Group payments by day for last 14 days.
+  // Group payments by day for last 14 days (gross + net).
   const revByDay = useMemo(() => {
-    const days: { day: string; cents: number }[] = [];
+    const days: { day: string; gross: number; net: number }[] = [];
     const today = new Date(); today.setHours(0,0,0,0);
     for (let i = 13; i >= 0; i--) {
       const d = new Date(today); d.setDate(today.getDate() - i);
-      days.push({ day: d.toISOString().slice(5,10), cents: 0 });
+      days.push({ day: d.toISOString().slice(5,10), gross: 0, net: 0 });
     }
     for (const p of payments) {
       if (p.status !== "paid") continue;
       const d = new Date(p.created_at); d.setHours(0,0,0,0);
       const key = d.toISOString().slice(5,10);
       const bucket = days.find((x) => x.day === key);
-      if (bucket) bucket.cents += p.amount_cents;
+      if (bucket) {
+        bucket.gross += p.amount_cents;
+        bucket.net += p.operator_net_cents;
+      }
     }
     return days;
   }, [payments]);
-  const maxDay = Math.max(1, ...revByDay.map((d) => d.cents));
+  const maxDay = Math.max(1, ...revByDay.map((d) => d.gross));
+
+  const pendingPayout = useMemo(() => {
+    const paidOut = payouts.filter((p) => p.status === "paid").reduce((a, p) => a + p.total_net_cents, 0);
+    return Math.max(0, totals.net - paidOut);
+  }, [totals.net, payouts]);
 
   return (
       <div className="mx-auto max-w-7xl space-y-6 px-4 py-6">
@@ -77,7 +89,51 @@ function OperatorDashboard() {
           <KPI icon={<Building2 className="h-4 w-4"/>} label={t("op.kpi.sites")} value={String(sites.length)}/>
           <KPI icon={<Users className="h-4 w-4"/>} label={t("op.kpi.occupancy")} value={`${totals.pct}%`} sub={`${totals.occupied}/${totals.capacity}`}/>
           <KPI icon={<Activity className="h-4 w-4"/>} label={t("op.kpi.sessions")} value={String(sessions.length)}/>
-          <KPI icon={<Euro className="h-4 w-4"/>} label={t("op.kpi.revenue")} value={euros(totals.revenue)}/>
+          <KPI icon={<Wallet className="h-4 w-4"/>} label={t("op.kpi.net")} value={euros(totals.net)}/>
+        </div>
+
+        <div className="grid gap-6 lg:grid-cols-3">
+          <Card className="lg:col-span-2">
+            <CardHeader><CardTitle className="flex items-center gap-2"><BarChart3 className="h-4 w-4"/>{t("op.revenue14")}</CardTitle></CardHeader>
+            <CardContent>
+              <div className="flex h-40 items-end gap-1">
+                {revByDay.map((d) => (
+                  <div key={d.day} className="relative flex flex-1 flex-col items-center gap-1">
+                    <div className="w-full rounded-t bg-primary/30" style={{ height: `${(d.gross / maxDay) * 100}%` }} title={`${d.day} gross: ${euros(d.gross)}`} />
+                    <div className="absolute bottom-4 w-full rounded-t bg-primary transition-all hover:bg-primary/90" style={{ height: `${(d.net / maxDay) * 100}%` }} title={`${d.day} net: ${euros(d.net)}`} />
+                    <div className="text-[10px] text-muted-foreground">{d.day}</div>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-3 flex items-center gap-4 text-xs text-muted-foreground">
+                <span className="inline-flex items-center gap-1"><span className="inline-block h-2 w-2 rounded-sm bg-primary"/> {t("op.payout.net")}</span>
+                <span className="inline-flex items-center gap-1"><span className="inline-block h-2 w-2 rounded-sm bg-primary/30"/> {t("op.payout.gross")}</span>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader><CardTitle className="flex items-center gap-2"><PiggyBank className="h-4 w-4"/>{t("op.payout.title")}</CardTitle></CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-1">
+                <div className="text-xs uppercase text-muted-foreground">{t("op.payout.gross")}</div>
+                <div className="text-2xl font-semibold">{euros(totals.gross)}</div>
+              </div>
+              <div className="space-y-1">
+                <div className="text-xs uppercase text-muted-foreground">{t("op.payout.fee")}</div>
+                <div className="text-xl font-medium text-destructive">−{euros(totals.platformFee)}</div>
+              </div>
+              <div className="border-t border-border pt-3 space-y-1">
+                <div className="text-xs uppercase text-muted-foreground">{t("op.payout.net")}</div>
+                <div className="text-2xl font-semibold text-accent-foreground">{euros(totals.net)}</div>
+              </div>
+              <div className="space-y-1">
+                <div className="text-xs uppercase text-muted-foreground">{t("op.payout.pending")}</div>
+                <div className="text-lg font-medium">{euros(pendingPayout)}</div>
+              </div>
+              <Button className="w-full" variant="outline" disabled={pendingPayout <= 0}><CreditCard className="mr-2 h-4 w-4"/>{t("op.payout.request")}</Button>
+            </CardContent>
+          </Card>
         </div>
 
         <Card>
@@ -108,21 +164,6 @@ function OperatorDashboard() {
                 );
               })}
             </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader><CardTitle className="flex items-center gap-2"><BarChart3 className="h-4 w-4"/>{t("op.revenue14")}</CardTitle></CardHeader>
-          <CardContent>
-            <div className="flex h-40 items-end gap-1">
-              {revByDay.map((d) => (
-                <div key={d.day} className="flex flex-1 flex-col items-center gap-1">
-                  <div className="w-full rounded-t bg-primary/70 transition-all hover:bg-primary" style={{ height: `${(d.cents / maxDay) * 100}%` }} title={`${d.day}: ${euros(d.cents)}`} />
-                  <div className="text-[10px] text-muted-foreground">{d.day}</div>
-                </div>
-              ))}
-            </div>
-            <div className="mt-3 text-xs text-muted-foreground">{t("op.revenue14.hint")}</div>
           </CardContent>
         </Card>
       </div>
