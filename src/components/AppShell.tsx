@@ -137,7 +137,7 @@ export function AppShell({ children, anchors }: { children: ReactNode; anchors?:
         />
       )}
 
-      <main id="main" className="pt-24 md:pt-28">{children}</main>
+      <main id="main" className="pt-28 md:pt-36">{children}</main>
     </div>
   );
 }
