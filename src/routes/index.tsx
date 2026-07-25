@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useState } from "react";
 import logoAsset from "@/assets/parkpunkt-logo.png.asset.json";
 import heroAsset from "@/assets/pp-hero.jpg.asset.json";
 import iconFind from "@/assets/pp-icon-find.png.asset.json";
@@ -7,6 +8,7 @@ import iconPay from "@/assets/pp-icon-pay.png.asset.json";
 import { Button } from "@/components/ui/button";
 import { useSession } from "@/hooks/useAuth";
 import { LangToggle, useI18n } from "@/lib/i18n";
+import { SiteFooter } from "@/components/SiteFooter";
 import {
   Zap,
   CreditCard,
@@ -47,10 +49,11 @@ function Landing() {
       <MarketingHeader signedIn={!!user} />
       <Hero signedIn={!!user} />
       <Stakeholders />
+      <StakeholderFeatures />
       <HowItWorks />
       <Features />
       <CTA signedIn={!!user} />
-      <Footer />
+      <SiteFooter />
     </div>
   );
 }
@@ -59,14 +62,16 @@ function MarketingHeader({ signedIn }: { signedIn: boolean }) {
   const { t } = useI18n();
   return (
     <header className="sticky top-0 z-40 border-b border-border/60 bg-background/85 backdrop-blur">
-      <div className="mx-auto flex h-16 max-w-6xl items-center gap-3 px-4 md:h-28">
+      <div className="mx-auto flex h-16 max-w-6xl items-center gap-3 px-4 md:h-30">
         <Link to="/" className="flex items-center gap-2">
-          <img src={logoAsset.url} alt="ParkPunkt" className="h-10 w-auto md:h-24" />
+          <img src={logoAsset.url} alt="ParkPunkt" className="h-10 w-auto md:h-26" />
         </Link>
         <nav className="ml-6 hidden gap-6 text-sm text-muted-foreground md:flex">
           <a href="#stakeholders" className="hover:text-foreground">For whom</a>
+          <a href="#capabilities" className="hover:text-foreground">Capabilities</a>
           <a href="#how" className="hover:text-foreground">How it works</a>
           <a href="#features" className="hover:text-foreground">Platform</a>
+          <Link to="/blog" className="hover:text-foreground">Journal</Link>
         </nav>
         <div className="ml-auto flex items-center gap-2">
           <LangToggle />
