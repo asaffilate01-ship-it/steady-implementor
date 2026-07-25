@@ -9,6 +9,7 @@ export type Notice = Database["public"]["Tables"]["notices"]["Row"];
 export type Profile = Database["public"]["Tables"]["profiles"]["Row"];
 export type SiteInsert = Database["public"]["Tables"]["sites"]["Insert"];
 export type Payment = Database["public"]["Tables"]["payments"]["Row"];
+export type Payout = Database["public"]["Tables"]["payouts"]["Row"];
 export type Reservation = Database["public"]["Tables"]["reservations"]["Row"];
 
 export const KEYS = {
@@ -18,6 +19,7 @@ export const KEYS = {
   notices: ["notices"] as const,
   profile: ["profile"] as const,
   payments: ["payments"] as const,
+  payouts: ["payouts"] as const,
   reservations: ["reservations"] as const,
 };
 
@@ -281,6 +283,17 @@ export function useMyPayments() {
   });
 }
 
+export function usePayouts() {
+  return useQuery({
+    queryKey: KEYS.payouts,
+    queryFn: async (): Promise<Payout[]> => {
+      const { data, error } = await supabase.from("payouts").select("*").order("created_at", { ascending: false });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+}
+
 // ============ RESERVATIONS ============
 export function useReservations() {
   return useQuery({
@@ -343,7 +356,7 @@ export function useCancelReservation() {
 }
 
 /** Subscribe to realtime changes on the given tables and invalidate matching queries. */
-export function useRealtimeSync(tables: Array<"sites" | "sessions" | "notices" | "payments" | "reservations">) {
+export function useRealtimeSync(tables: Array<"sites" | "sessions" | "notices" | "payments" | "payouts" | "reservations">) {
   const qc = useQueryClient();
   useEffect(() => {
     const chan = supabase.channel("pp-live");
