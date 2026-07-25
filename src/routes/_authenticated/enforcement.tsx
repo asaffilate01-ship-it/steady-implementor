@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { store, useStore, euros } from "@/lib/parkpunkt-data";
 import { Camera, CheckCircle2, AlertTriangle, FileWarning } from "lucide-react";
+import { RoleGate } from "@/components/RoleGate";
 
 export const Route = createFileRoute("/_authenticated/enforcement")({
   head: () => ({
@@ -19,8 +20,18 @@ export const Route = createFileRoute("/_authenticated/enforcement")({
       { property: "og:description", content: "Plate scan, verify, and issue notice." },
     ],
   }),
-  component: EnforcementApp,
+  component: EnforcementGated,
 });
+
+function EnforcementGated() {
+  return (
+    <AppShell>
+      <RoleGate allow={["enforcement", "admin"]}>
+        <EnforcementApp />
+      </RoleGate>
+    </AppShell>
+  );
+}
 
 function EnforcementApp() {
   const [plate, setPlate] = useState("");

@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { useStore, haversineKm } from "@/lib/parkpunkt-data";
 import { Boxes, Play, Radio } from "lucide-react";
+import { RoleGate } from "@/components/RoleGate";
 
 export const Route = createFileRoute("/_authenticated/provider")({
   head: () => ({
@@ -18,8 +19,18 @@ export const Route = createFileRoute("/_authenticated/provider")({
       { property: "og:description", content: "Inventory, quotes, and API orchestration." },
     ],
   }),
-  component: ProviderHub,
+  component: ProviderGated,
 });
+
+function ProviderGated() {
+  return (
+    <AppShell>
+      <RoleGate allow={["provider", "admin"]}>
+        <ProviderHub />
+      </RoleGate>
+    </AppShell>
+  );
+}
 
 function ProviderHub() {
   const sites = useStore((s) => s.sites);
