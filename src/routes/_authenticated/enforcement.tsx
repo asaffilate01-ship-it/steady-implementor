@@ -7,8 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { euros, useSites, useSessions, useNotices, useIssueNotice, useRealtimeSync } from "@/lib/parkpunkt-db";
-import { Camera, CheckCircle2, AlertTriangle, FileWarning } from "lucide-react";
+import { euros, useSites, useSessions, useNotices, useIssueNotice, useUpdateNotice, useRealtimeSync } from "@/lib/parkpunkt-db";
+import { Camera, CheckCircle2, AlertTriangle, FileWarning, CheckCheck, Ban } from "lucide-react";
 import { RoleGate } from "@/components/RoleGate";
 import { useI18n } from "@/lib/i18n";
 
@@ -47,6 +47,7 @@ function EnforcementApp() {
   const { data: sessions = [] } = useSessions();
   const { data: notices = [] } = useNotices();
   const issue = useIssueNotice();
+  const update = useUpdateNotice();
   useEffect(() => { if (!siteId && sites[0]) setSiteId(sites[0].id); }, [siteId, sites]);
 
   const currentSite = useMemo(() => sites.find((s) => s.id === siteId), [sites, siteId]);
@@ -102,13 +103,23 @@ function EnforcementApp() {
             <div className="divide-y divide-border">
               {notices.map((n) => {
                 const s = sites.find((x) => x.id === n.site_id);
+                const statusVariant = n.status === "paid" ? "default" : n.status === "waived" ? "secondary" : n.status === "contested" ? "outline" : "destructive";
                 return (
-                  <div key={n.id} className="grid grid-cols-[1fr,1fr,2fr,120px,140px] items-center gap-3 py-2 text-sm">
+                  <div key={n.id} className="grid grid-cols-[1fr,1fr,2fr,110px,90px,160px] items-center gap-3 py-2 text-sm">
                     <div className="font-mono text-xs">{n.id.slice(0,8)}</div>
                     <div className="font-mono">{n.plate}</div>
                     <div className="truncate">{s?.name} — {n.reason}</div>
                     <div>{euros(n.amount_cents)}</div>
-                    <div className="text-right"><Badge variant="outline">{new Date(n.created_at).toLocaleTimeString()}</Badge></div>
+                    <div><Badge variant={statusVariant as never} className="capitalize">{n.status}</Badge></div>
+                    <div className="flex items-center justify-end gap-1">
+                      {n.status === "open" && (
+                        <>
+                          <Button size="sm" variant="ghost" onClick={() => update.mutate({ id: n.id, patch: { status: "paid" } })}><CheckCheck className="h-3 w-3" /></Button>
+                          <Button size="sm" variant="ghost" onClick={() => update.mutate({ id: n.id, patch: { status: "waived" } })}><Ban className="h-3 w-3" /></Button>
+                        </>
+                      )}
+                      <Badge variant="outline" className="text-[10px]">{new Date(n.created_at).toLocaleTimeString()}</Badge>
+                    </div>
                   </div>
                 );
               })}
