@@ -1,9 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import logoAsset from "@/assets/parkpunkt-logo.png.asset.json";
+import heroAsset from "@/assets/pp-hero.jpg.asset.json";
+import iconFind from "@/assets/pp-icon-find.png.asset.json";
+import iconPark from "@/assets/pp-icon-park.png.asset.json";
+import iconPay from "@/assets/pp-icon-pay.png.asset.json";
 import { Button } from "@/components/ui/button";
 import { useSession } from "@/hooks/useAuth";
+import { LangToggle, useI18n } from "@/lib/i18n";
 import {
-  MapPin,
   Zap,
   CreditCard,
   ShieldCheck,
@@ -52,9 +56,10 @@ function Landing() {
 }
 
 function MarketingHeader({ signedIn }: { signedIn: boolean }) {
+  const { t } = useI18n();
   return (
     <header className="sticky top-0 z-40 border-b border-border/60 bg-background/85 backdrop-blur">
-      <div className="mx-auto flex h-16 max-w-6xl items-center gap-4 px-4">
+      <div className="mx-auto flex h-16 max-w-6xl items-center gap-3 px-4">
         <Link to="/" className="flex items-center gap-2">
           <img src={logoAsset.url} alt="ParkPunkt" className="h-9 w-auto" />
         </Link>
@@ -64,16 +69,17 @@ function MarketingHeader({ signedIn }: { signedIn: boolean }) {
           <a href="#features" className="hover:text-foreground">Platform</a>
         </nav>
         <div className="ml-auto flex items-center gap-2">
+          <LangToggle />
           <Button asChild variant="ghost" size="sm">
-            <Link to="/drive">Driver app</Link>
+            <Link to="/drive">{t("nav.driver")}</Link>
           </Button>
           {signedIn ? (
             <Button asChild size="sm">
-              <Link to="/operator">Open workspace</Link>
+              <Link to="/operator">{t("nav.workspace")}</Link>
             </Button>
           ) : (
             <Button asChild size="sm">
-              <Link to="/auth">Sign in</Link>
+              <Link to="/auth">{t("nav.signin")}</Link>
             </Button>
           )}
         </div>
@@ -83,6 +89,7 @@ function MarketingHeader({ signedIn }: { signedIn: boolean }) {
 }
 
 function Hero({ signedIn }: { signedIn: boolean }) {
+  const { t } = useI18n();
   return (
     <section className="relative overflow-hidden">
       <div
@@ -92,136 +99,107 @@ function Hero({ signedIn }: { signedIn: boolean }) {
             "radial-gradient(60% 50% at 20% 10%, color-mix(in oklch, var(--primary) 22%, transparent), transparent), radial-gradient(50% 40% at 90% 20%, color-mix(in oklch, var(--accent) 22%, transparent), transparent)",
         }}
       />
-      <div className="mx-auto grid max-w-6xl gap-10 px-4 py-20 md:grid-cols-2 md:py-28">
+      <div className="mx-auto grid max-w-6xl gap-10 px-4 py-20 md:grid-cols-2 md:py-24">
         <div className="flex flex-col justify-center">
           <span className="inline-flex w-fit items-center gap-2 rounded-full border border-border bg-secondary/60 px-3 py-1 text-xs uppercase tracking-wide text-muted-foreground">
-            <span className="h-1.5 w-1.5 rounded-full bg-accent" /> Parking OS
+            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-accent" /> {t("home.badge")}
           </span>
           <h1 className="mt-4 text-4xl font-semibold leading-tight tracking-tight md:text-6xl">
-            Finden. Parken. <span className="text-accent">Bezahlen.</span>
+            {t("home.title.1")}{" "}
+            <span className="bg-gradient-to-r from-accent to-[oklch(0.72_0.17_148)] bg-clip-text text-transparent">
+              {t("home.title.2")}
+            </span>
           </h1>
           <p className="mt-4 max-w-lg text-base text-muted-foreground md:text-lg">
-            One platform connecting drivers, operators, cities and providers. Search a
-            spot, start a session, and settle the fare — contactless, in seconds.
+            {t("home.subtitle")}
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
-            <Button asChild size="lg">
+            <Button asChild size="lg" className="shadow-[var(--shadow-elegant)]">
               <Link to="/drive">
-                Try the driver app <ArrowRight className="ml-2 h-4 w-4" />
+                {t("home.cta.driver")} <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>
             <Button asChild size="lg" variant="outline">
               <Link to={signedIn ? "/operator" : "/auth"}>
-                {signedIn ? "Open workspace" : "Sign in for operators"}
+                {signedIn ? t("nav.workspace") : t("home.cta.signin")}
               </Link>
             </Button>
           </div>
           <div className="mt-8 flex flex-wrap gap-6 text-xs text-muted-foreground">
-            <span className="inline-flex items-center gap-1.5">
-              <CheckCircle2 className="h-4 w-4 text-accent" /> ANPR-ready
-            </span>
-            <span className="inline-flex items-center gap-1.5">
-              <CheckCircle2 className="h-4 w-4 text-accent" /> PSD2 compliant
-            </span>
-            <span className="inline-flex items-center gap-1.5">
-              <CheckCircle2 className="h-4 w-4 text-accent" /> GDPR by design
-            </span>
+            <span className="inline-flex items-center gap-1.5"><CheckCircle2 className="h-4 w-4 text-accent" />{t("home.badge.anpr")}</span>
+            <span className="inline-flex items-center gap-1.5"><CheckCircle2 className="h-4 w-4 text-accent" />{t("home.badge.psd2")}</span>
+            <span className="inline-flex items-center gap-1.5"><CheckCircle2 className="h-4 w-4 text-accent" />{t("home.badge.gdpr")}</span>
           </div>
         </div>
-        <div className="relative flex items-center justify-center">
-          <div className="w-full max-w-sm rounded-3xl border border-border bg-card p-4 shadow-2xl">
-            <div className="flex items-center justify-between text-xs text-muted-foreground">
-              <span>Active session</span>
-              <span className="rounded-full bg-accent/15 px-2 py-0.5 text-accent">LIVE</span>
-            </div>
-            <div className="mt-3 rounded-2xl bg-primary/5 p-5 text-center">
-              <div className="text-xs uppercase text-muted-foreground">Time remaining</div>
-              <div className="mt-1 text-5xl font-semibold tabular-nums">42 min</div>
-              <div className="mt-1 text-xs text-muted-foreground">
-                Contipark · Alexanderplatz
-              </div>
-            </div>
-            <div className="mt-3 grid grid-cols-3 gap-2 text-center text-xs">
-              <div className="rounded-md bg-secondary p-2">
-                <div className="text-muted-foreground">Plate</div>
-                <div className="font-mono font-medium">B-PP 2026</div>
-              </div>
-              <div className="rounded-md bg-secondary p-2">
-                <div className="text-muted-foreground">Rate</div>
-                <div className="font-medium">€3.50/h</div>
-              </div>
-              <div className="rounded-md bg-secondary p-2">
-                <div className="text-muted-foreground">Charged</div>
-                <div className="font-medium">€2.45</div>
-              </div>
-            </div>
-          </div>
-        </div>
+        <HeroVisual />
       </div>
     </section>
   );
 }
 
-const STAKEHOLDERS = [
-  {
-    icon: Car,
-    title: "Drivers",
-    body: "Find nearby spots, start a session in one tap, extend or end from your phone.",
-    href: "/drive",
-    cta: "Open driver app",
-  },
-  {
-    icon: Building2,
-    title: "Operators",
-    body: "Manage sites, tariffs and occupancy in real time. Track revenue and utilisation.",
-    href: "/operator",
-    cta: "Operator dashboard",
-  },
-  {
-    icon: Radar,
-    title: "Enforcement",
-    body: "ANPR-driven verification — scan a plate, see the session status, issue a notice.",
-    href: "/enforcement",
-    cta: "Enforcement tools",
-  },
-  {
-    icon: BarChart3,
-    title: "Providers",
-    body: "Plug into the orchestration API to quote, book and settle across the network.",
-    href: "/provider",
-    cta: "Provider hub",
-  },
-];
+function HeroVisual() {
+  const { t } = useI18n();
+  return (
+    <div className="relative flex items-center justify-center">
+      <div className="absolute -inset-8 -z-10 rounded-[3rem] opacity-40 blur-3xl" style={{ background: "var(--gradient-hero)" }} />
+      <div className="relative w-full overflow-hidden rounded-3xl border border-border bg-card shadow-[var(--shadow-elegant)]">
+        <img
+          src={heroAsset.url}
+          alt="ParkPunkt smart garage with ANPR entry"
+          className="aspect-[4/3] w-full object-cover"
+          width={1600}
+          height={1200}
+        />
+        <div className="absolute bottom-4 left-4 right-4 rounded-2xl border border-white/10 bg-black/55 p-3 text-white shadow-2xl backdrop-blur-md">
+          <div className="flex items-center justify-between text-[10px] uppercase tracking-wide text-white/70">
+            <span>{t("session.active")}</span>
+            <span className="inline-flex items-center gap-1 rounded-full bg-accent/25 px-2 py-0.5 text-accent">
+              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-accent" />
+              {t("session.live")}
+            </span>
+          </div>
+          <div className="mt-1 flex items-end justify-between">
+            <div>
+              <div className="text-3xl font-semibold tabular-nums">42 min</div>
+              <div className="text-[11px] text-white/60">Contipark · Alexanderplatz</div>
+            </div>
+            <div className="text-right text-[11px] text-white/60">
+              <div className="font-mono text-white">B-PP 2026</div>
+              <div>€3.50/h · €2.45</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function Stakeholders() {
+  const { t } = useI18n();
+  const items = [
+    { icon: Car, key: "driver", href: "/drive" },
+    { icon: Building2, key: "operator", href: "/operator" },
+    { icon: Radar, key: "enforce", href: "/enforcement" },
+    { icon: BarChart3, key: "provider", href: "/provider" },
+  ] as const;
   return (
     <section id="stakeholders" className="border-t border-border/60 bg-secondary/40 py-20">
       <div className="mx-auto max-w-6xl px-4">
         <div className="max-w-2xl">
-          <h2 className="text-3xl font-semibold tracking-tight md:text-4xl">
-            One platform, every role
-          </h2>
-          <p className="mt-3 text-muted-foreground">
-            ParkPunkt unifies the parking value chain — from the driver at the kerb to
-            the operator, the enforcement officer and the mobility provider.
-          </p>
+          <h2 className="text-3xl font-semibold tracking-tight md:text-4xl">{t("home.stake.title")}</h2>
+          <p className="mt-3 text-muted-foreground">{t("home.stake.sub")}</p>
         </div>
         <div className="mt-10 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {STAKEHOLDERS.map((s) => (
-            <div
-              key={s.title}
-              className="flex flex-col rounded-2xl border border-border bg-card p-6"
-            >
-              <div className="grid h-10 w-10 place-items-center rounded-lg bg-primary/10 text-primary">
-                <s.icon className="h-5 w-5" />
+          {items.map((s) => (
+            <div key={s.key} className="group relative flex flex-col overflow-hidden rounded-2xl border border-border bg-card p-6 transition-all hover:-translate-y-1 hover:border-accent/50 hover:shadow-[var(--shadow-soft)]">
+              <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full opacity-0 blur-2xl transition-opacity group-hover:opacity-40" style={{ background: "var(--gradient-brand)" }} />
+              <div className="grid h-12 w-12 place-items-center rounded-xl bg-gradient-to-br from-primary/15 to-accent/15 text-primary">
+                <s.icon className="h-6 w-6" />
               </div>
-              <h3 className="mt-4 text-lg font-semibold">{s.title}</h3>
-              <p className="mt-2 flex-1 text-sm text-muted-foreground">{s.body}</p>
-              <Link
-                to={s.href}
-                className="mt-4 inline-flex items-center text-sm font-medium text-accent hover:underline"
-              >
-                {s.cta} <ArrowRight className="ml-1 h-4 w-4" />
+              <h3 className="mt-4 text-lg font-semibold">{t(`home.stake.${s.key}.title` as never)}</h3>
+              <p className="mt-2 flex-1 text-sm text-muted-foreground">{t(`home.stake.${s.key}.body` as never)}</p>
+              <Link to={s.href} className="mt-4 inline-flex items-center text-sm font-medium text-accent hover:underline">
+                {t(`home.stake.${s.key}.cta` as never)} <ArrowRight className="ml-1 h-4 w-4" />
               </Link>
             </div>
           ))}
@@ -231,38 +209,32 @@ function Stakeholders() {
   );
 }
 
-const STEPS = [
-  { icon: MapPin, title: "Find", body: "Search by address or POI. See live availability, rates and distance." },
-  { icon: Zap, title: "Park", body: "Book a slot instantly. ANPR opens the barrier — no ticket, no app juggling." },
-  { icon: CreditCard, title: "Pay", body: "Charged only for the time used. Receipts land in your account automatically." },
-];
-
 function HowItWorks() {
+  const { t } = useI18n();
+  const steps = [
+    { img: iconFind.url, key: "find" },
+    { img: iconPark.url, key: "park" },
+    { img: iconPay.url, key: "pay" },
+  ] as const;
   return (
     <section id="how" className="py-20">
       <div className="mx-auto max-w-6xl px-4">
         <div className="max-w-2xl">
-          <h2 className="text-3xl font-semibold tracking-tight md:text-4xl">
-            How it works
-          </h2>
-          <p className="mt-3 text-muted-foreground">
-            Three steps for the driver. Everything else — pricing, entitlements,
-            settlement — is handled by the orchestration layer.
-          </p>
+          <h2 className="text-3xl font-semibold tracking-tight md:text-4xl">{t("home.how.title")}</h2>
+          <p className="mt-3 text-muted-foreground">{t("home.how.sub")}</p>
         </div>
         <div className="mt-10 grid gap-4 md:grid-cols-3">
-          {STEPS.map((s, i) => (
-            <div key={s.title} className="rounded-2xl border border-border bg-card p-6">
-              <div className="flex items-center gap-3">
-                <div className="grid h-10 w-10 place-items-center rounded-lg bg-accent/15 text-accent">
-                  <s.icon className="h-5 w-5" />
-                </div>
-                <span className="text-xs uppercase tracking-wide text-muted-foreground">
-                  Step {i + 1}
-                </span>
+          {steps.map((s, i) => (
+            <div key={s.key} className="group relative overflow-hidden rounded-2xl border border-border bg-gradient-to-b from-card to-secondary/40 p-6 transition-all hover:-translate-y-1 hover:shadow-[var(--shadow-soft)]">
+              <div className="flex items-start justify-between">
+                <span className="text-xs uppercase tracking-wide text-muted-foreground">{t("home.how.step")} {i + 1}</span>
+                <div className="text-3xl font-semibold text-primary/15 tabular-nums">0{i + 1}</div>
               </div>
-              <h3 className="mt-4 text-lg font-semibold">{s.title}</h3>
-              <p className="mt-2 text-sm text-muted-foreground">{s.body}</p>
+              <div className="my-3 flex justify-center">
+                <img src={s.img} alt="" className="h-32 w-32 object-contain drop-shadow-2xl transition-transform group-hover:scale-110" loading="lazy" width={512} height={512} />
+              </div>
+              <h3 className="text-lg font-semibold">{t(`home.how.${s.key}.title` as never)}</h3>
+              <p className="mt-1 text-sm text-muted-foreground">{t(`home.how.${s.key}.body` as never)}</p>
             </div>
           ))}
         </div>
@@ -281,22 +253,18 @@ const FEATURES = [
 ];
 
 function Features() {
+  const { t } = useI18n();
   return (
     <section id="features" className="border-t border-border/60 bg-secondary/40 py-20">
       <div className="mx-auto max-w-6xl px-4">
         <div className="max-w-2xl">
-          <h2 className="text-3xl font-semibold tracking-tight md:text-4xl">
-            Built for the whole parking stack
-          </h2>
-          <p className="mt-3 text-muted-foreground">
-            From the phone at the kerb to the settlement engine — every layer is
-            integrated, observable and compliant.
-          </p>
+          <h2 className="text-3xl font-semibold tracking-tight md:text-4xl">{t("home.feat.title")}</h2>
+          <p className="mt-3 text-muted-foreground">{t("home.feat.sub")}</p>
         </div>
         <div className="mt-10 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {FEATURES.map((f) => (
-            <div key={f.title} className="rounded-2xl border border-border bg-card p-6">
-              <div className="grid h-10 w-10 place-items-center rounded-lg bg-primary/10 text-primary">
+            <div key={f.title} className="group rounded-2xl border border-border bg-card p-6 transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-[var(--shadow-soft)]">
+              <div className="grid h-11 w-11 place-items-center rounded-xl bg-gradient-to-br from-primary/15 to-accent/15 text-primary transition-colors group-hover:from-primary/25 group-hover:to-accent/25">
                 <f.icon className="h-5 w-5" />
               </div>
               <h3 className="mt-4 text-base font-semibold">{f.title}</h3>
@@ -310,25 +278,22 @@ function Features() {
 }
 
 function CTA({ signedIn }: { signedIn: boolean }) {
+  const { t } = useI18n();
   return (
     <section className="py-20">
-      <div className="mx-auto max-w-4xl px-4 text-center">
-        <h2 className="text-3xl font-semibold tracking-tight md:text-4xl">
-          Ready to run parking on ParkPunkt?
-        </h2>
-        <p className="mt-3 text-muted-foreground">
-          Drivers can start now. Operators, providers and enforcement teams get access
-          after signing in.
-        </p>
-        <div className="mt-8 flex flex-wrap justify-center gap-3">
-          <Button asChild size="lg">
-            <Link to="/drive">Open driver app</Link>
-          </Button>
-          <Button asChild size="lg" variant="outline">
-            <Link to={signedIn ? "/operator" : "/auth"}>
-              {signedIn ? "Go to workspace" : "Sign in"}
-            </Link>
-          </Button>
+      <div className="mx-auto max-w-5xl px-4">
+        <div className="relative overflow-hidden rounded-3xl border border-border p-10 text-center text-white shadow-[var(--shadow-elegant)] md:p-14" style={{ background: "var(--gradient-hero)" }}>
+          <div className="pointer-events-none absolute inset-0 opacity-30" style={{ background: "radial-gradient(60% 50% at 50% 0%, white, transparent)" }} />
+          <h2 className="relative text-3xl font-semibold tracking-tight md:text-4xl">{t("home.cta.final.title")}</h2>
+          <p className="relative mt-3 text-white/85">{t("home.cta.final.sub")}</p>
+          <div className="relative mt-8 flex flex-wrap justify-center gap-3">
+            <Button asChild size="lg" variant="secondary">
+              <Link to="/drive">{t("home.cta.final.open")}</Link>
+            </Button>
+            <Button asChild size="lg" variant="outline" className="border-white/40 bg-white/10 text-white hover:bg-white/20 hover:text-white">
+              <Link to={signedIn ? "/operator" : "/auth"}>{signedIn ? t("home.cta.final.go") : t("nav.signin")}</Link>
+            </Button>
+          </div>
         </div>
       </div>
     </section>
@@ -341,7 +306,7 @@ function Footer() {
       <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-4 text-sm text-muted-foreground md:flex-row">
         <div className="flex items-center gap-2">
           <img src={logoAsset.url} alt="ParkPunkt" className="h-6 w-auto" />
-          <span>© {new Date().getFullYear()} ParkPunkt</span>
+          <span>© {new Date().getFullYear()} ParkPunkt · Finden. Parken. Bezahlen.</span>
         </div>
         <div className="flex gap-4">
           <Link to="/drive" className="hover:text-foreground">Driver</Link>

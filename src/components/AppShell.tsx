@@ -8,14 +8,15 @@ import { Button } from "@/components/ui/button";
 import { useQueryClient } from "@tanstack/react-query";
 import { LogOut } from "lucide-react";
 import type { AppRole } from "@/lib/auth.functions";
+import { LangToggle, useI18n } from "@/lib/i18n";
 
-type NavItem = { to: string; label: string; roles?: AppRole[] };
+type NavItem = { to: string; labelKey: string; roles?: AppRole[] };
 const NAV: NavItem[] = [
-  { to: "/drive", label: "Driver App" },
-  { to: "/operator", label: "Operator", roles: ["operator", "admin"] },
-  { to: "/provider", label: "Provider Hub", roles: ["provider", "admin"] },
-  { to: "/enforcement", label: "Enforcement", roles: ["enforcement", "admin"] },
-  { to: "/admin", label: "Admin", roles: ["admin"] },
+  { to: "/drive", labelKey: "nav.driver" },
+  { to: "/operator", labelKey: "nav.operator", roles: ["operator", "admin"] },
+  { to: "/provider", labelKey: "nav.provider", roles: ["provider", "admin"] },
+  { to: "/enforcement", labelKey: "nav.enforcement", roles: ["enforcement", "admin"] },
+  { to: "/admin", labelKey: "nav.admin", roles: ["admin"] },
 ];
 
 export function AppShell({ children }: { children: ReactNode }) {
@@ -24,6 +25,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const { data: rolesData } = useMyRoles();
   const router = useRouter();
   const qc = useQueryClient();
+  const { t } = useI18n();
 
   async function signOut() {
     await qc.cancelQueries();
@@ -56,22 +58,23 @@ export function AppShell({ children }: { children: ReactNode }) {
                     active ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-secondary hover:text-foreground",
                   )}
                 >
-                  {n.label}
+                  {t(n.labelKey as never)}
                 </Link>
               );
             })}
           </nav>
           <div className="ml-auto flex items-center gap-2 text-sm">
+            <LangToggle />
             {user ? (
               <>
                 <span className="hidden text-xs text-muted-foreground sm:inline">{user.email}</span>
                 <Button variant="ghost" size="sm" onClick={signOut}>
-                  <LogOut className="mr-1 h-4 w-4" /> Sign out
+                  <LogOut className="mr-1 h-4 w-4" /> {t("nav.signout")}
                 </Button>
               </>
             ) : (
               <Button asChild size="sm" variant="outline">
-                <Link to="/auth">Sign in</Link>
+                <Link to="/auth">{t("nav.signin")}</Link>
               </Button>
             )}
           </div>

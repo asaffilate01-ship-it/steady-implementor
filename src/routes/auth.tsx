@@ -9,6 +9,9 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { toast } from "sonner";
 import logoAsset from "@/assets/parkpunkt-logo.png.asset.json";
+import { ensureDevUserFn } from "@/lib/dev-auth.functions";
+import { useServerFn } from "@tanstack/react-start";
+import { Bug, Shield, Building2, Radio, Radar, Car } from "lucide-react";
 
 const searchSchema = z.object({ redirect: z.string().optional() });
 
@@ -32,6 +35,9 @@ function AuthPage() {
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [busy, setBusy] = useState(false);
+  const [devOpen, setDevOpen] = useState(false);
+  const [devBusy, setDevBusy] = useState<string | null>(null);
+  const ensureDev = useServerFn(ensureDevUserFn);
 
   // If already signed in, bounce out
   useEffect(() => {
@@ -76,6 +82,22 @@ function AuthPage() {
     navigate({ to: redirect ?? "/", replace: true });
   }
 
+  async function devSignIn(role: "admin" | "operator" | "provider" | "enforcement" | "driver") {
+    setDevBusy(role);
+    try {
+      const creds = await ensureDev({ data: { role } });
+      const { error } = await supabase.auth.signInWithPassword({ email: creds.email, password: creds.password });
+      if (error) throw error;
+      toast.success(`Signed in as ${creds.name}`);
+      const dest = role === "driver" ? "/drive" : role === "admin" ? "/admin" : `/${role}`;
+      navigate({ to: redirect ?? dest, replace: true });
+    } catch (err) {
+      toast.error((err as Error).message);
+    } finally {
+      setDevBusy(null);
+    }
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <div className="mx-auto flex min-h-screen max-w-md flex-col items-center justify-center px-4 py-10">
@@ -110,6 +132,50 @@ function AuthPage() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Dev login panel */}
+        <div className="mt-4 w-full">
+          <button
+            onClick={() => setDevOpen((v) => !v)}
+            className="flex w-full items-center gap-2 rounded-md border border-dashed border-border bg-secondary/40 px-3 py-2 text-left text-xs text-muted-foreground hover:border-accent hover:text-foreground"
+          >
+            <Bug className="h-4 w-4 text-accent" />
+            <span className="font-medium">Developer sign-in</span>
+            <span className="ml-auto">{devOpen ? "hide" : "show"}</span>
+          </button>
+          {devOpen && (
+            <Card className="mt-2 border-dashed">
+              <CardContent className="space-y-2 p-3 text-sm">
+                <p className="text-xs text-muted-foreground">
+                  One-click dev accounts (auto-created). Password: <code className="rounded bg-secondary px-1">devpass1234</code>
+                </p>
+                <div className="grid grid-cols-2 gap-2">
+                  {(
+                    [
+                      { r: "admin", label: "Admin", Icon: Shield },
+                      { r: "operator", label: "Operator", Icon: Building2 },
+                      { r: "provider", label: "Provider", Icon: Radio },
+                      { r: "enforcement", label: "Enforcement", Icon: Radar },
+                      { r: "driver", label: "Driver", Icon: Car },
+                    ] as const
+                  ).map(({ r, label, Icon }) => (
+                    <Button
+                      key={r}
+                      variant="outline"
+                      size="sm"
+                      className="justify-start"
+                      disabled={devBusy !== null}
+                      onClick={() => devSignIn(r)}
+                    >
+                      <Icon className="mr-2 h-4 w-4" />
+                      {devBusy === r ? "Signing in…" : label}
+                    </Button>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </div>
       </div>
     </div>
   );
