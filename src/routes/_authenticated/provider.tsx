@@ -260,26 +260,6 @@ function LogsTab() {
 }
 
 function _keep(_x: unknown) { /* silence tree-shake */ }
-              <pre className="max-h-96 overflow-auto rounded-md bg-primary/5 p-3 text-xs">{JSON.stringify(response, null, 2)}</pre>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader><CardTitle className="flex items-center gap-2"><Boxes className="h-4 w-4"/>{t("prov.inventory")}</CardTitle></CardHeader>
-            <CardContent className="space-y-2">
-              {sites.map((s) => (
-                <div key={s.id} className="flex items-center justify-between rounded-md border border-border p-3">
-                  <div><div className="font-medium">{s.name}</div><div className="text-xs text-muted-foreground">{s.operator_name ?? "—"} · {s.id.slice(0,8)}</div></div>
-                  <div className="text-right text-sm"><div>{s.capacity - s.occupied} {t("common.free")}</div><div className="text-xs text-muted-foreground">€{(s.price_cents_per_hour/100).toFixed(2)}/h</div></div>
-                  <Badge variant="outline" className="ml-3 capitalize">{s.type}</Badge>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-  );
-}
 function Field({ label, children }: { label:string; children: React.ReactNode }) {
   return <div className="space-y-1"><Label className="text-xs">{label}</Label>{children}</div>;
 }
