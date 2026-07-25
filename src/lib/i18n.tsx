@@ -495,7 +495,7 @@ const DICT = {
     "prov.tab.keys": "API-Schlüssel",
     "prov.tab.providers": "Anbieter",
     "prov.tab.logs": "Anfrageprotokoll",
-    "prov.needKey": "Bitte zuerst API-Schlüssel einfügen (Tab „API-Schlüssel").",
+    "prov.needKey": "Bitte zuerst API-Schlüssel einfügen (Tab API-Schlüssel).",
     "prov.testKey": "Mit Schlüssel testen",
     "prov.runLive": "Live-Anfrage ausführen",
     "prov.curl": "cURL",
