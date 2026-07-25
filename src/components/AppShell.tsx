@@ -168,7 +168,7 @@ function CommandRail({ visibleNav, anchors }: { visibleNav: NavItem[]; anchors?:
     }
   }, [pathname, mounted, visibleNav.length]);
 
-  const items = [
+  const items: (NavItem & { exact?: boolean })[] = [
     { to: "/", labelKey: "nav.home", icon: Home, exact: true },
     ...visibleNav,
   ];
