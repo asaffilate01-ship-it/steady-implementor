@@ -219,11 +219,11 @@ function AnchorRail({ anchors }: { anchors: AnchorLink[] }) {
       <Link
         to="/"
         className={cn(
-          "inline-flex items-center gap-1.5 rounded-full px-3.5 py-2 text-sm font-medium transition-colors",
+          "inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-3.5 py-2 text-sm font-medium transition-colors",
           pathname === "/" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-secondary/70 hover:text-foreground"
         )}
       >
-        <Home className="h-3.5 w-3.5" />
+        <Home className="h-3.5 w-3.5 shrink-0" />
         {t("nav.home")}
       </Link>
       {anchors.map((a) => (
