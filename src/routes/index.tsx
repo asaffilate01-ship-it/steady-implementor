@@ -1,276 +1,353 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
-import { AppShell } from "@/components/AppShell";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import logoAsset from "@/assets/parkpunkt-logo.png.asset.json";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Slider } from "@/components/ui/slider";
-import { store, useStore, euros, haversineKm, type Site } from "@/lib/parkpunkt-data";
-import { MapPin, Search, Zap, Clock, Car, ArrowLeft, CreditCard, CheckCircle2, Timer } from "lucide-react";
+import { useSession } from "@/hooks/useAuth";
+import {
+  MapPin,
+  Zap,
+  CreditCard,
+  ShieldCheck,
+  Building2,
+  Car,
+  Radar,
+  BarChart3,
+  ArrowRight,
+  CheckCircle2,
+} from "lucide-react";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
       { title: "ParkPunkt — Finden. Parken. Bezahlen." },
-      { name: "description", content: "Search parking, book instantly, and pay contactless with ParkPunkt." },
+      {
+        name: "description",
+        content:
+          "ParkPunkt is the parking OS for drivers, operators, cities and providers. Find a spot, book instantly, and pay contactless — all on one platform.",
+      },
       { property: "og:title", content: "ParkPunkt — Finden. Parken. Bezahlen." },
-      { property: "og:description", content: "Find. Park. Pay." },
+      {
+        property: "og:description",
+        content: "The parking OS for drivers, operators, cities and providers.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
-  component: DriverApp,
+  component: Landing,
 });
 
-type Screen =
-  | { name: "search" }
-  | { name: "results"; where: { lat: number; lng: number }; query: string }
-  | { name: "detail"; siteId: string }
-  | { name: "active"; sessionId: string };
-
-const DESTINATIONS: Record<string, { lat: number; lng: number }> = {
-  Alexanderplatz: { lat: 52.521, lng: 13.413 },
-  Hauptbahnhof: { lat: 52.525, lng: 13.369 },
-  Kreuzberg: { lat: 52.499, lng: 13.418 },
-  "Prenzlauer Berg": { lat: 52.539, lng: 13.412 },
-};
-
-function DriverApp() {
-  const [screen, setScreen] = useState<Screen>({ name: "search" });
-  const sessions = useStore((s) => s.sessions.filter((x) => x.status === "active"));
-
+function Landing() {
+  const { user } = useSession();
   return (
-    <AppShell>
-      <div className="mx-auto max-w-3xl px-4 py-6">
-        {screen.name === "search" && (
-          <SearchScreen
-            onSearch={(where, query) => setScreen({ name: "results", where, query })}
-            activeSessions={sessions.length}
-            openActive={(id) => setScreen({ name: "active", sessionId: id })}
-          />
-        )}
-        {screen.name === "results" && (
-          <ResultsScreen where={screen.where} query={screen.query} onBack={() => setScreen({ name: "search" })} onSelect={(id) => setScreen({ name: "detail", siteId: id })} />
-        )}
-        {screen.name === "detail" && <DetailScreen siteId={screen.siteId} onBack={() => setScreen({ name: "search" })} onBooked={(id) => setScreen({ name: "active", sessionId: id })} />}
-        {screen.name === "active" && <ActiveScreen sessionId={screen.sessionId} onDone={() => setScreen({ name: "search" })} />}
-      </div>
-    </AppShell>
-  );
-}
-
-function SearchScreen({ onSearch, activeSessions, openActive }: { onSearch: (where: { lat: number; lng: number }, q: string) => void; activeSessions: number; openActive: (id: string) => void }) {
-  const [q, setQ] = useState("Alexanderplatz");
-  const plate = useStore((s) => s.plate);
-  const active = useStore((s) => s.sessions.find((x) => x.status === "active"));
-  return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Where do you want to park?</h1>
-        <p className="text-sm text-muted-foreground">Search a location and start a session in seconds.</p>
-      </div>
-      {active && (
-        <Card className="cursor-pointer border-accent/50 bg-accent/5" onClick={() => openActive(active.id)}>
-          <CardContent className="flex items-center justify-between p-4">
-            <div className="flex items-center gap-3">
-              <Timer className="h-5 w-5 text-accent" />
-              <div>
-                <div className="font-medium">Active session {active.id}</div>
-                <div className="text-xs text-muted-foreground">Tap to manage</div>
-              </div>
-            </div>
-            <Badge className="bg-accent text-accent-foreground">LIVE</Badge>
-          </CardContent>
-        </Card>
-      )}
-      <Card>
-        <CardContent className="space-y-4 p-5">
-          <div className="space-y-2">
-            <Label>Destination</Label>
-            <div className="flex gap-2">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input value={q} onChange={(e) => setQ(e.target.value)} className="pl-9" placeholder="Address, POI, or district" />
-              </div>
-              <Button onClick={() => onSearch(DESTINATIONS[q] ?? DESTINATIONS["Alexanderplatz"], q)}>Search</Button>
-            </div>
-            <div className="flex flex-wrap gap-2 pt-1">
-              {Object.keys(DESTINATIONS).map((k) => (
-                <button key={k} onClick={() => setQ(k)} className="rounded-full border border-border px-3 py-1 text-xs text-muted-foreground hover:border-primary hover:text-foreground">
-                  {k}
-                </button>
-              ))}
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-3 pt-2 text-sm">
-            <div className="rounded-md bg-secondary p-3">
-              <div className="text-xs text-muted-foreground">Plate</div>
-              <div className="font-medium">{plate}</div>
-            </div>
-            <div className="rounded-md bg-secondary p-3">
-              <div className="text-xs text-muted-foreground">Active sessions</div>
-              <div className="font-medium">{activeSessions}</div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+    <div className="min-h-screen bg-background text-foreground">
+      <MarketingHeader signedIn={!!user} />
+      <Hero signedIn={!!user} />
+      <Stakeholders />
+      <HowItWorks />
+      <Features />
+      <CTA signedIn={!!user} />
+      <Footer />
     </div>
   );
 }
 
-function ResultsScreen({ where, query, onBack, onSelect }: { where: { lat: number; lng: number }; query: string; onBack: () => void; onSelect: (id: string) => void }) {
-  const sites = useStore((s) => s.sites);
-  const [sort, setSort] = useState("smart");
-  const enriched = useMemo(() => sites.map((s) => ({ ...s, distanceKm: haversineKm(where, s), free: s.capacity - s.occupied })), [sites, where]);
-  const sorted = useMemo(() => {
-    const arr = [...enriched];
-    if (sort === "price") arr.sort((a, b) => a.pricePerHour - b.pricePerHour);
-    else if (sort === "distance") arr.sort((a, b) => a.distanceKm - b.distanceKm);
-    else arr.sort((a, b) => a.distanceKm * 0.4 + a.pricePerHour * 0.4 + (a.free < 5 ? 5 : 0) - (b.distanceKm * 0.4 + b.pricePerHour * 0.4 + (b.free < 5 ? 5 : 0)));
-    return arr;
-  }, [enriched, sort]);
-
+function MarketingHeader({ signedIn }: { signedIn: boolean }) {
   return (
-    <div className="space-y-4">
-      <div className="flex items-center gap-3">
-        <Button variant="ghost" size="sm" onClick={onBack}>
-          <ArrowLeft className="mr-1 h-4 w-4" />Back
-        </Button>
-        <div>
-          <div className="text-sm text-muted-foreground">Results near</div>
-          <div className="font-medium">{query}</div>
-        </div>
-        <div className="ml-auto w-40">
-          <Select value={sort} onValueChange={setSort}>
-            <SelectTrigger><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="smart">Smart ranking</SelectItem>
-              <SelectItem value="price">Cheapest</SelectItem>
-              <SelectItem value="distance">Closest</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-      <div className="grid gap-3">
-        {sorted.map((s) => (
-          <ResultRow key={s.id} site={s} onSelect={() => onSelect(s.id)} />
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function ResultRow({ site, onSelect }: { site: Site & { distanceKm: number; free: number }; onSelect: () => void }) {
-  const pct = Math.round((site.occupied / site.capacity) * 100);
-  const badge = site.free < 5 ? "Almost full" : site.free < 20 ? "Limited" : "Available";
-  const badgeCls = site.free < 5 ? "bg-destructive text-destructive-foreground" : site.free < 20 ? "bg-yellow-500/90 text-white" : "bg-accent text-accent-foreground";
-  return (
-    <Card className="cursor-pointer transition hover:shadow-[var(--shadow-soft)]" onClick={onSelect}>
-      <CardContent className="flex items-center gap-4 p-4">
-        <div className="grid h-12 w-12 place-items-center rounded-lg bg-primary/10 text-primary"><MapPin className="h-5 w-5" /></div>
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2"><div className="truncate font-medium">{site.name}</div><Badge className={badgeCls}>{badge}</Badge></div>
-          <div className="truncate text-xs text-muted-foreground">{site.address} · {site.distanceKm.toFixed(1)} km · {site.operator}</div>
-          <div className="mt-1 flex gap-1">{site.amenities.map((a) => <span key={a} className="rounded bg-secondary px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-muted-foreground">{a}</span>)}</div>
-        </div>
-        <div className="text-right">
-          <div className="text-lg font-semibold">€{site.pricePerHour.toFixed(2)}<span className="text-xs font-normal text-muted-foreground">/h</span></div>
-          <div className="text-xs text-muted-foreground">{site.free} free · {pct}% full</div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
-function DetailScreen({ siteId, onBack, onBooked }: { siteId: string; onBack: () => void; onBooked: (id: string) => void }) {
-  const site = useStore((s) => s.sites.find((x) => x.id === siteId))!;
-  const plate = useStore((s) => s.plate);
-  const pm = useStore((s) => s.paymentMethod);
-  const [minutes, setMinutes] = useState(60);
-  const total = (site.pricePerHour * minutes) / 60;
-
-  return (
-    <div className="space-y-4">
-      <Button variant="ghost" size="sm" onClick={onBack}><ArrowLeft className="mr-1 h-4 w-4" />Back to results</Button>
-      <Card>
-        <CardHeader><CardTitle className="flex items-center gap-2"><MapPin className="h-5 w-5 text-primary" />{site.name}</CardTitle></CardHeader>
-        <CardContent className="space-y-4">
-          <div className="text-sm text-muted-foreground">{site.address} — operated by {site.operator}</div>
-          <div className="grid grid-cols-3 gap-2 text-sm">
-            <Stat label="Capacity" value={String(site.capacity)} />
-            <Stat label="Free now" value={String(site.capacity - site.occupied)} />
-            <Stat label="Rate" value={`€${site.pricePerHour.toFixed(2)}/h`} />
-          </div>
-          <div className="space-y-2">
-            <div className="flex items-center justify-between text-sm"><Label>Duration</Label><span className="font-medium">{minutes} min</span></div>
-            <Slider min={15} max={480} step={15} value={[minutes]} onValueChange={(v) => setMinutes(v[0])} />
-          </div>
-          <div className="space-y-1 rounded-md border border-border p-3 text-sm">
-            <Row label="Vehicle" value={<span className="font-mono">{plate}</span>} />
-            <Row label="Payment" value={<span className="inline-flex items-center gap-1"><CreditCard className="h-3.5 w-3.5" />{pm}</span>} />
-            <Row label="Total" value={<span className="text-lg font-semibold">€{total.toFixed(2)}</span>} />
-          </div>
-          <Button className="w-full" size="lg" onClick={() => { const s = store.startSession(site.id, minutes); onBooked(s.id); }}>
-            <Zap className="mr-2 h-4 w-4" />Start parking session
+    <header className="sticky top-0 z-40 border-b border-border/60 bg-background/85 backdrop-blur">
+      <div className="mx-auto flex h-16 max-w-6xl items-center gap-4 px-4">
+        <Link to="/" className="flex items-center gap-2">
+          <img src={logoAsset.url} alt="ParkPunkt" className="h-9 w-auto" />
+        </Link>
+        <nav className="ml-6 hidden gap-6 text-sm text-muted-foreground md:flex">
+          <a href="#stakeholders" className="hover:text-foreground">For whom</a>
+          <a href="#how" className="hover:text-foreground">How it works</a>
+          <a href="#features" className="hover:text-foreground">Platform</a>
+        </nav>
+        <div className="ml-auto flex items-center gap-2">
+          <Button asChild variant="ghost" size="sm">
+            <Link to="/drive">Driver app</Link>
           </Button>
-        </CardContent>
-      </Card>
-    </div>
+          {signedIn ? (
+            <Button asChild size="sm">
+              <Link to="/operator">Open workspace</Link>
+            </Button>
+          ) : (
+            <Button asChild size="sm">
+              <Link to="/auth">Sign in</Link>
+            </Button>
+          )}
+        </div>
+      </div>
+    </header>
   );
 }
 
-function ActiveScreen({ sessionId, onDone }: { sessionId: string; onDone: () => void }) {
-  const session = useStore((s) => s.sessions.find((x) => x.id === sessionId));
-  const site = useStore((s) => s.sites.find((x) => x.id === session?.siteId));
-  if (!session || !site) return <div>Session not found. <Button variant="link" onClick={onDone}>Go back</Button></div>;
-  const active = session.status === "active";
-  const remaining = Math.max(0, session.endsAt - Date.now());
-  const mm = Math.floor(remaining / 60000);
+function Hero({ signedIn }: { signedIn: boolean }) {
   return (
-    <div className="space-y-4">
-      <Card className={active ? "border-accent/60" : ""}>
-        <CardHeader>
-          <CardTitle className="flex items-center justify-between">
-            <span className="flex items-center gap-2"><Car className="h-5 w-5" />{session.id}</span>
-            <Badge className={active ? "bg-accent text-accent-foreground" : "bg-muted text-muted-foreground"}>{active ? "ACTIVE" : "ENDED"}</Badge>
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="rounded-md bg-primary/5 p-4 text-center">
-            <div className="text-xs uppercase text-muted-foreground">{active ? "Time remaining" : "Session ended"}</div>
-            <div className="mt-1 text-4xl font-semibold tabular-nums">{active ? `${mm} min` : euros(session.amountCents)}</div>
-            <div className="mt-1 text-xs text-muted-foreground">{site.name}</div>
+    <section className="relative overflow-hidden">
+      <div
+        className="absolute inset-0 -z-10 opacity-70"
+        style={{
+          background:
+            "radial-gradient(60% 50% at 20% 10%, color-mix(in oklch, var(--primary) 22%, transparent), transparent), radial-gradient(50% 40% at 90% 20%, color-mix(in oklch, var(--accent) 22%, transparent), transparent)",
+        }}
+      />
+      <div className="mx-auto grid max-w-6xl gap-10 px-4 py-20 md:grid-cols-2 md:py-28">
+        <div className="flex flex-col justify-center">
+          <span className="inline-flex w-fit items-center gap-2 rounded-full border border-border bg-secondary/60 px-3 py-1 text-xs uppercase tracking-wide text-muted-foreground">
+            <span className="h-1.5 w-1.5 rounded-full bg-accent" /> Parking OS
+          </span>
+          <h1 className="mt-4 text-4xl font-semibold leading-tight tracking-tight md:text-6xl">
+            Finden. Parken. <span className="text-accent">Bezahlen.</span>
+          </h1>
+          <p className="mt-4 max-w-lg text-base text-muted-foreground md:text-lg">
+            One platform connecting drivers, operators, cities and providers. Search a
+            spot, start a session, and settle the fare — contactless, in seconds.
+          </p>
+          <div className="mt-8 flex flex-wrap gap-3">
+            <Button asChild size="lg">
+              <Link to="/drive">
+                Try the driver app <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
+            <Button asChild size="lg" variant="outline">
+              <Link to={signedIn ? "/operator" : "/auth"}>
+                {signedIn ? "Open workspace" : "Sign in for operators"}
+              </Link>
+            </Button>
           </div>
-          <div className="grid grid-cols-3 gap-2 text-sm">
-            <Stat label="Plate" value={session.plate} />
-            <Stat label="Rate" value={`€${session.pricePerHour.toFixed(2)}/h`} />
-            <Stat label="Charged" value={euros(session.amountCents)} />
+          <div className="mt-8 flex flex-wrap gap-6 text-xs text-muted-foreground">
+            <span className="inline-flex items-center gap-1.5">
+              <CheckCircle2 className="h-4 w-4 text-accent" /> ANPR-ready
+            </span>
+            <span className="inline-flex items-center gap-1.5">
+              <CheckCircle2 className="h-4 w-4 text-accent" /> PSD2 compliant
+            </span>
+            <span className="inline-flex items-center gap-1.5">
+              <CheckCircle2 className="h-4 w-4 text-accent" /> GDPR by design
+            </span>
           </div>
-          {active && (
-            <div className="grid grid-cols-3 gap-2">
-              <Button variant="secondary" onClick={() => store.extendSession(session.id, 30)}><Clock className="mr-1 h-4 w-4" />+30m</Button>
-              <Button variant="secondary" onClick={() => store.extendSession(session.id, 60)}><Clock className="mr-1 h-4 w-4" />+60m</Button>
-              <Button variant="destructive" onClick={() => store.endSession(session.id)}>End</Button>
+        </div>
+        <div className="relative flex items-center justify-center">
+          <div className="w-full max-w-sm rounded-3xl border border-border bg-card p-4 shadow-2xl">
+            <div className="flex items-center justify-between text-xs text-muted-foreground">
+              <span>Active session</span>
+              <span className="rounded-full bg-accent/15 px-2 py-0.5 text-accent">LIVE</span>
             </div>
-          )}
-          {!active && (
-            <div className="rounded-md border border-border p-3 text-sm">
-              <div className="flex items-center gap-2 text-accent"><CheckCircle2 className="h-4 w-4" />Receipt sent to your account.</div>
+            <div className="mt-3 rounded-2xl bg-primary/5 p-5 text-center">
+              <div className="text-xs uppercase text-muted-foreground">Time remaining</div>
+              <div className="mt-1 text-5xl font-semibold tabular-nums">42 min</div>
+              <div className="mt-1 text-xs text-muted-foreground">
+                Contipark · Alexanderplatz
+              </div>
             </div>
-          )}
-          <Button variant="ghost" className="w-full" onClick={onDone}>Back to search</Button>
-        </CardContent>
-      </Card>
-    </div>
+            <div className="mt-3 grid grid-cols-3 gap-2 text-center text-xs">
+              <div className="rounded-md bg-secondary p-2">
+                <div className="text-muted-foreground">Plate</div>
+                <div className="font-mono font-medium">B-PP 2026</div>
+              </div>
+              <div className="rounded-md bg-secondary p-2">
+                <div className="text-muted-foreground">Rate</div>
+                <div className="font-medium">€3.50/h</div>
+              </div>
+              <div className="rounded-md bg-secondary p-2">
+                <div className="text-muted-foreground">Charged</div>
+                <div className="font-medium">€2.45</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
   );
 }
 
-function Stat({ label, value }: { label: string; value: string }) {
-  return <div className="rounded-md bg-secondary p-3"><div className="text-xs text-muted-foreground">{label}</div><div className="font-medium">{value}</div></div>;
+const STAKEHOLDERS = [
+  {
+    icon: Car,
+    title: "Drivers",
+    body: "Find nearby spots, start a session in one tap, extend or end from your phone.",
+    href: "/drive",
+    cta: "Open driver app",
+  },
+  {
+    icon: Building2,
+    title: "Operators",
+    body: "Manage sites, tariffs and occupancy in real time. Track revenue and utilisation.",
+    href: "/operator",
+    cta: "Operator dashboard",
+  },
+  {
+    icon: Radar,
+    title: "Enforcement",
+    body: "ANPR-driven verification — scan a plate, see the session status, issue a notice.",
+    href: "/enforcement",
+    cta: "Enforcement tools",
+  },
+  {
+    icon: BarChart3,
+    title: "Providers",
+    body: "Plug into the orchestration API to quote, book and settle across the network.",
+    href: "/provider",
+    cta: "Provider hub",
+  },
+];
+
+function Stakeholders() {
+  return (
+    <section id="stakeholders" className="border-t border-border/60 bg-secondary/40 py-20">
+      <div className="mx-auto max-w-6xl px-4">
+        <div className="max-w-2xl">
+          <h2 className="text-3xl font-semibold tracking-tight md:text-4xl">
+            One platform, every role
+          </h2>
+          <p className="mt-3 text-muted-foreground">
+            ParkPunkt unifies the parking value chain — from the driver at the kerb to
+            the operator, the enforcement officer and the mobility provider.
+          </p>
+        </div>
+        <div className="mt-10 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {STAKEHOLDERS.map((s) => (
+            <div
+              key={s.title}
+              className="flex flex-col rounded-2xl border border-border bg-card p-6"
+            >
+              <div className="grid h-10 w-10 place-items-center rounded-lg bg-primary/10 text-primary">
+                <s.icon className="h-5 w-5" />
+              </div>
+              <h3 className="mt-4 text-lg font-semibold">{s.title}</h3>
+              <p className="mt-2 flex-1 text-sm text-muted-foreground">{s.body}</p>
+              <Link
+                to={s.href}
+                className="mt-4 inline-flex items-center text-sm font-medium text-accent hover:underline"
+              >
+                {s.cta} <ArrowRight className="ml-1 h-4 w-4" />
+              </Link>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
 }
-function Row({ label, value }: { label: string; value: React.ReactNode }) {
-  return <div className="flex items-center justify-between"><span className="text-muted-foreground">{label}</span><span>{value}</span></div>;
+
+const STEPS = [
+  { icon: MapPin, title: "Find", body: "Search by address or POI. See live availability, rates and distance." },
+  { icon: Zap, title: "Park", body: "Book a slot instantly. ANPR opens the barrier — no ticket, no app juggling." },
+  { icon: CreditCard, title: "Pay", body: "Charged only for the time used. Receipts land in your account automatically." },
+];
+
+function HowItWorks() {
+  return (
+    <section id="how" className="py-20">
+      <div className="mx-auto max-w-6xl px-4">
+        <div className="max-w-2xl">
+          <h2 className="text-3xl font-semibold tracking-tight md:text-4xl">
+            How it works
+          </h2>
+          <p className="mt-3 text-muted-foreground">
+            Three steps for the driver. Everything else — pricing, entitlements,
+            settlement — is handled by the orchestration layer.
+          </p>
+        </div>
+        <div className="mt-10 grid gap-4 md:grid-cols-3">
+          {STEPS.map((s, i) => (
+            <div key={s.title} className="rounded-2xl border border-border bg-card p-6">
+              <div className="flex items-center gap-3">
+                <div className="grid h-10 w-10 place-items-center rounded-lg bg-accent/15 text-accent">
+                  <s.icon className="h-5 w-5" />
+                </div>
+                <span className="text-xs uppercase tracking-wide text-muted-foreground">
+                  Step {i + 1}
+                </span>
+              </div>
+              <h3 className="mt-4 text-lg font-semibold">{s.title}</h3>
+              <p className="mt-2 text-sm text-muted-foreground">{s.body}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+const FEATURES = [
+  { icon: Radar, title: "ANPR & barrier control", body: "Plate-in / plate-out events wire directly into sessions and enforcement." },
+  { icon: CreditCard, title: "Payment orchestration", body: "External wallets or marketplace settlement — pick the route per operator." },
+  { icon: ShieldCheck, title: "GDPR by design", body: "Role-based access, RLS, and full audit trails for every session and grant." },
+  { icon: BarChart3, title: "Operator analytics", body: "Live occupancy, tariff performance, and GMV across every site." },
+  { icon: Building2, title: "Multi-tenant orgs", body: "Operators and providers stay isolated with per-org data and permissions." },
+  { icon: Zap, title: "Provider API", body: "Standard REST orchestration for quote, book, extend and end operations." },
+];
+
+function Features() {
+  return (
+    <section id="features" className="border-t border-border/60 bg-secondary/40 py-20">
+      <div className="mx-auto max-w-6xl px-4">
+        <div className="max-w-2xl">
+          <h2 className="text-3xl font-semibold tracking-tight md:text-4xl">
+            Built for the whole parking stack
+          </h2>
+          <p className="mt-3 text-muted-foreground">
+            From the phone at the kerb to the settlement engine — every layer is
+            integrated, observable and compliant.
+          </p>
+        </div>
+        <div className="mt-10 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {FEATURES.map((f) => (
+            <div key={f.title} className="rounded-2xl border border-border bg-card p-6">
+              <div className="grid h-10 w-10 place-items-center rounded-lg bg-primary/10 text-primary">
+                <f.icon className="h-5 w-5" />
+              </div>
+              <h3 className="mt-4 text-base font-semibold">{f.title}</h3>
+              <p className="mt-2 text-sm text-muted-foreground">{f.body}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function CTA({ signedIn }: { signedIn: boolean }) {
+  return (
+    <section className="py-20">
+      <div className="mx-auto max-w-4xl px-4 text-center">
+        <h2 className="text-3xl font-semibold tracking-tight md:text-4xl">
+          Ready to run parking on ParkPunkt?
+        </h2>
+        <p className="mt-3 text-muted-foreground">
+          Drivers can start now. Operators, providers and enforcement teams get access
+          after signing in.
+        </p>
+        <div className="mt-8 flex flex-wrap justify-center gap-3">
+          <Button asChild size="lg">
+            <Link to="/drive">Open driver app</Link>
+          </Button>
+          <Button asChild size="lg" variant="outline">
+            <Link to={signedIn ? "/operator" : "/auth"}>
+              {signedIn ? "Go to workspace" : "Sign in"}
+            </Link>
+          </Button>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function Footer() {
+  return (
+    <footer className="border-t border-border/60 py-10">
+      <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-4 text-sm text-muted-foreground md:flex-row">
+        <div className="flex items-center gap-2">
+          <img src={logoAsset.url} alt="ParkPunkt" className="h-6 w-auto" />
+          <span>© {new Date().getFullYear()} ParkPunkt</span>
+        </div>
+        <div className="flex gap-4">
+          <Link to="/drive" className="hover:text-foreground">Driver</Link>
+          <Link to="/auth" className="hover:text-foreground">Sign in</Link>
+        </div>
+      </div>
+    </footer>
+  );
 }
