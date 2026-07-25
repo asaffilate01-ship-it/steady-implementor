@@ -12,6 +12,7 @@ import logoAsset from "@/assets/parkpunkt-logo.png.asset.json";
 import { ensureDevUserFn } from "@/lib/dev-auth.functions";
 import { useServerFn } from "@tanstack/react-start";
 import { Bug, Shield, Building2, Radio, Radar, Car } from "lucide-react";
+import { useI18n } from "@/lib/i18n";
 
 const searchSchema = z.object({ redirect: z.string().optional() });
 
@@ -38,6 +39,7 @@ function AuthPage() {
   const [devOpen, setDevOpen] = useState(false);
   const [devBusy, setDevBusy] = useState<string | null>(null);
   const ensureDev = useServerFn(ensureDevUserFn);
+  const { t } = useI18n();
 
   // If already signed in, bounce out
   useEffect(() => {
@@ -57,7 +59,7 @@ function AuthPage() {
           options: { emailRedirectTo: window.location.origin, data: { display_name: displayName || email } },
         });
         if (error) throw error;
-        toast.success("Account created");
+        toast.success(t("auth.accountCreated"));
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
@@ -74,7 +76,7 @@ function AuthPage() {
     setBusy(true);
     const result = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin });
     if (result.error) {
-      toast.error(result.error.message ?? "Google sign-in failed");
+      toast.error(result.error.message ?? t("auth.googleFailed"));
       setBusy(false);
       return;
     }
@@ -88,7 +90,7 @@ function AuthPage() {
       const creds = await ensureDev({ data: { role } });
       const { error } = await supabase.auth.signInWithPassword({ email: creds.email, password: creds.password });
       if (error) throw error;
-      toast.success(`Signed in as ${creds.name}`);
+      toast.success(`${t("auth.signedInAs")} ${creds.name}`);
       const dest = role === "driver" ? "/drive" : role === "admin" ? "/admin" : `/${role}`;
       navigate({ to: redirect ?? dest, replace: true });
     } catch (err) {
@@ -104,31 +106,31 @@ function AuthPage() {
         <Link to="/" className="mb-6"><img src={logoAsset.url} alt="ParkPunkt" className="h-10 w-auto" /></Link>
         <Card className="w-full">
           <CardHeader>
-            <CardTitle>{mode === "signin" ? "Sign in" : "Create account"}</CardTitle>
-            <CardDescription>Access ParkPunkt operator, provider, enforcement, or admin dashboards.</CardDescription>
+            <CardTitle>{mode === "signin" ? t("auth.signin") : t("auth.signup")}</CardTitle>
+            <CardDescription>{t("auth.desc")}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <Button type="button" variant="outline" className="w-full" onClick={onGoogle} disabled={busy}>
-              Continue with Google
+              {t("auth.google")}
             </Button>
-            <div className="flex items-center gap-2 text-xs text-muted-foreground"><div className="h-px flex-1 bg-border" /><span>or</span><div className="h-px flex-1 bg-border" /></div>
+            <div className="flex items-center gap-2 text-xs text-muted-foreground"><div className="h-px flex-1 bg-border" /><span>{t("auth.or")}</span><div className="h-px flex-1 bg-border" /></div>
             <form onSubmit={onSubmit} className="space-y-3">
               {mode === "signup" && (
-                <div className="space-y-1"><Label>Name</Label><Input value={displayName} onChange={(e) => setDisplayName(e.target.value)} placeholder="Your name" /></div>
+                <div className="space-y-1"><Label>{t("auth.name")}</Label><Input value={displayName} onChange={(e) => setDisplayName(e.target.value)} placeholder={t("auth.name.placeholder")} /></div>
               )}
-              <div className="space-y-1"><Label>Email</Label><Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email" /></div>
-              <div className="space-y-1"><Label>Password</Label><Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={8} autoComplete={mode === "signin" ? "current-password" : "new-password"} /></div>
-              <Button type="submit" className="w-full" disabled={busy}>{mode === "signin" ? "Sign in" : "Create account"}</Button>
+              <div className="space-y-1"><Label>{t("auth.email")}</Label><Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email" /></div>
+              <div className="space-y-1"><Label>{t("auth.password")}</Label><Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={8} autoComplete={mode === "signin" ? "current-password" : "new-password"} /></div>
+              <Button type="submit" className="w-full" disabled={busy}>{mode === "signin" ? t("auth.signin") : t("auth.signup")}</Button>
             </form>
             <div className="text-center text-sm">
               {mode === "signin" ? (
-                <button className="text-primary underline" onClick={() => setMode("signup")}>Need an account? Sign up</button>
+                <button className="text-primary underline" onClick={() => setMode("signup")}>{t("auth.needAccount")}</button>
               ) : (
-                <button className="text-primary underline" onClick={() => setMode("signin")}>Have an account? Sign in</button>
+                <button className="text-primary underline" onClick={() => setMode("signin")}>{t("auth.haveAccount")}</button>
               )}
             </div>
             <div className="text-center text-xs text-muted-foreground">
-              The driver app is available without signing in — <Link to="/" className="underline">go home</Link>.
+              {t("auth.driverHint1")} <Link to="/" className="underline">{t("auth.driverHint2")}</Link>.
             </div>
           </CardContent>
         </Card>
@@ -140,25 +142,25 @@ function AuthPage() {
             className="flex w-full items-center gap-2 rounded-md border border-dashed border-border bg-secondary/40 px-3 py-2 text-left text-xs text-muted-foreground hover:border-accent hover:text-foreground"
           >
             <Bug className="h-4 w-4 text-accent" />
-            <span className="font-medium">Developer sign-in</span>
-            <span className="ml-auto">{devOpen ? "hide" : "show"}</span>
+            <span className="font-medium">{t("dev.title")}</span>
+            <span className="ml-auto">{devOpen ? t("dev.hide") : t("dev.show")}</span>
           </button>
           {devOpen && (
             <Card className="mt-2 border-dashed">
               <CardContent className="space-y-2 p-3 text-sm">
                 <p className="text-xs text-muted-foreground">
-                  One-click dev accounts (auto-created). Password: <code className="rounded bg-secondary px-1">devpass1234</code>
+                  {t("dev.sub")} <code className="rounded bg-secondary px-1">devpass1234</code>
                 </p>
                 <div className="grid grid-cols-2 gap-2">
                   {(
                     [
-                      { r: "admin", label: "Admin", Icon: Shield },
-                      { r: "operator", label: "Operator", Icon: Building2 },
-                      { r: "provider", label: "Provider", Icon: Radio },
-                      { r: "enforcement", label: "Enforcement", Icon: Radar },
-                      { r: "driver", label: "Driver", Icon: Car },
+                      { r: "admin", labelKey: "nav.admin", Icon: Shield },
+                      { r: "operator", labelKey: "nav.operator", Icon: Building2 },
+                      { r: "provider", labelKey: "nav.provider", Icon: Radio },
+                      { r: "enforcement", labelKey: "nav.enforcement", Icon: Radar },
+                      { r: "driver", labelKey: "nav.driver", Icon: Car },
                     ] as const
-                  ).map(({ r, label, Icon }) => (
+                  ).map(({ r, labelKey, Icon }) => (
                     <Button
                       key={r}
                       variant="outline"
@@ -168,7 +170,7 @@ function AuthPage() {
                       onClick={() => devSignIn(r)}
                     >
                       <Icon className="mr-2 h-4 w-4" />
-                      {devBusy === r ? "Signing in…" : label}
+                      {devBusy === r ? t("dev.creating") : t(labelKey as never)}
                     </Button>
                   ))}
                 </div>

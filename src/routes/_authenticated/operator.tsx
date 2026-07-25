@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { store, useStore, euros } from "@/lib/parkpunkt-data";
 import { Building2, Plus, TrendingUp, Users, Euro, Activity } from "lucide-react";
 import { RoleGate } from "@/components/RoleGate";
+import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/_authenticated/operator")({
   head: () => ({
@@ -37,6 +38,7 @@ function OperatorGated() {
 function OperatorDashboard() {
   const sites = useStore((s) => s.sites);
   const sessions = useStore((s) => s.sessions);
+  const { t } = useI18n();
   const totals = useMemo(() => {
     const capacity = sites.reduce((a, s) => a + s.capacity, 0);
     const occupied = sites.reduce((a, s) => a + s.occupied, 0);
@@ -47,30 +49,30 @@ function OperatorDashboard() {
   return (
       <div className="mx-auto max-w-7xl space-y-6 px-4 py-6">
         <div className="flex flex-wrap items-end justify-between gap-3">
-          <div><h1 className="text-2xl font-semibold tracking-tight">Operator Dashboard</h1><p className="text-sm text-muted-foreground">Live occupancy, tariffs and site management</p></div>
+          <div><h1 className="text-2xl font-semibold tracking-tight">{t("op.title")}</h1><p className="text-sm text-muted-foreground">{t("op.sub")}</p></div>
           <AddSiteDialog />
         </div>
         <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-          <KPI icon={<Building2 className="h-4 w-4"/>} label="Sites" value={String(sites.length)}/>
-          <KPI icon={<Users className="h-4 w-4"/>} label="Occupancy" value={`${totals.pct}%`} sub={`${totals.occupied}/${totals.capacity}`}/>
-          <KPI icon={<Activity className="h-4 w-4"/>} label="Sessions today" value={String(sessions.length)}/>
-          <KPI icon={<Euro className="h-4 w-4"/>} label="Revenue" value={euros(totals.revenue)}/>
+          <KPI icon={<Building2 className="h-4 w-4"/>} label={t("op.kpi.sites")} value={String(sites.length)}/>
+          <KPI icon={<Users className="h-4 w-4"/>} label={t("op.kpi.occupancy")} value={`${totals.pct}%`} sub={`${totals.occupied}/${totals.capacity}`}/>
+          <KPI icon={<Activity className="h-4 w-4"/>} label={t("op.kpi.sessions")} value={String(sessions.length)}/>
+          <KPI icon={<Euro className="h-4 w-4"/>} label={t("op.kpi.revenue")} value={euros(totals.revenue)}/>
         </div>
 
         <Card>
-          <CardHeader><CardTitle>Sites</CardTitle></CardHeader>
+          <CardHeader><CardTitle>{t("op.sites")}</CardTitle></CardHeader>
           <CardContent className="p-0">
             <div className="grid grid-cols-[1.5fr,1fr,1fr,1.2fr,120px,120px] gap-3 border-b border-border px-4 py-2 text-xs uppercase text-muted-foreground">
-              <div>Site</div><div>Operator</div><div>Type</div><div>Occupancy</div><div>Rate/h</div><div className="text-right">Actions</div>
+              <div>{t("op.col.site")}</div><div>{t("op.col.operator")}</div><div>{t("op.col.type")}</div><div>{t("op.col.occupancy")}</div><div>{t("op.col.rate")}</div><div className="text-right">{t("common.actions")}</div>
             </div>
             {sites.map((s) => <SiteRow key={s.id} id={s.id}/>)}
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader><CardTitle className="flex items-center gap-2"><TrendingUp className="h-4 w-4"/>Recent sessions</CardTitle></CardHeader>
+          <CardHeader><CardTitle className="flex items-center gap-2"><TrendingUp className="h-4 w-4"/>{t("op.recent")}</CardTitle></CardHeader>
           <CardContent>
-            {sessions.length === 0 && <div className="text-sm text-muted-foreground">No sessions yet. Start one from the Driver app.</div>}
+            {sessions.length === 0 && <div className="text-sm text-muted-foreground">{t("op.recent.empty")}</div>}
             <div className="divide-y divide-border">
               {sessions.slice(0,10).map((x) => {
                 const site = sites.find((y) => y.id === x.siteId);
@@ -117,17 +119,18 @@ function SiteRow({ id }: { id: string }) {
 function AddSiteDialog() {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState(""); const [addr, setAddr] = useState(""); const [cap, setCap] = useState(50); const [rate, setRate] = useState(2.5); const [op, setOp] = useState("Custom");
+  const { t } = useI18n();
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild><Button><Plus className="mr-1 h-4 w-4"/>Add site</Button></DialogTrigger>
-      <DialogContent><DialogHeader><DialogTitle>New site</DialogTitle></DialogHeader>
+      <DialogTrigger asChild><Button><Plus className="mr-1 h-4 w-4"/>{t("op.addSite")}</Button></DialogTrigger>
+      <DialogContent><DialogHeader><DialogTitle>{t("op.new")}</DialogTitle></DialogHeader>
         <div className="space-y-3">
-          <Field label="Name"><Input value={name} onChange={(e) => setName(e.target.value)}/></Field>
-          <Field label="Address"><Input value={addr} onChange={(e) => setAddr(e.target.value)}/></Field>
+          <Field label={t("op.name")}><Input value={name} onChange={(e) => setName(e.target.value)}/></Field>
+          <Field label={t("op.address")}><Input value={addr} onChange={(e) => setAddr(e.target.value)}/></Field>
           <div className="grid grid-cols-3 gap-2">
-            <Field label="Capacity"><Input type="number" value={cap} onChange={(e) => setCap(parseInt(e.target.value)||0)}/></Field>
-            <Field label="€ / h"><Input type="number" step="0.1" value={rate} onChange={(e) => setRate(parseFloat(e.target.value)||0)}/></Field>
-            <Field label="Operator"><Input value={op} onChange={(e) => setOp(e.target.value)}/></Field>
+            <Field label={t("op.capacity")}><Input type="number" value={cap} onChange={(e) => setCap(parseInt(e.target.value)||0)}/></Field>
+            <Field label={t("op.ratePerHour")}><Input type="number" step="0.1" value={rate} onChange={(e) => setRate(parseFloat(e.target.value)||0)}/></Field>
+            <Field label={t("op.col.operator")}><Input value={op} onChange={(e) => setOp(e.target.value)}/></Field>
           </div>
         </div>
         <DialogFooter>
@@ -135,7 +138,7 @@ function AddSiteDialog() {
             if (!name || !addr) return;
             store.addSite({ id: "S"+Math.random().toString(36).slice(2,6).toUpperCase(), name, address: addr, lat: 52.52, lng: 13.4, capacity: cap, occupied: 0, pricePerHour: rate, operator: op, amenities: [], type: "lot" });
             setOpen(false);
-          }}>Create</Button>
+          }}>{t("common.create")}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
