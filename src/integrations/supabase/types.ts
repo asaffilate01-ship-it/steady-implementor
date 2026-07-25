@@ -143,18 +143,24 @@ export type Database = {
           id: string
           kind: Database["public"]["Enums"]["org_kind"]
           name: string
+          platform_fee_bps: number
+          platform_fixed_fee_cents: number
         }
         Insert: {
           created_at?: string
           id?: string
           kind: Database["public"]["Enums"]["org_kind"]
           name: string
+          platform_fee_bps?: number
+          platform_fixed_fee_cents?: number
         }
         Update: {
           created_at?: string
           id?: string
           kind?: Database["public"]["Enums"]["org_kind"]
           name?: string
+          platform_fee_bps?: number
+          platform_fixed_fee_cents?: number
         }
         Relationships: []
       }
@@ -169,6 +175,9 @@ export type Database = {
           id: string
           method: string
           notice_id: string | null
+          operator_net_cents: number
+          payout_status: string
+          platform_fee_cents: number
           reservation_id: string | null
           session_id: string | null
           site_id: string | null
@@ -185,6 +194,9 @@ export type Database = {
           id?: string
           method?: string
           notice_id?: string | null
+          operator_net_cents?: number
+          payout_status?: string
+          platform_fee_cents?: number
           reservation_id?: string | null
           session_id?: string | null
           site_id?: string | null
@@ -201,6 +213,9 @@ export type Database = {
           id?: string
           method?: string
           notice_id?: string | null
+          operator_net_cents?: number
+          payout_status?: string
+          platform_fee_cents?: number
           reservation_id?: string | null
           session_id?: string | null
           site_id?: string | null
@@ -234,6 +249,69 @@ export type Database = {
             columns: ["site_id"]
             isOneToOne: false
             referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payouts: {
+        Row: {
+          created_at: string
+          id: string
+          org_id: string | null
+          paid_at: string | null
+          payout_ref: string | null
+          period_end: string
+          period_start: string
+          provider_id: string | null
+          status: string
+          total_gross_cents: number
+          total_net_cents: number
+          total_platform_fee_cents: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          org_id?: string | null
+          paid_at?: string | null
+          payout_ref?: string | null
+          period_end: string
+          period_start: string
+          provider_id?: string | null
+          status?: string
+          total_gross_cents?: number
+          total_net_cents?: number
+          total_platform_fee_cents?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          org_id?: string | null
+          paid_at?: string | null
+          payout_ref?: string | null
+          period_end?: string
+          period_start?: string
+          provider_id?: string | null
+          status?: string
+          total_gross_cents?: number
+          total_net_cents?: number
+          total_platform_fee_cents?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payouts_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "orgs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payouts_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "providers"
             referencedColumns: ["id"]
           },
         ]
@@ -319,6 +397,8 @@ export type Database = {
           kind: Database["public"]["Enums"]["provider_kind"]
           name: string
           notes: string | null
+          platform_fee_bps: number
+          platform_fixed_fee_cents: number
           slug: string
           status: Database["public"]["Enums"]["provider_status"]
           updated_at: string
@@ -333,6 +413,8 @@ export type Database = {
           kind?: Database["public"]["Enums"]["provider_kind"]
           name: string
           notes?: string | null
+          platform_fee_bps?: number
+          platform_fixed_fee_cents?: number
           slug: string
           status?: Database["public"]["Enums"]["provider_status"]
           updated_at?: string
@@ -347,6 +429,8 @@ export type Database = {
           kind?: Database["public"]["Enums"]["provider_kind"]
           name?: string
           notes?: string | null
+          platform_fee_bps?: number
+          platform_fixed_fee_cents?: number
           slug?: string
           status?: Database["public"]["Enums"]["provider_status"]
           updated_at?: string
@@ -511,6 +595,8 @@ export type Database = {
           occupied: number
           operator_name: string | null
           org_id: string | null
+          platform_fee_bps: number | null
+          platform_fixed_fee_cents: number | null
           price_cents_per_hour: number
           type: Database["public"]["Enums"]["site_type"]
           updated_at: string
@@ -527,6 +613,8 @@ export type Database = {
           occupied?: number
           operator_name?: string | null
           org_id?: string | null
+          platform_fee_bps?: number | null
+          platform_fixed_fee_cents?: number | null
           price_cents_per_hour: number
           type?: Database["public"]["Enums"]["site_type"]
           updated_at?: string
@@ -543,6 +631,8 @@ export type Database = {
           occupied?: number
           operator_name?: string | null
           org_id?: string | null
+          platform_fee_bps?: number | null
+          platform_fixed_fee_cents?: number | null
           price_cents_per_hour?: number
           type?: Database["public"]["Enums"]["site_type"]
           updated_at?: string
@@ -594,6 +684,18 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      calculate_platform_fee: {
+        Args: {
+          _amount_cents: number
+          _org_id: string
+          _provider_id: string
+          _site_id: string
+        }
+        Returns: {
+          operator_net_cents: number
+          platform_fee_cents: number
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
