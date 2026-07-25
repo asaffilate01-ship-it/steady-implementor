@@ -48,7 +48,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             <img src={logoAsset.url} alt="ParkPunkt" className="h-10 w-auto transition-transform group-hover:scale-105 md:h-26" />
           </Link>
           {visibleNav.length > 0 && (
-            <nav className="ml-4 hidden flex-1 items-center gap-1 rounded-full border border-border/70 bg-secondary/40 p-1 text-sm shadow-sm md:flex md:w-fit">
+            <nav className="relative ml-4 hidden items-center gap-0.5 rounded-full border border-border/70 bg-gradient-to-b from-secondary/60 to-secondary/30 p-1 text-sm shadow-[0_1px_0_0_rgba(255,255,255,0.6)_inset,0_4px_20px_-8px_color-mix(in_oklch,var(--primary)_25%,transparent)] backdrop-blur md:flex md:w-fit">
               {visibleNav.map((n) => {
                 const active = n.to === "/" ? pathname === "/" : pathname.startsWith(n.to);
                 const Icon = n.icon;
@@ -57,21 +57,24 @@ export function AppShell({ children }: { children: ReactNode }) {
                     key={n.to}
                     to={n.to}
                     className={cn(
-                      "group relative inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 font-medium transition-all duration-200",
+                      "group relative inline-flex items-center gap-1.5 rounded-full px-4 py-2 font-medium tracking-tight transition-all duration-300 ease-out",
                       active
-                        ? "bg-gradient-to-b from-primary to-primary/85 text-primary-foreground shadow-[0_4px_14px_-4px_color-mix(in_oklch,var(--primary)_60%,transparent)] ring-1 ring-inset ring-white/10"
-                        : "text-muted-foreground hover:text-foreground",
+                        ? "bg-gradient-to-b from-primary to-primary/85 text-primary-foreground shadow-[0_6px_18px_-6px_color-mix(in_oklch,var(--primary)_65%,transparent),0_1px_0_0_rgba(255,255,255,0.15)_inset] ring-1 ring-inset ring-white/15"
+                        : "text-muted-foreground hover:bg-background/70 hover:text-foreground hover:shadow-sm",
                     )}
                   >
-                    <Icon className={cn("h-3.5 w-3.5 transition-transform", active ? "text-accent" : "group-hover:scale-110")} />
-                    {t(n.labelKey as never)}
+                    <Icon className={cn("h-3.5 w-3.5 transition-transform duration-300", active ? "text-accent drop-shadow-[0_0_6px_color-mix(in_oklch,var(--accent)_60%,transparent)]" : "group-hover:scale-110 group-hover:rotate-[-4deg]")} />
+                    <span>{t(n.labelKey as never)}</span>
+                    {active && (
+                      <span className="ml-0.5 h-1 w-1 rounded-full bg-accent shadow-[0_0_8px_color-mix(in_oklch,var(--accent)_80%,transparent)]" />
+                    )}
                   </Link>
                 );
               })}
             </nav>
           )}
           {visibleNav.length > 0 && (
-            <nav className="ml-2 flex flex-1 flex-wrap items-center gap-1 text-sm md:hidden">
+            <nav className="ml-2 flex flex-1 flex-wrap items-center gap-1 rounded-2xl border border-border/60 bg-secondary/40 p-1 text-sm shadow-sm md:hidden">
               {visibleNav.map((n) => {
                 const active = n.to === "/" ? pathname === "/" : pathname.startsWith(n.to);
                 const Icon = n.icon;
@@ -80,12 +83,14 @@ export function AppShell({ children }: { children: ReactNode }) {
                     key={n.to}
                     to={n.to}
                     className={cn(
-                      "inline-flex items-center gap-1 rounded-full px-2.5 py-1.5 text-xs font-medium transition-colors",
-                      active ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-secondary hover:text-foreground",
+                      "inline-flex items-center gap-1 rounded-xl px-2.5 py-1.5 text-xs font-medium transition-all",
+                      active
+                        ? "bg-gradient-to-b from-primary to-primary/85 text-primary-foreground shadow-[0_4px_10px_-4px_color-mix(in_oklch,var(--primary)_55%,transparent)] ring-1 ring-inset ring-white/10"
+                        : "text-muted-foreground hover:bg-background/70 hover:text-foreground",
                     )}
                     aria-label={t(n.labelKey as never)}
                   >
-                    <Icon className="h-3.5 w-3.5" />
+                    <Icon className={cn("h-3.5 w-3.5", active && "text-accent")} />
                     <span className="hidden xs:inline">{t(n.labelKey as never)}</span>
                   </Link>
                 );
@@ -96,19 +101,23 @@ export function AppShell({ children }: { children: ReactNode }) {
             <LangToggle />
             {user ? (
               <>
-                <div className="hidden items-center gap-2 rounded-full border border-border/70 bg-secondary/50 py-1 pl-1 pr-3 sm:inline-flex">
-                  <span className="grid h-6 w-6 place-items-center rounded-full bg-gradient-to-br from-primary to-accent text-[10px] font-semibold uppercase text-primary-foreground">
+                <div className="group hidden items-center gap-2 rounded-full border border-border/70 bg-gradient-to-b from-secondary/60 to-secondary/30 py-1 pl-1 pr-3 shadow-sm transition-all hover:border-accent/40 hover:shadow-md sm:inline-flex">
+                  <span className="relative grid h-7 w-7 place-items-center rounded-full bg-gradient-to-br from-primary via-primary-glow to-accent text-[11px] font-semibold uppercase text-primary-foreground shadow-[0_0_0_2px_var(--background),0_4px_10px_-2px_color-mix(in_oklch,var(--accent)_45%,transparent)]">
                     {(user.email ?? "?").slice(0, 1)}
+                    <span className="absolute -bottom-0 -right-0 h-2 w-2 rounded-full bg-accent ring-2 ring-background" />
                   </span>
-                  <span className="text-xs text-muted-foreground">{user.email}</span>
+                  <span className="max-w-[160px] truncate text-xs font-medium text-foreground/80">{user.email}</span>
                 </div>
-                <Button variant="ghost" size="sm" onClick={signOut} className="rounded-full">
-                  <LogOut className="mr-1 h-4 w-4" /> {t("nav.signout")}
+                <Button variant="ghost" size="sm" onClick={signOut} className="rounded-full text-muted-foreground hover:bg-destructive/10 hover:text-destructive">
+                  <LogOut className="mr-1 h-4 w-4" /> <span className="hidden sm:inline">{t("nav.signout")}</span>
                 </Button>
               </>
             ) : (
-              <Button asChild size="sm" className="rounded-full shadow-[var(--shadow-elegant)]">
-                <Link to="/auth">{t("nav.signin")}</Link>
+              <Button asChild size="sm" className="group rounded-full bg-gradient-to-b from-primary to-primary/90 shadow-[var(--shadow-elegant)] transition-all hover:shadow-[0_10px_30px_-8px_color-mix(in_oklch,var(--primary)_50%,transparent)]">
+                <Link to="/auth">
+                  {t("nav.signin")}
+                  <span className="ml-1.5 inline-block transition-transform group-hover:translate-x-0.5">→</span>
+                </Link>
               </Button>
             )}
           </div>
