@@ -63,7 +63,7 @@ function AdminConsole() {
     onError: (e) => toast.error((e as Error).message),
   });
 
-  const gmv = sessions.reduce((sum, s) => sum + s.priceCents, 0);
+  const gmv = sessions.reduce((sum, s) => sum + s.amountCents, 0);
   const orgs = usersQ.data?.[0]?.orgs ?? [];
 
   return (
