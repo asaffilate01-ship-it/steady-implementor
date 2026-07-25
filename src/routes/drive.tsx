@@ -17,11 +17,14 @@ import {
   useStartSession,
   useEndSession,
   useExtendSession,
+  useMyPayments,
+  useReservations,
+  useCancelReservation,
   useRealtimeSync,
   type Site,
   type Session,
 } from "@/lib/parkpunkt-db";
-import { MapPin, Search, Zap, Clock, Car, ArrowLeft, CreditCard, CheckCircle2, Timer, Check, LogIn } from "lucide-react";
+import { MapPin, Search, Zap, Clock, Car, ArrowLeft, CreditCard, CheckCircle2, Timer, Check, LogIn, Receipt, CalendarClock, X as XIcon } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { toast } from "sonner";
 
@@ -54,7 +57,7 @@ const DESTINATIONS: Record<string, { lat: number; lng: number }> = {
 
 function DriverApp() {
   const [screen, setScreen] = useState<Screen>({ name: "search" });
-  useRealtimeSync(["sites", "sessions"]);
+  useRealtimeSync(["sites", "sessions", "payments", "reservations"]);
   const { data: allSessions = [] } = useSessions();
   const active = allSessions.filter((x) => x.status === "active");
 
@@ -177,6 +180,67 @@ function SearchScreen({ onSearch, activeSessions, activeSession, openActive }: {
           </div>
         </CardContent>
       </Card>
+      <HistoryPanel />
+    </div>
+  );
+}
+
+function HistoryPanel() {
+  const { t } = useI18n();
+  const { data: payments = [] } = useMyPayments();
+  const { data: reservations = [] } = useReservations();
+  const { data: sites = [] } = useSites();
+  const cancel = useCancelReservation();
+  const upcoming = reservations.filter((r) => r.status === "confirmed" && new Date(r.ends_at).getTime() > Date.now());
+  if (payments.length === 0 && upcoming.length === 0) return null;
+  return (
+    <div className="grid gap-4 md:grid-cols-2">
+      {upcoming.length > 0 && (
+        <Card>
+          <CardHeader><CardTitle className="flex items-center gap-2 text-base"><CalendarClock className="h-4 w-4" />{t("drive.upcoming")}</CardTitle></CardHeader>
+          <CardContent className="space-y-2 text-sm">
+            {upcoming.map((r) => {
+              const site = sites.find((s) => s.id === r.site_id);
+              return (
+                <div key={r.id} className="flex items-center justify-between rounded-md border border-border p-2">
+                  <div>
+                    <div className="font-medium">{site?.name ?? r.site_id.slice(0,8)}</div>
+                    <div className="text-xs text-muted-foreground">{new Date(r.starts_at).toLocaleString()} · <span className="font-mono">{r.plate}</span></div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="text-sm font-medium">{euros(r.price_cents)}</div>
+                    <Button size="sm" variant="ghost" onClick={() => cancel.mutate(r.id)}><XIcon className="h-3 w-3" /></Button>
+                  </div>
+                </div>
+              );
+            })}
+          </CardContent>
+        </Card>
+      )}
+      {payments.length > 0 && (
+        <Card>
+          <CardHeader><CardTitle className="flex items-center gap-2 text-base"><Receipt className="h-4 w-4" />{t("drive.history")}</CardTitle></CardHeader>
+          <CardContent>
+            <div className="divide-y divide-border text-sm">
+              {payments.slice(0, 6).map((p) => {
+                const site = sites.find((s) => s.id === p.site_id);
+                return (
+                  <div key={p.id} className="flex items-center justify-between py-2">
+                    <div>
+                      <div className="font-medium">{p.description ?? "Payment"}</div>
+                      <div className="text-xs text-muted-foreground">{site?.name ?? "—"} · {new Date(p.created_at).toLocaleDateString()}</div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline" className="capitalize">{p.method}</Badge>
+                      <div className="font-medium">{euros(p.amount_cents)}</div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
