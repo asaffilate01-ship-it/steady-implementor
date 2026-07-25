@@ -1,0 +1,132 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { z } from "zod";
+
+const inputSchema = z.object({
+  lat: z.number().min(-90).max(90),
+  lng: z.number().min(-180).max(180),
+  duration_minutes: z.number().int().min(5).max(24 * 60).default(60),
+  radius_m: z.number().int().min(50).max(50_000).default(5_000),
+  max_results: z.number().int().min(1).max(50).default(10),
+});
+
+const CORS_HEADERS = {
+  "access-control-allow-origin": "*",
+  "access-control-allow-methods": "POST, OPTIONS",
+  "access-control-allow-headers": "authorization, content-type, apikey",
+  "content-type": "application/json",
+};
+
+const RATE_LIMIT_PER_MIN = 60;
+
+async function sha256Hex(input: string): Promise<string> {
+  const buf = new TextEncoder().encode(input);
+  const digest = await crypto.subtle.digest("SHA-256", buf);
+  return Array.from(new Uint8Array(digest)).map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+function haversineKm(a: { lat: number; lng: number }, b: { lat: number; lng: number }) {
+  const R = 6371;
+  const dLat = ((b.lat - a.lat) * Math.PI) / 180;
+  const dLng = ((b.lng - a.lng) * Math.PI) / 180;
+  const s =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos((a.lat * Math.PI) / 180) * Math.cos((b.lat * Math.PI) / 180) * Math.sin(dLng / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(s));
+}
+
+export const Route = createFileRoute("/api/public/v1/orchestrate/quote")({
+  server: {
+    handlers: {
+      OPTIONS: async () => new Response(null, { status: 204, headers: CORS_HEADERS }),
+      POST: async ({ request }) => {
+        const started = Date.now();
+        const authHeader = request.headers.get("authorization") ?? "";
+        const bearer = authHeader.toLowerCase().startsWith("bearer ") ? authHeader.slice(7).trim() : "";
+        if (!bearer.startsWith("pk_")) {
+          return json({ error: "Missing or invalid Bearer token. Expected 'Authorization: Bearer pk_…'." }, 401);
+        }
+
+        // Load admin client to look up the key (RLS-bypass; we only reveal safe fields).
+        const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+        const key_hash = await sha256Hex(bearer);
+        const { data: keyRow } = await supabaseAdmin
+          .from("api_keys").select("id, revoked_at, scopes").eq("key_hash", key_hash).maybeSingle();
+        if (!keyRow || keyRow.revoked_at) {
+          await logRequest(null, "/api/public/v1/orchestrate/quote", 401, Date.now() - started);
+          return json({ error: "Invalid or revoked API key." }, 401);
+        }
+        if (!(keyRow.scopes ?? []).includes("orchestrate:quote")) {
+          await logRequest(keyRow.id, "/api/public/v1/orchestrate/quote", 403, Date.now() - started);
+          return json({ error: "Key lacks scope 'orchestrate:quote'." }, 403);
+        }
+
+        // Rate limit: 60/min per key (rolling)
+        const since = new Date(Date.now() - 60_000).toISOString();
+        const { count } = await supabaseAdmin.from("api_request_log").select("id", { count: "exact", head: true })
+          .eq("api_key_id", keyRow.id).gte("created_at", since);
+        if ((count ?? 0) >= RATE_LIMIT_PER_MIN) {
+          await logRequest(keyRow.id, "/api/public/v1/orchestrate/quote", 429, Date.now() - started);
+          return json({ error: "Rate limit exceeded (60/min)." }, 429);
+        }
+
+        // Parse & validate body
+        let body: unknown;
+        try { body = await request.json(); } catch { body = {}; }
+        const parsed = inputSchema.safeParse(body);
+        if (!parsed.success) {
+          await logRequest(keyRow.id, "/api/public/v1/orchestrate/quote", 400, Date.now() - started);
+          return json({ error: "Invalid input", details: parsed.error.flatten() }, 400);
+        }
+        const q = parsed.data;
+
+        // Load candidate sites (all — dataset is small; filter in JS)
+        const { data: sites, error } = await supabaseAdmin.from("sites")
+          .select("id, name, address, lat, lng, capacity, occupied, price_cents_per_hour, type, operator_name");
+        if (error) {
+          await logRequest(keyRow.id, "/api/public/v1/orchestrate/quote", 500, Date.now() - started);
+          return json({ error: error.message }, 500);
+        }
+
+        const results = (sites ?? [])
+          .map((s) => {
+            const distance_km = haversineKm({ lat: q.lat, lng: q.lng }, { lat: s.lat, lng: s.lng });
+            return {
+              site_id: s.id,
+              name: s.name,
+              address: s.address,
+              operator: s.operator_name,
+              type: s.type,
+              distance_m: Math.round(distance_km * 1000),
+              available: Math.max(0, s.capacity - s.occupied),
+              capacity: s.capacity,
+              quote: {
+                amount_cents: Math.round((s.price_cents_per_hour * q.duration_minutes) / 60),
+                price_cents_per_hour: s.price_cents_per_hour,
+                currency: "EUR",
+              },
+            };
+          })
+          .filter((s) => s.distance_m <= q.radius_m && s.available > 0)
+          .sort((a, b) => a.distance_m - b.distance_m)
+          .slice(0, q.max_results);
+
+        // Update last_used_at + log
+        await supabaseAdmin.from("api_keys").update({ last_used_at: new Date().toISOString() }).eq("id", keyRow.id);
+        await logRequest(keyRow.id, "/api/public/v1/orchestrate/quote", 200, Date.now() - started);
+
+        return json({ query: q, count: results.length, results });
+      },
+    },
+  },
+});
+
+function json(body: unknown, status = 200) {
+  return new Response(JSON.stringify(body), { status, headers: CORS_HEADERS });
+}
+
+async function logRequest(api_key_id: string | null, path: string, status: number, latency_ms: number) {
+  try {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    await supabaseAdmin.from("api_request_log").insert({ api_key_id, path, status, latency_ms });
+  } catch { /* best-effort */ }
+}
