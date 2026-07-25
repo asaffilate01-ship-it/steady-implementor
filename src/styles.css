@@ -152,4 +152,12 @@
     background-color: var(--color-background);
     color: var(--color-foreground);
   }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  :target {
+    scroll-margin-top: 8rem;
+  }
 }
