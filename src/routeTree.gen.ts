@@ -12,7 +12,6 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as ProviderRouteImport } from './routes/provider'
 import { Route as OperatorRouteImport } from './routes/operator'
 import { Route as EnforcementRouteImport } from './routes/enforcement'
-import { Route as DriverRouteImport } from './routes/driver'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 
@@ -31,11 +30,6 @@ const EnforcementRoute = EnforcementRouteImport.update({
   path: '/enforcement',
   getParentRoute: () => rootRouteImport,
 } as any)
-const DriverRoute = DriverRouteImport.update({
-  id: '/driver',
-  path: '/driver',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AdminRoute = AdminRouteImport.update({
   id: '/admin',
   path: '/admin',
@@ -50,7 +44,6 @@ const IndexRoute = IndexRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
-  '/driver': typeof DriverRoute
   '/enforcement': typeof EnforcementRoute
   '/operator': typeof OperatorRoute
   '/provider': typeof ProviderRoute
@@ -58,7 +51,6 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
-  '/driver': typeof DriverRoute
   '/enforcement': typeof EnforcementRoute
   '/operator': typeof OperatorRoute
   '/provider': typeof ProviderRoute
@@ -67,36 +59,21 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
-  '/driver': typeof DriverRoute
   '/enforcement': typeof EnforcementRoute
   '/operator': typeof OperatorRoute
   '/provider': typeof ProviderRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths:
-    | '/'
-    | '/admin'
-    | '/driver'
-    | '/enforcement'
-    | '/operator'
-    | '/provider'
+  fullPaths: '/' | '/admin' | '/enforcement' | '/operator' | '/provider'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/admin' | '/driver' | '/enforcement' | '/operator' | '/provider'
-  id:
-    | '__root__'
-    | '/'
-    | '/admin'
-    | '/driver'
-    | '/enforcement'
-    | '/operator'
-    | '/provider'
+  to: '/' | '/admin' | '/enforcement' | '/operator' | '/provider'
+  id: '__root__' | '/' | '/admin' | '/enforcement' | '/operator' | '/provider'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRoute
-  DriverRoute: typeof DriverRoute
   EnforcementRoute: typeof EnforcementRoute
   OperatorRoute: typeof OperatorRoute
   ProviderRoute: typeof ProviderRoute
@@ -125,13 +102,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EnforcementRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/driver': {
-      id: '/driver'
-      path: '/driver'
-      fullPath: '/driver'
-      preLoaderRoute: typeof DriverRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/admin': {
       id: '/admin'
       path: '/admin'
@@ -152,7 +122,6 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRoute,
-  DriverRoute: DriverRoute,
   EnforcementRoute: EnforcementRoute,
   OperatorRoute: OperatorRoute,
   ProviderRoute: ProviderRoute,

@@ -4,8 +4,7 @@ import { cn } from "@/lib/utils";
 import type { ReactNode } from "react";
 
 const NAV = [
-  { to: "/", label: "Home" },
-  { to: "/driver", label: "Driver" },
+  { to: "/", label: "Driver" },
   { to: "/operator", label: "Operator" },
   { to: "/provider", label: "Provider Hub" },
   { to: "/enforcement", label: "Enforcement" },
