@@ -17,6 +17,20 @@ import {
   Zap,
   BarChart3,
   Lock,
+  Smartphone,
+  Server,
+  Database,
+  Globe2,
+  Bell,
+  FileCheck2,
+  Landmark,
+  Wallet,
+  Radio,
+  Workflow,
+  ScrollText,
+  ShieldCheck,
+  Cpu,
+  Boxes,
 } from "lucide-react";
 
 export const Route = createFileRoute("/")({
@@ -47,13 +61,22 @@ function Index() {
       <Nav />
       <Hero />
       <Stakeholders />
+      <PlatformStructure />
+      <DeliveryStages />
+      <MVPCapabilities />
       <DriverFlow />
       <ProviderOrchestration />
       <ANPRSection />
       <PaymentRoutes />
       <OperatorSuite />
+      <Municipality />
       <Enforcement />
+      <ProviderHub />
       <Architecture />
+      <DesignSystem />
+      <Notifications />
+      <SecurityGDPR />
+      <TestingCICD />
       <SuperAdmin />
       <BuildOrder />
       <CTA />
@@ -678,5 +701,668 @@ function Footer() {
         </div>
       </div>
     </footer>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Additional spec sections sourced verbatim from the ParkPunkt brief */
+/* ------------------------------------------------------------------ */
+
+function SpecHeader({
+  eyebrow,
+  title,
+  lead,
+}: {
+  eyebrow: string;
+  title: string;
+  lead?: string;
+}) {
+  return (
+    <div className="max-w-3xl mb-12">
+      <div className="inline-flex items-center gap-2 rounded-full border border-border bg-secondary/60 px-3 py-1 text-xs font-medium text-primary">
+        {eyebrow}
+      </div>
+      <h2 className="mt-4 text-3xl md:text-4xl font-semibold tracking-tight text-foreground">
+        {title}
+      </h2>
+      {lead && (
+        <p className="mt-4 text-base md:text-lg text-muted-foreground leading-relaxed">
+          {lead}
+        </p>
+      )}
+    </div>
+  );
+}
+
+function PlatformStructure() {
+  const groups = [
+    {
+      icon: Smartphone,
+      title: "Customer applications",
+      items: [
+        "Native iOS application",
+        "Native Android application",
+        "Responsive customer web application",
+        "Public parking search website",
+      ],
+    },
+    {
+      icon: Building2,
+      title: "Business applications",
+      items: [
+        "ParkPunkt Business portal",
+        "Fleet-manager dashboard",
+        "Employee parking interface",
+        "Accountant and expense-review portal",
+      ],
+    },
+    {
+      icon: Boxes,
+      title: "Supply-side applications",
+      items: [
+        "Parking-operator portal",
+        "Private-space owner portal",
+        "Hotel, venue and retailer portal",
+        "Equipment-partner portal",
+      ],
+    },
+    {
+      icon: Landmark,
+      title: "Public-sector applications",
+      items: [
+        "Municipality portal",
+        "Enforcement officer application",
+        "Permit-management portal",
+        "Transport-planning and analytics portal",
+      ],
+    },
+    {
+      icon: Server,
+      title: "Internal applications",
+      items: [
+        "ParkPunkt super-admin portal",
+        "Customer-support workspace",
+        "Finance and settlement workspace",
+        "Provider-integration monitoring centre",
+        "Compliance and GDPR workspace",
+        "Fraud and risk dashboard",
+      ],
+    },
+    {
+      icon: Workflow,
+      title: "Integration products",
+      items: [
+        "ParkPunkt Connect provider hub",
+        "ParkPunkt public API",
+        "Partner webhooks",
+        "White-label SDK",
+        "Embedded parking widgets",
+      ],
+    },
+  ];
+  return (
+    <section id="platform" className="py-20 md:py-28 bg-secondary/30 border-y border-border">
+      <div className="mx-auto max-w-7xl px-6">
+        <SpecHeader
+          eyebrow="1. Final platform structure"
+          title="27 applications, one shared spine"
+          lead="Every application shares the same identity, organisation, tariff, session, ledger, provider-adapter, audit and notification systems from day one."
+        />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {groups.map((g) => (
+            <div
+              key={g.title}
+              className="rounded-2xl bg-card border border-border p-6 shadow-[var(--shadow-soft)]"
+            >
+              <div className="flex items-center gap-3 mb-4">
+                <div className="h-10 w-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+                  <g.icon className="h-5 w-5" />
+                </div>
+                <h3 className="text-base font-semibold text-foreground">{g.title}</h3>
+              </div>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                {g.items.map((it) => (
+                  <li key={it} className="flex gap-2">
+                    <CheckCircle2 className="h-4 w-4 mt-0.5 text-accent shrink-0" />
+                    <span>{it}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function DeliveryStages() {
+  const stages = [
+    {
+      n: "Stage 1",
+      title: "Discovery and reservation platform",
+      cap: "Search, provider hand-off and private bookings",
+    },
+    {
+      n: "Stage 2",
+      title: "Business parking platform",
+      cap: "Fleet, expenses, receipts and policies",
+    },
+    {
+      n: "Stage 3",
+      title: "Integrated parking platform",
+      cap: "Direct provider APIs and account linking",
+    },
+    {
+      n: "Stage 4",
+      title: "Access-control platform",
+      cap: "ANPR, QR, barriers and automatic exit",
+    },
+    {
+      n: "Stage 5",
+      title: "Municipal platform",
+      cap: "Zones, tariffs, permits and enforcement",
+    },
+    {
+      n: "Stage 6",
+      title: "National parking ecosystem",
+      cap: "Broad provider and city interoperability",
+    },
+  ];
+  return (
+    <section id="stages" className="py-20 md:py-28">
+      <div className="mx-auto max-w-7xl px-6">
+        <SpecHeader
+          eyebrow="2. Recommended delivery strategy"
+          title="Six commercial stages, one architecture"
+          lead="Do not attempt nationwide direct payment integration before launch. Build ParkPunkt in six commercial stages — each one usable in production, each one building on the shared spine so the MVP never becomes disposable software."
+        />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {stages.map((s, i) => (
+            <div
+              key={s.n}
+              className="relative rounded-2xl border border-border bg-card p-6"
+            >
+              <div className="text-xs font-mono text-accent">{s.n}</div>
+              <div className="mt-2 text-lg font-semibold text-foreground">{s.title}</div>
+              <div className="mt-2 text-sm text-muted-foreground">{s.cap}</div>
+              <div className="absolute top-6 right-6 h-8 w-8 rounded-full bg-primary/10 text-primary flex items-center justify-center text-sm font-semibold">
+                {i + 1}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function MVPCapabilities() {
+  const driver = [
+    "Register and sign in",
+    "Add vehicles",
+    "Search for parking",
+    "See street and private parking locations",
+    "View tariffs and restrictions",
+    "Open an existing provider application through a deep link",
+    "Reserve ParkPunkt-managed private parking",
+    "Pay for ParkPunkt-managed bookings",
+    "Receive confirmation and QR access",
+    "View parking history",
+    "Download receipts",
+    "Contact support",
+  ];
+  const operator = [
+    "Register an organisation",
+    "Add a parking site",
+    "Add spaces and capacity",
+    "Configure opening hours",
+    "Configure tariffs",
+    "Configure access (QR / PIN / gate)",
+    "Publish location",
+    "Receive bookings and settlements",
+    "Manage cancellations and refunds",
+    "View occupancy and revenue",
+  ];
+  return (
+    <section id="mvp" className="py-20 md:py-28 bg-secondary/30 border-y border-border">
+      <div className="mx-auto max-w-7xl px-6">
+        <SpecHeader
+          eyebrow="3. Stage 1 — Commercial MVP"
+          title="A useful app without waiting for every provider"
+          lead="Stage 1 launches a useful driver product plus real supply-side operator tools, without waiting for every large parking provider to offer transactional API access."
+        />
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="rounded-2xl border border-border bg-card p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <Car className="h-5 w-5 text-accent" />
+              <h3 className="text-lg font-semibold">Driver</h3>
+            </div>
+            <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-muted-foreground">
+              {driver.map((d) => (
+                <li key={d} className="flex gap-2">
+                  <CheckCircle2 className="h-4 w-4 mt-0.5 text-accent shrink-0" />
+                  <span>{d}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div className="rounded-2xl border border-border bg-card p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <Building2 className="h-5 w-5 text-primary" />
+              <h3 className="text-lg font-semibold">Operator</h3>
+            </div>
+            <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-muted-foreground">
+              {operator.map((d) => (
+                <li key={d} className="flex gap-2">
+                  <CheckCircle2 className="h-4 w-4 mt-0.5 text-primary shrink-0" />
+                  <span>{d}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function Municipality() {
+  const modules = [
+    "Dashboard","Zones","Tariffs","Operating hours","Providers","Parking rights",
+    "Revenue","Permits","Exemptions","Enforcement","Appeals evidence","Occupancy",
+    "Events","Reports","Open data","Audit","Settings",
+  ];
+  const permits = [
+    "Resident","Visitor","Business","Contractor","Healthcare","Disabled",
+    "Hotel","Event","Temporary works","Delivery","Municipal employee","Monthly car park",
+  ];
+  const zoneFlow = [
+    "Create zone → Draw boundary → Assign code",
+    "Set operating hours",
+    "Assign tariff",
+    "Set maximum stay",
+    "Configure vehicle rules",
+    "Configure exemptions",
+    "Select payment providers",
+    "Link enforcement area",
+    "Test → Schedule publication",
+  ];
+  return (
+    <section id="municipality" className="py-20 md:py-28">
+      <div className="mx-auto max-w-7xl px-6">
+        <SpecHeader
+          eyebrow="25–27. Municipality platform"
+          title="Zones, permits and enforcement — one connected surface"
+          lead="Cities onboard through a defined lifecycle: commercial agreement, zone/tariff/permit import, provider mapping, enforcement integration, test sessions, reconciliation and staff training before go-live."
+        />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="rounded-2xl border border-border bg-card p-6">
+            <div className="flex items-center gap-2 mb-4 text-primary">
+              <Landmark className="h-5 w-5" />
+              <h3 className="font-semibold">Municipality modules</h3>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {modules.map((m) => (
+                <span key={m} className="text-xs rounded-full bg-secondary px-3 py-1 border border-border text-foreground">
+                  {m}
+                </span>
+              ))}
+            </div>
+          </div>
+          <div className="rounded-2xl border border-border bg-card p-6">
+            <div className="flex items-center gap-2 mb-4 text-primary">
+              <Workflow className="h-5 w-5" />
+              <h3 className="font-semibold">Zone-management flow</h3>
+            </div>
+            <ol className="space-y-2 text-sm text-muted-foreground list-decimal list-inside">
+              {zoneFlow.map((s) => <li key={s}>{s}</li>)}
+            </ol>
+          </div>
+          <div className="rounded-2xl border border-border bg-card p-6">
+            <div className="flex items-center gap-2 mb-4 text-primary">
+              <FileCheck2 className="h-5 w-5" />
+              <h3 className="font-semibold">Permit types</h3>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {permits.map((p) => (
+                <span key={p} className="text-xs rounded-full bg-accent/10 text-accent px-3 py-1 border border-accent/30">
+                  {p}
+                </span>
+              ))}
+            </div>
+            <p className="mt-4 text-xs text-muted-foreground">
+              Status: draft → submitted → under_review → more_information_required → approved → active → suspended → expired → revoked → rejected.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function ProviderHub() {
+  const methods = [
+    "get_locations(search)",
+    "get_location(external_id)",
+    "get_tariff(request)",
+    "get_availability(external_id)",
+    "start_session(request, idempotency_key)",
+    "extend_session(request, idempotency_key)",
+    "stop_session(request, idempotency_key)",
+    "get_session(external_session_id)",
+    "create_reservation(request, idempotency_key)",
+    "cancel_reservation(external_id)",
+    "refund(request, idempotency_key)",
+    "verify_parking_right(registration, zone)",
+  ];
+  const adapters = [
+    "Direct API adapter",
+    "Smart-platform adapter",
+    "File-feed adapter",
+    "Webhook adapter",
+    "Deep-link adapter",
+    "Manual operator adapter",
+    "White-label operator adapter",
+  ];
+  const capabilities = [
+    "locations","tariffs","live_availability","start","extend","stop",
+    "reservation","cancellation","refund","account_linking",
+    "anpr","barrier","enforcement","receipts","webhooks",
+  ];
+  const lifecycle = [
+    "prospect","commercial_review","technical_review","sandbox","certification",
+    "production_pending","live","degraded","suspended","terminated",
+  ];
+  return (
+    <section id="hub" className="py-20 md:py-28 bg-secondary/30 border-y border-border">
+      <div className="mx-auto max-w-7xl px-6">
+        <SpecHeader
+          eyebrow="29–31. Provider-integration hub"
+          title="One adapter interface. Every provider isolated."
+          lead="The integration hub isolates provider-specific behaviour behind a single Python adapter contract with idempotency keys, signed webhooks, replay protection and dead-letter queues."
+        />
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="rounded-2xl border border-border bg-[#0b1220] text-[#e6edf3] p-6 font-mono text-xs leading-relaxed overflow-x-auto">
+            <div className="text-[#7ee787]">class ParkingProviderAdapter:</div>
+            {methods.map((m) => (
+              <div key={m} className="pl-4">
+                <span className="text-[#79c0ff]">async def</span> {m}: <span className="text-[#8b949e]">...</span>
+              </div>
+            ))}
+          </div>
+          <div className="space-y-6">
+            <div className="rounded-2xl border border-border bg-card p-6">
+              <h3 className="font-semibold mb-3 flex items-center gap-2 text-primary">
+                <Radio className="h-5 w-5" /> Adapter types
+              </h3>
+              <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-muted-foreground">
+                {adapters.map((a) => (
+                  <li key={a} className="flex gap-2">
+                    <CheckCircle2 className="h-4 w-4 mt-0.5 text-accent shrink-0" />{a}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className="rounded-2xl border border-border bg-card p-6">
+              <h3 className="font-semibold mb-3">Provider capability matrix</h3>
+              <div className="flex flex-wrap gap-2">
+                {capabilities.map((c) => (
+                  <span key={c} className="text-xs font-mono rounded bg-secondary px-2 py-1 border border-border">
+                    {c}
+                  </span>
+                ))}
+              </div>
+            </div>
+            <div className="rounded-2xl border border-border bg-card p-6">
+              <h3 className="font-semibold mb-3">Provider lifecycle</h3>
+              <div className="flex flex-wrap gap-2">
+                {lifecycle.map((l) => (
+                  <span key={l} className="text-xs font-mono rounded-full bg-primary/10 text-primary px-3 py-1">
+                    {l}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function DesignSystem() {
+  const palette = [
+    { name: "Navy", hex: "#0B3B73", role: "Navigation, trust, primary structure" },
+    { name: "Green", hex: "#00A85A", role: "Availability, confirmation, active status" },
+    { name: "Background", hex: "#F6F8FA", role: "App background" },
+    { name: "Surface", hex: "#FFFFFF", role: "Cards and sheets" },
+    { name: "Main text", hex: "#16202A", role: "Body copy" },
+    { name: "Muted text", hex: "#667085", role: "Secondary copy" },
+    { name: "Border", hex: "#E4E7EC", role: "Dividers" },
+    { name: "Warning", hex: "#F59E0B", role: "Limited availability / caution" },
+    { name: "Error", hex: "#D92D20", role: "Unavailable or failure" },
+  ];
+  const type = [
+    ["Large title", "32–36"],
+    ["Page title", "24–28"],
+    ["Section heading", "18–20"],
+    ["Body", "15–17"],
+    ["Caption", "12–14"],
+    ["Button", "16"],
+  ];
+  const components = [
+    "Map search bar","Parking marker","Availability badge","Parking result card",
+    "Vehicle selector","Tariff card","Price breakdown","Active-session card",
+    "Timer","Provider badge","QR credential","Receipt card","Filter chips",
+    "Bottom sheet","Status pill","Empty state","Error state","Skeleton loader",
+    "Timeline","Audit row","KPI card","Data table",
+  ];
+  const nav = ["Park", "Bookings", "Activity", "Account"];
+  return (
+    <section id="design" className="py-20 md:py-28">
+      <div className="mx-auto max-w-7xl px-6">
+        <SpecHeader
+          eyebrow="37–42. ParkPunkt UI & UX system"
+          title="One design system across every surface"
+          lead="Do not use green for every primary action. Navy communicates trust and structure; green is reserved for availability, confirmation and active status."
+        />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="rounded-2xl border border-border bg-card p-6 lg:col-span-2">
+            <h3 className="font-semibold mb-4">Primary palette</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {palette.map((p) => (
+                <div key={p.name} className="flex items-center gap-3 rounded-xl border border-border p-3">
+                  <div
+                    className="h-10 w-10 rounded-lg border border-border shrink-0"
+                    style={{ background: p.hex }}
+                  />
+                  <div className="min-w-0">
+                    <div className="text-sm font-semibold text-foreground flex items-center gap-2">
+                      {p.name} <span className="font-mono text-xs text-muted-foreground">{p.hex}</span>
+                    </div>
+                    <div className="text-xs text-muted-foreground truncate">{p.role}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="space-y-6">
+            <div className="rounded-2xl border border-border bg-card p-6">
+              <h3 className="font-semibold mb-3">Typography</h3>
+              <ul className="text-sm text-muted-foreground divide-y divide-border">
+                {type.map(([k, v]) => (
+                  <li key={k} className="flex justify-between py-1.5">
+                    <span>{k}</span><span className="font-mono text-foreground">{v}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className="rounded-2xl border border-border bg-card p-6">
+              <h3 className="font-semibold mb-3">Bottom navigation</h3>
+              <div className="grid grid-cols-4 gap-2 text-center">
+                {nav.map((n) => (
+                  <div key={n} className="rounded-xl bg-secondary border border-border py-3 text-xs font-medium">
+                    {n}
+                  </div>
+                ))}
+              </div>
+              <p className="mt-3 text-xs text-muted-foreground">
+                When a session is active, the middle button becomes <span className="text-accent font-medium">● Active</span>.
+              </p>
+            </div>
+          </div>
+        </div>
+        <div className="mt-6 rounded-2xl border border-border bg-card p-6">
+          <h3 className="font-semibold mb-3">Core components</h3>
+          <div className="flex flex-wrap gap-2">
+            {components.map((c) => (
+              <span key={c} className="text-xs rounded-full border border-border bg-secondary px-3 py-1">
+                {c}
+              </span>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function Notifications() {
+  const groups = [
+    { title: "Driver", items: ["Session confirmed","Session rejected","Expiry warning","Maximum stay","Extension confirmed","Payment failed","Reservation reminder","Entry detected","Exit detected","Receipt ready"] },
+    { title: "Operator", items: ["New booking","Cancellation","Barrier offline","Camera offline","Low availability","Refund request","Settlement ready"] },
+    { title: "Business", items: ["Approval request","Policy breach","Budget threshold","Failed company payment","Missing receipt"] },
+    { title: "Municipality", items: ["Provider outage","Enforcement outage","Reconciliation difference","Zone nearing capacity"] },
+  ];
+  return (
+    <section id="notifications" className="py-20 md:py-28 bg-secondary/30 border-y border-border">
+      <div className="mx-auto max-w-7xl px-6">
+        <SpecHeader
+          eyebrow="44. Notification service"
+          title="Push, email, SMS, portal and partner webhooks"
+          lead="One notification service with dedicated channels per audience — SMS reserved for critical events, webhooks for partner integrations."
+        />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {groups.map((g) => (
+            <div key={g.title} className="rounded-2xl border border-border bg-card p-6">
+              <div className="flex items-center gap-2 mb-3 text-primary">
+                <Bell className="h-4 w-4" />
+                <h3 className="font-semibold">{g.title}</h3>
+              </div>
+              <ul className="text-sm text-muted-foreground space-y-1.5">
+                {g.items.map((i) => <li key={i}>· {i}</li>)}
+              </ul>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function SecurityGDPR() {
+  const controls = [
+    "TLS everywhere","JWT validation","Least privilege","Encrypted storage",
+    "Secrets manager","Key rotation","Web application firewall","Rate limiting",
+    "Device session revocation","Security monitoring","Penetration testing",
+    "Dependency scanning","Container scanning","Database backups","Disaster recovery",
+  ];
+  const gdpr = [
+    "Privacy notices","Controller/processor mapping","Data-processing agreements",
+    "DPIA","Consent register","Retention schedule","Access request","Correction request",
+    "Deletion request","Portability export","Breach procedure","Restricted staff access",
+    "Camera retention rules","Location minimisation","Data anonymisation for analytics",
+  ];
+  return (
+    <section id="security" className="py-20 md:py-28">
+      <div className="mx-auto max-w-7xl px-6">
+        <SpecHeader
+          eyebrow="48 & 50. Security and GDPR"
+          title="Built for regulated public-sector deployment"
+          lead="ParkPunkt processes registration plates, location, payment references and camera images. Every environment is separated end-to-end — production provider credentials never appear in test."
+        />
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="rounded-2xl border border-border bg-card p-6">
+            <div className="flex items-center gap-2 mb-4 text-primary">
+              <ShieldCheck className="h-5 w-5" />
+              <h3 className="font-semibold">Core security controls</h3>
+            </div>
+            <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-muted-foreground">
+              {controls.map((c) => (
+                <li key={c} className="flex gap-2"><Lock className="h-4 w-4 mt-0.5 text-primary shrink-0" />{c}</li>
+              ))}
+            </ul>
+          </div>
+          <div className="rounded-2xl border border-border bg-card p-6">
+            <div className="flex items-center gap-2 mb-4 text-accent">
+              <ScrollText className="h-5 w-5" />
+              <h3 className="font-semibold">GDPR operational controls</h3>
+            </div>
+            <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-muted-foreground">
+              {gdpr.map((c) => (
+                <li key={c} className="flex gap-2"><CheckCircle2 className="h-4 w-4 mt-0.5 text-accent shrink-0" />{c}</li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function TestingCICD() {
+  const pipeline = [
+    "Developer commit","Formatting","Linting","Type checking",
+    "Unit tests","Security scan","Build","Integration tests",
+    "Deploy to staging","End-to-end tests","Manual approval",
+    "Production deployment","Health checks",
+  ];
+  const monitoring = [
+    "API latency","API error rate","Provider latency","Provider success rate",
+    "Payment success","Session-start success","Session-stop success","Webhook delay",
+    "Queue backlog","Barrier latency","ANPR accuracy","Enforcement lookup time",
+    "Mobile crash rate","Support tickets per 1,000 sessions",
+  ];
+  return (
+    <section id="cicd" className="py-20 md:py-28 bg-secondary/30 border-y border-border">
+      <div className="mx-auto max-w-7xl px-6">
+        <SpecHeader
+          eyebrow="52–54. Testing, CI/CD and monitoring"
+          title="Every commit reaches production the same way"
+          lead="Unit, integration, end-to-end, failure and security testing feed a single pipeline with feature flags, migration checks, blue/green deploys and automated rollback."
+        />
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="rounded-2xl border border-border bg-card p-6">
+            <div className="flex items-center gap-2 mb-4 text-primary">
+              <Cpu className="h-5 w-5" />
+              <h3 className="font-semibold">CI/CD pipeline</h3>
+            </div>
+            <ol className="space-y-2 text-sm text-muted-foreground">
+              {pipeline.map((p, i) => (
+                <li key={p} className="flex gap-3">
+                  <span className="w-6 text-right font-mono text-primary">{i + 1}.</span>
+                  <span>{p}</span>
+                </li>
+              ))}
+            </ol>
+          </div>
+          <div className="rounded-2xl border border-border bg-card p-6">
+            <div className="flex items-center gap-2 mb-4 text-accent">
+              <BarChart3 className="h-5 w-5" />
+              <h3 className="font-semibold">Continuous monitoring</h3>
+            </div>
+            <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-muted-foreground">
+              {monitoring.map((m) => (
+                <li key={m} className="flex gap-2"><Gauge className="h-4 w-4 mt-0.5 text-accent shrink-0" />{m}</li>
+              ))}
+            </ul>
+            <div className="mt-4 rounded-xl bg-secondary border border-border p-3 text-xs text-muted-foreground">
+              Alerts fire when: provider failure rate &gt; 5%, payment failures above baseline, webhook backlog &gt; 2 min, barrier response &gt; 3 s, enforcement query &gt; 2 s, session-confirmation uncertainty spikes.
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
   );
 }
