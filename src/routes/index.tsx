@@ -61,13 +61,22 @@ function Index() {
       <Nav />
       <Hero />
       <Stakeholders />
+      <PlatformStructure />
+      <DeliveryStages />
+      <MVPCapabilities />
       <DriverFlow />
       <ProviderOrchestration />
       <ANPRSection />
       <PaymentRoutes />
       <OperatorSuite />
+      <Municipality />
       <Enforcement />
+      <ProviderHub />
       <Architecture />
+      <DesignSystem />
+      <Notifications />
+      <SecurityGDPR />
+      <TestingCICD />
       <SuperAdmin />
       <BuildOrder />
       <CTA />
