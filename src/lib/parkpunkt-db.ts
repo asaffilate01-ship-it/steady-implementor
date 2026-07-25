@@ -343,7 +343,7 @@ export function useCancelReservation() {
 }
 
 /** Subscribe to realtime changes on the given tables and invalidate matching queries. */
-export function useRealtimeSync(tables: Array<"sites" | "sessions" | "notices">) {
+export function useRealtimeSync(tables: Array<"sites" | "sessions" | "notices" | "payments" | "reservations">) {
   const qc = useQueryClient();
   useEffect(() => {
     const chan = supabase.channel("pp-live");
