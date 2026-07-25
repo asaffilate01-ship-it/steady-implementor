@@ -803,7 +803,7 @@ function PlatformStructure() {
   return (
     <section id="platform" className="py-20 md:py-28 bg-secondary/30 border-y border-border">
       <div className="mx-auto max-w-7xl px-6">
-        <SectionHeader
+        <SpecHeader
           eyebrow="1. Final platform structure"
           title="27 applications, one shared spine"
           lead="Every application shares the same identity, organisation, tariff, session, ledger, provider-adapter, audit and notification systems from day one."
@@ -872,7 +872,7 @@ function DeliveryStages() {
   return (
     <section id="stages" className="py-20 md:py-28">
       <div className="mx-auto max-w-7xl px-6">
-        <SectionHeader
+        <SpecHeader
           eyebrow="2. Recommended delivery strategy"
           title="Six commercial stages, one architecture"
           lead="Do not attempt nationwide direct payment integration before launch. Build ParkPunkt in six commercial stages — each one usable in production, each one building on the shared spine so the MVP never becomes disposable software."
@@ -927,7 +927,7 @@ function MVPCapabilities() {
   return (
     <section id="mvp" className="py-20 md:py-28 bg-secondary/30 border-y border-border">
       <div className="mx-auto max-w-7xl px-6">
-        <SectionHeader
+        <SpecHeader
           eyebrow="3. Stage 1 — Commercial MVP"
           title="A useful app without waiting for every provider"
           lead="Stage 1 launches a useful driver product plus real supply-side operator tools, without waiting for every large parking provider to offer transactional API access."
@@ -991,7 +991,7 @@ function Municipality() {
   return (
     <section id="municipality" className="py-20 md:py-28">
       <div className="mx-auto max-w-7xl px-6">
-        <SectionHeader
+        <SpecHeader
           eyebrow="25–27. Municipality platform"
           title="Zones, permits and enforcement — one connected surface"
           lead="Cities onboard through a defined lifecycle: commercial agreement, zone/tariff/permit import, provider mapping, enforcement integration, test sessions, reconciliation and staff training before go-live."
@@ -1077,7 +1077,7 @@ function ProviderHub() {
   return (
     <section id="hub" className="py-20 md:py-28 bg-secondary/30 border-y border-border">
       <div className="mx-auto max-w-7xl px-6">
-        <SectionHeader
+        <SpecHeader
           eyebrow="29–31. Provider-integration hub"
           title="One adapter interface. Every provider isolated."
           lead="The integration hub isolates provider-specific behaviour behind a single Python adapter contract with idempotency keys, signed webhooks, replay protection and dead-letter queues."
@@ -1162,7 +1162,7 @@ function DesignSystem() {
   return (
     <section id="design" className="py-20 md:py-28">
       <div className="mx-auto max-w-7xl px-6">
-        <SectionHeader
+        <SpecHeader
           eyebrow="37–42. ParkPunkt UI & UX system"
           title="One design system across every surface"
           lead="Do not use green for every primary action. Navy communicates trust and structure; green is reserved for availability, confirmation and active status."
@@ -1238,7 +1238,7 @@ function Notifications() {
   return (
     <section id="notifications" className="py-20 md:py-28 bg-secondary/30 border-y border-border">
       <div className="mx-auto max-w-7xl px-6">
-        <SectionHeader
+        <SpecHeader
           eyebrow="44. Notification service"
           title="Push, email, SMS, portal and partner webhooks"
           lead="One notification service with dedicated channels per audience — SMS reserved for critical events, webhooks for partner integrations."
@@ -1277,7 +1277,7 @@ function SecurityGDPR() {
   return (
     <section id="security" className="py-20 md:py-28">
       <div className="mx-auto max-w-7xl px-6">
-        <SectionHeader
+        <SpecHeader
           eyebrow="48 & 50. Security and GDPR"
           title="Built for regulated public-sector deployment"
           lead="ParkPunkt processes registration plates, location, payment references and camera images. Every environment is separated end-to-end — production provider credentials never appear in test."
@@ -1327,7 +1327,7 @@ function TestingCICD() {
   return (
     <section id="cicd" className="py-20 md:py-28 bg-secondary/30 border-y border-border">
       <div className="mx-auto max-w-7xl px-6">
-        <SectionHeader
+        <SpecHeader
           eyebrow="52–54. Testing, CI/CD and monitoring"
           title="Every commit reaches production the same way"
           lead="Unit, integration, end-to-end, failure and security testing feed a single pipeline with feature flags, migration checks, blue/green deploys and automated rollback."
