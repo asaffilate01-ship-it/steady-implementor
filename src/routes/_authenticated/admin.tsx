@@ -12,6 +12,7 @@ import { listUsersWithRolesFn, grantRoleFn, revokeRoleFn, type AppRole } from "@
 import { useStore, euros } from "@/lib/parkpunkt-data";
 import { toast } from "sonner";
 import { Shield, ShieldCheck, X, Loader2 } from "lucide-react";
+import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   head: () => ({
@@ -42,6 +43,7 @@ function AdminConsole() {
   const sites = useStore((s) => s.sites);
   const sessions = useStore((s) => s.sessions);
   const notices = useStore((s) => s.notices);
+  const { t } = useI18n();
   const listUsers = useServerFn(listUsersWithRolesFn);
   const grant = useServerFn(grantRoleFn);
   const revoke = useServerFn(revokeRoleFn);
@@ -54,12 +56,12 @@ function AdminConsole() {
 
   const grantM = useMutation({
     mutationFn: (v: { target_user_id: string; role: AppRole; org_id: string | null }) => grant({ data: v }),
-    onSuccess: () => { toast.success("Role granted"); qc.invalidateQueries({ queryKey: ["admin-users"] }); },
+    onSuccess: () => { toast.success(t("adm.granted")); qc.invalidateQueries({ queryKey: ["admin-users"] }); },
     onError: (e) => toast.error((e as Error).message),
   });
   const revokeM = useMutation({
     mutationFn: (v: { target_user_id: string; role: AppRole }) => revoke({ data: v }),
-    onSuccess: () => { toast.success("Role revoked"); qc.invalidateQueries({ queryKey: ["admin-users"] }); },
+    onSuccess: () => { toast.success(t("adm.revoked")); qc.invalidateQueries({ queryKey: ["admin-users"] }); },
     onError: (e) => toast.error((e as Error).message),
   });
 
@@ -68,25 +70,25 @@ function AdminConsole() {
 
   return (
     <div className="mx-auto max-w-7xl space-y-6 px-4 py-6">
-      <div><h1 className="text-2xl font-semibold tracking-tight">Admin console</h1><p className="text-sm text-muted-foreground">Platform-wide oversight, users and role assignment.</p></div>
+      <div><h1 className="text-2xl font-semibold tracking-tight">{t("adm.title")}</h1><p className="text-sm text-muted-foreground">{t("adm.sub")}</p></div>
 
       <div className="grid gap-4 md:grid-cols-4">
-        <Stat label="Sites" value={sites.length} />
-        <Stat label="Sessions" value={sessions.length} />
-        <Stat label="Notices" value={notices.length} />
-        <Stat label="GMV (session revenue)" value={euros(gmv)} />
+        <Stat label={t("adm.kpi.sites")} value={sites.length} />
+        <Stat label={t("adm.kpi.sessions")} value={sessions.length} />
+        <Stat label={t("adm.kpi.notices")} value={notices.length} />
+        <Stat label={t("adm.kpi.gmv")} value={euros(gmv)} />
       </div>
 
       <Card>
-        <CardHeader><CardTitle className="flex items-center gap-2"><Shield className="h-4 w-4" /> Users & roles</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="flex items-center gap-2"><Shield className="h-4 w-4" /> {t("adm.users")}</CardTitle></CardHeader>
         <CardContent>
-          {usersQ.isLoading && <div className="flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" /> Loading users…</div>}
+          {usersQ.isLoading && <div className="flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" /> {t("adm.loading")}</div>}
           {usersQ.error && <div className="text-sm text-destructive">{(usersQ.error as Error).message}</div>}
           {usersQ.data && (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead className="text-left text-xs uppercase text-muted-foreground">
-                  <tr><th className="py-2">User</th><th>Roles</th><th className="w-[380px]">Grant role</th></tr>
+                  <tr><th className="py-2">{t("adm.col.user")}</th><th>{t("adm.col.roles")}</th><th className="w-[380px]">{t("adm.col.grant")}</th></tr>
                 </thead>
                 <tbody className="divide-y divide-border">
                   {usersQ.data.map((u) => (
@@ -107,7 +109,7 @@ function AdminConsole() {
       </Card>
 
       <Card>
-        <CardHeader><CardTitle>Organizations</CardTitle></CardHeader>
+        <CardHeader><CardTitle>{t("adm.orgs")}</CardTitle></CardHeader>
         <CardContent>
           <div className="grid gap-2 md:grid-cols-2">
             {orgs.map((o) => (
@@ -116,7 +118,7 @@ function AdminConsole() {
                 <Badge variant="outline" className="capitalize">{o.kind}</Badge>
               </div>
             ))}
-            {orgs.length === 0 && <div className="text-sm text-muted-foreground">No organizations.</div>}
+            {orgs.length === 0 && <div className="text-sm text-muted-foreground">{t("adm.orgs.empty")}</div>}
           </div>
         </CardContent>
       </Card>
@@ -143,6 +145,7 @@ function UserRow({
 }) {
   const [role, setRole] = useState<AppRole>("operator");
   const [orgId, setOrgId] = useState<string>("__none");
+  const { t } = useI18n();
   return (
     <tr>
       <td className="py-3 align-top">
@@ -151,11 +154,11 @@ function UserRow({
       </td>
       <td className="py-3 align-top">
         <div className="flex flex-wrap gap-1">
-          {user.roles.length === 0 && <span className="text-xs text-muted-foreground">no roles</span>}
+          {user.roles.length === 0 && <span className="text-xs text-muted-foreground">{t("adm.noRoles")}</span>}
           {user.roles.map((r) => (
             <Badge key={r.role} variant="secondary" className="flex items-center gap-1">
               <ShieldCheck className="h-3 w-3" />{r.role}
-              <button className="ml-1 rounded hover:bg-destructive/20" disabled={pending} onClick={() => onRevoke(r.role)} aria-label={`Revoke ${r.role}`}>
+              <button className="ml-1 rounded hover:bg-destructive/20" disabled={pending} onClick={() => onRevoke(r.role)} aria-label={`${t("adm.revoke")} ${r.role}`}>
                 <X className="h-3 w-3" />
               </button>
             </Badge>
@@ -169,13 +172,13 @@ function UserRow({
             <SelectContent>{ROLES.map((r) => <SelectItem key={r} value={r}>{r}</SelectItem>)}</SelectContent>
           </Select>
           <Select value={orgId} onValueChange={setOrgId}>
-            <SelectTrigger className="w-[180px]"><SelectValue placeholder="Org (optional)" /></SelectTrigger>
+            <SelectTrigger className="w-[180px]"><SelectValue placeholder={t("adm.orgOptional")} /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="__none">— no org —</SelectItem>
+              <SelectItem value="__none">{t("adm.noOrg")}</SelectItem>
               {orgs.map((o) => <SelectItem key={o.id} value={o.id}>{o.name}</SelectItem>)}
             </SelectContent>
           </Select>
-          <Button size="sm" disabled={pending} onClick={() => onGrant(role, orgId === "__none" ? null : orgId)}>Grant</Button>
+          <Button size="sm" disabled={pending} onClick={() => onGrant(role, orgId === "__none" ? null : orgId)}>{t("adm.grant")}</Button>
         </div>
       </td>
     </tr>

@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { store, useStore, euros } from "@/lib/parkpunkt-data";
 import { Camera, CheckCircle2, AlertTriangle, FileWarning } from "lucide-react";
 import { RoleGate } from "@/components/RoleGate";
+import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/_authenticated/enforcement")({
   head: () => ({
@@ -34,9 +35,10 @@ function EnforcementGated() {
 }
 
 function EnforcementApp() {
+  const { t } = useI18n();
   const [plate, setPlate] = useState("");
   const [siteId, setSiteId] = useState("S001");
-  const [reason, setReason] = useState("No valid session");
+  const [reason, setReason] = useState(t("enf.reason.default"));
   const [amount, setAmount] = useState(35);
   const [scan, setScan] = useState<{ status: "unknown" | "valid" | "invalid"; sessionId?: string } | null>(null);
 
@@ -55,45 +57,45 @@ function EnforcementApp() {
 
   return (
       <div className="mx-auto max-w-5xl space-y-6 px-4 py-6">
-        <div><h1 className="text-2xl font-semibold tracking-tight">Enforcement</h1><p className="text-sm text-muted-foreground">ANPR-assisted plate verification and notice issuance.</p></div>
+        <div><h1 className="text-2xl font-semibold tracking-tight">{t("enf.title")}</h1><p className="text-sm text-muted-foreground">{t("enf.sub")}</p></div>
 
         <div className="grid gap-6 md:grid-cols-2">
           <Card>
-            <CardHeader><CardTitle className="flex items-center gap-2"><Camera className="h-4 w-4"/>Plate scanner</CardTitle></CardHeader>
+            <CardHeader><CardTitle className="flex items-center gap-2"><Camera className="h-4 w-4"/>{t("enf.scanner")}</CardTitle></CardHeader>
             <CardContent className="space-y-3">
-              <Field label="Site">
+              <Field label={t("enf.site")}>
                 <Select value={siteId} onValueChange={setSiteId}><SelectTrigger><SelectValue/></SelectTrigger><SelectContent>{sites.map((s) => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}</SelectContent></Select>
               </Field>
-              <Field label="Plate (ANPR capture)">
-                <div className="flex gap-2"><Input value={plate} onChange={(e) => setPlate(e.target.value)} placeholder="e.g. B-PP 2026" className="font-mono uppercase"/><Button onClick={runScan}>Scan</Button></div>
+              <Field label={t("enf.plate")}>
+                <div className="flex gap-2"><Input value={plate} onChange={(e) => setPlate(e.target.value)} placeholder="e.g. B-PP 2026" className="font-mono uppercase"/><Button onClick={runScan}>{t("enf.scan")}</Button></div>
               </Field>
               {scan && (
                 scan.status === "valid" ? (
-                  <div className="flex items-center gap-2 rounded-md border border-accent/40 bg-accent/10 p-3 text-sm"><CheckCircle2 className="h-5 w-5 text-accent"/><div>Valid session <span className="font-mono">{scan.sessionId}</span> at {currentSite?.name}.</div></div>
+                  <div className="flex items-center gap-2 rounded-md border border-accent/40 bg-accent/10 p-3 text-sm"><CheckCircle2 className="h-5 w-5 text-accent"/><div>{t("enf.valid")} <span className="font-mono">{scan.sessionId}</span> {t("enf.at")} {currentSite?.name}.</div></div>
                 ) : (
-                  <div className="flex items-center gap-2 rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm"><AlertTriangle className="h-5 w-5 text-destructive"/><div>No active session for this plate at {currentSite?.name}.</div></div>
+                  <div className="flex items-center gap-2 rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm"><AlertTriangle className="h-5 w-5 text-destructive"/><div>{t("enf.invalid")} {currentSite?.name}.</div></div>
                 )
               )}
             </CardContent>
           </Card>
 
           <Card>
-            <CardHeader><CardTitle className="flex items-center gap-2"><FileWarning className="h-4 w-4"/>Issue notice</CardTitle></CardHeader>
+            <CardHeader><CardTitle className="flex items-center gap-2"><FileWarning className="h-4 w-4"/>{t("enf.issue")}</CardTitle></CardHeader>
             <CardContent className="space-y-3">
-              <Field label="Reason"><Input value={reason} onChange={(e) => setReason(e.target.value)}/></Field>
-              <Field label="Amount (€)"><Input type="number" value={amount} onChange={(e) => setAmount(parseFloat(e.target.value)||0)}/></Field>
+              <Field label={t("enf.reason")}><Input value={reason} onChange={(e) => setReason(e.target.value)}/></Field>
+              <Field label={t("enf.amount")}><Input type="number" value={amount} onChange={(e) => setAmount(parseFloat(e.target.value)||0)}/></Field>
               <Button variant="destructive" className="w-full" disabled={!plate || scan?.status === "valid"} onClick={() => { store.issueNotice(plate.toUpperCase(), siteId, reason, amount); setPlate(""); setScan(null); }}>
-                Issue notice
+                {t("enf.issue")}
               </Button>
-              {scan?.status === "valid" && <p className="text-xs text-muted-foreground">Notice disabled — plate has a valid session.</p>}
+              {scan?.status === "valid" && <p className="text-xs text-muted-foreground">{t("enf.disabled")}</p>}
             </CardContent>
           </Card>
         </div>
 
         <Card>
-          <CardHeader><CardTitle>Recent notices ({notices.length})</CardTitle></CardHeader>
+          <CardHeader><CardTitle>{t("enf.recent")} ({notices.length})</CardTitle></CardHeader>
           <CardContent>
-            {notices.length === 0 && <div className="text-sm text-muted-foreground">No notices issued yet.</div>}
+            {notices.length === 0 && <div className="text-sm text-muted-foreground">{t("enf.empty")}</div>}
             <div className="divide-y divide-border">
               {notices.map((n) => {
                 const s = sites.find((x) => x.id === n.siteId);
