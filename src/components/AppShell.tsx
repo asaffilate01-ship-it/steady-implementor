@@ -53,9 +53,9 @@ export function AppShell({ children, anchors }: { children: ReactNode; anchors?:
       </a>
       <header className="sticky top-0 z-40 border-b border-border/60 bg-background/80 backdrop-blur-xl supports-[backdrop-filter]:bg-background/70">
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-accent/40 to-transparent" />
-        <div className="mx-auto flex h-16 max-w-7xl items-center gap-4 px-4 md:h-30">
+        <div className="mx-auto flex h-20 max-w-7xl items-center gap-4 px-4 md:h-28">
           <Link to="/" className="group flex items-center gap-2" aria-label="ParkPunkt — home">
-            <img src={logoAsset.url} alt="ParkPunkt" className="h-10 w-auto transition-transform group-hover:scale-105 md:h-26" />
+            <img src={logoAsset.url} alt="ParkPunkt" className="h-10 w-auto transition-transform group-hover:scale-105 md:h-24" />
           </Link>
 
           {anchors && anchors.length > 0 && (
