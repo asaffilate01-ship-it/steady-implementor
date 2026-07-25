@@ -25,6 +25,7 @@ import { Route as AuthenticatedProviderRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedOperatorRouteImport } from './routes/_authenticated/operator'
 import { Route as AuthenticatedEnforcementRouteImport } from './routes/_authenticated/enforcement'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
+import { Route as ApiPublicV1OrchestrateQuoteRouteImport } from './routes/api/public/v1/orchestrate/quote'
 
 const DriveRoute = DriveRouteImport.update({
   id: '/drive',
@@ -106,6 +107,12 @@ const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   path: '/admin',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const ApiPublicV1OrchestrateQuoteRoute =
+  ApiPublicV1OrchestrateQuoteRouteImport.update({
+    id: '/api/public/v1/orchestrate/quote',
+    path: '/api/public/v1/orchestrate/quote',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -123,6 +130,7 @@ export interface FileRoutesByFullPath {
   '/legal/privacy': typeof LegalPrivacyRoute
   '/legal/terms': typeof LegalTermsRoute
   '/blog/': typeof BlogIndexRoute
+  '/api/public/v1/orchestrate/quote': typeof ApiPublicV1OrchestrateQuoteRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -140,6 +148,7 @@ export interface FileRoutesByTo {
   '/legal/privacy': typeof LegalPrivacyRoute
   '/legal/terms': typeof LegalTermsRoute
   '/blog': typeof BlogIndexRoute
+  '/api/public/v1/orchestrate/quote': typeof ApiPublicV1OrchestrateQuoteRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -159,6 +168,7 @@ export interface FileRoutesById {
   '/legal/privacy': typeof LegalPrivacyRoute
   '/legal/terms': typeof LegalTermsRoute
   '/blog/': typeof BlogIndexRoute
+  '/api/public/v1/orchestrate/quote': typeof ApiPublicV1OrchestrateQuoteRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -178,6 +188,7 @@ export interface FileRouteTypes {
     | '/legal/privacy'
     | '/legal/terms'
     | '/blog/'
+    | '/api/public/v1/orchestrate/quote'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -195,6 +206,7 @@ export interface FileRouteTypes {
     | '/legal/privacy'
     | '/legal/terms'
     | '/blog'
+    | '/api/public/v1/orchestrate/quote'
   id:
     | '__root__'
     | '/'
@@ -213,6 +225,7 @@ export interface FileRouteTypes {
     | '/legal/privacy'
     | '/legal/terms'
     | '/blog/'
+    | '/api/public/v1/orchestrate/quote'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -228,6 +241,7 @@ export interface RootRouteChildren {
   LegalPrivacyRoute: typeof LegalPrivacyRoute
   LegalTermsRoute: typeof LegalTermsRoute
   BlogIndexRoute: typeof BlogIndexRoute
+  ApiPublicV1OrchestrateQuoteRoute: typeof ApiPublicV1OrchestrateQuoteRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -344,6 +358,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/public/v1/orchestrate/quote': {
+      id: '/api/public/v1/orchestrate/quote'
+      path: '/api/public/v1/orchestrate/quote'
+      fullPath: '/api/public/v1/orchestrate/quote'
+      preLoaderRoute: typeof ApiPublicV1OrchestrateQuoteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -377,6 +398,7 @@ const rootRouteChildren: RootRouteChildren = {
   LegalPrivacyRoute: LegalPrivacyRoute,
   LegalTermsRoute: LegalTermsRoute,
   BlogIndexRoute: BlogIndexRoute,
+  ApiPublicV1OrchestrateQuoteRoute: ApiPublicV1OrchestrateQuoteRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
