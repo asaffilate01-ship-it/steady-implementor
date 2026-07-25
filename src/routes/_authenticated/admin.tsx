@@ -131,6 +131,7 @@ function AdminConsole() {
       </Card>
 
       <ProvidersAdmin />
+      <CommissionAdmin />
     </div>
   );
 }
