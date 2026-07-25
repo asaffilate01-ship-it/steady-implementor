@@ -17,6 +17,20 @@ import {
   Zap,
   BarChart3,
   Lock,
+  Smartphone,
+  Server,
+  Database,
+  Globe2,
+  Bell,
+  FileCheck2,
+  Landmark,
+  Wallet,
+  Radio,
+  Workflow,
+  ScrollText,
+  ShieldCheck,
+  Cpu,
+  Boxes,
 } from "lucide-react";
 
 export const Route = createFileRoute("/")({
