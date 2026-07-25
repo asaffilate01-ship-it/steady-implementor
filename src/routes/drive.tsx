@@ -11,7 +11,7 @@ import { Slider } from "@/components/ui/slider";
 import { store, useStore, euros, haversineKm, type Site } from "@/lib/parkpunkt-data";
 import { MapPin, Search, Zap, Clock, Car, ArrowLeft, CreditCard, CheckCircle2, Timer } from "lucide-react";
 
-export const Route = createFileRoute("/")({
+export const Route = createFileRoute("/drive")({
   head: () => ({
     meta: [
       { title: "ParkPunkt — Finden. Parken. Bezahlen." },

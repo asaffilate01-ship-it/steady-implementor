@@ -9,14 +9,19 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as DriveRouteImport } from './routes/drive'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
-import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedProviderRouteImport } from './routes/_authenticated/provider'
 import { Route as AuthenticatedOperatorRouteImport } from './routes/_authenticated/operator'
 import { Route as AuthenticatedEnforcementRouteImport } from './routes/_authenticated/enforcement'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 
+const DriveRoute = DriveRouteImport.update({
+  id: '/drive',
+  path: '/drive',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
@@ -24,11 +29,6 @@ const AuthRoute = AuthRouteImport.update({
 } as any)
 const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedProviderRoute = AuthenticatedProviderRouteImport.update({
@@ -54,16 +54,18 @@ const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
+  '/': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/drive': typeof DriveRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/enforcement': typeof AuthenticatedEnforcementRoute
   '/operator': typeof AuthenticatedOperatorRoute
   '/provider': typeof AuthenticatedProviderRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
+  '/': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/drive': typeof DriveRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/enforcement': typeof AuthenticatedEnforcementRoute
   '/operator': typeof AuthenticatedOperatorRoute
@@ -71,9 +73,9 @@ export interface FileRoutesByTo {
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/drive': typeof DriveRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/enforcement': typeof AuthenticatedEnforcementRoute
   '/_authenticated/operator': typeof AuthenticatedOperatorRoute
@@ -84,17 +86,25 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/drive'
     | '/admin'
     | '/enforcement'
     | '/operator'
     | '/provider'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/admin' | '/enforcement' | '/operator' | '/provider'
+  to:
+    | '/'
+    | '/auth'
+    | '/drive'
+    | '/admin'
+    | '/enforcement'
+    | '/operator'
+    | '/provider'
   id:
     | '__root__'
-    | '/'
     | '/_authenticated'
     | '/auth'
+    | '/drive'
     | '/_authenticated/admin'
     | '/_authenticated/enforcement'
     | '/_authenticated/operator'
@@ -102,13 +112,20 @@ export interface FileRouteTypes {
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  DriveRoute: typeof DriveRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/drive': {
+      id: '/drive'
+      path: '/drive'
+      fullPath: '/drive'
+      preLoaderRoute: typeof DriveRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/auth': {
       id: '/auth'
       path: '/auth'
@@ -121,13 +138,6 @@ declare module '@tanstack/react-router' {
       path: ''
       fullPath: '/'
       preLoaderRoute: typeof AuthenticatedRouteRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/provider': {
@@ -179,20 +189,10 @@ const AuthenticatedRouteRouteWithChildren =
   AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  DriveRoute: DriveRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
