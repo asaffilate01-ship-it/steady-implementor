@@ -47,7 +47,6 @@ function Landing() {
   return (
     <AppShell
       anchors={[
-        { href: "#stakeholders", labelKey: "nav.forwhom" },
         { href: "#capabilities", labelKey: "nav.capabilities" },
         { href: "#how", labelKey: "nav.how" },
         { href: "#features", labelKey: "nav.platform" },
