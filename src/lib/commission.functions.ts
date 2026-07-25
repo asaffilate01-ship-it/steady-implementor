@@ -10,6 +10,16 @@ async function assertAdmin(context: { supabase: import("@supabase/supabase-js").
   if (!data) throw new Error("Forbidden");
 }
 
+export const listOrgsFn = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertAdmin(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data, error } = await supabaseAdmin.from("orgs").select("*").order("name");
+    if (error) throw new Error(error.message);
+    return data ?? [];
+  });
+
 const updateOrgCommissionSchema = z.object({
   org_id: z.string().uuid(),
   platform_fee_bps: z.number().int().min(0).max(10000),
