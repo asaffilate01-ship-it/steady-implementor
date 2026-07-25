@@ -87,26 +87,34 @@ export const Route = createFileRoute("/api/public/v1/orchestrate/quote")({
           return json({ error: error.message }, 500);
         }
 
-        const results = (sites ?? [])
-          .map((s) => {
-            const distance_km = haversineKm({ lat: q.lat, lng: q.lng }, { lat: s.lat, lng: s.lng });
-            return {
-              site_id: s.id,
-              name: s.name,
-              address: s.address,
-              operator: s.operator_name,
-              type: s.type,
-              distance_m: Math.round(distance_km * 1000),
-              available: Math.max(0, s.capacity - s.occupied),
-              capacity: s.capacity,
-              quote: {
-                amount_cents: Math.round((s.price_cents_per_hour * q.duration_minutes) / 60),
-                price_cents_per_hour: s.price_cents_per_hour,
-                currency: "EUR",
-              },
-            };
-          })
-          .filter((s) => s.distance_m <= q.radius_m && s.available > 0)
+        const results = await Promise.all(
+          (sites ?? [])
+            .map(async (s) => {
+              const distance_km = haversineKm({ lat: q.lat, lng: q.lng }, { lat: s.lat, lng: s.lng });
+              const amount_cents = Math.round((s.price_cents_per_hour * q.duration_minutes) / 60);
+              const split = await calculateFeeSplit(supabaseAdmin, s.id, amount_cents);
+              return {
+                site_id: s.id,
+                name: s.name,
+                address: s.address,
+                operator: s.operator_name,
+                type: s.type,
+                distance_m: Math.round(distance_km * 1000),
+                available: Math.max(0, s.capacity - s.occupied),
+                capacity: s.capacity,
+                quote: {
+                  amount_cents,
+                  price_cents_per_hour: s.price_cents_per_hour,
+                  currency: "EUR",
+                  platform_fee_cents: split.platform_fee_cents,
+                  operator_net_cents: split.operator_net_cents,
+                },
+              };
+            })
+            .filter(async (p) => (await p).distance_m <= q.radius_m && (await p).available > 0)
+        );
+
+        const sorted = results
           .sort((a, b) => a.distance_m - b.distance_m)
           .slice(0, q.max_results);
 
@@ -114,7 +122,7 @@ export const Route = createFileRoute("/api/public/v1/orchestrate/quote")({
         await supabaseAdmin.from("api_keys").update({ last_used_at: new Date().toISOString() }).eq("id", keyRow.id);
         await logRequest(keyRow.id, "/api/public/v1/orchestrate/quote", 200, Date.now() - started);
 
-        return json({ query: q, count: results.length, results });
+        return json({ query: q, count: sorted.length, results: sorted });
       },
     },
   },
