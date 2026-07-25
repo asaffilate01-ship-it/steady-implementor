@@ -398,10 +398,6 @@ function DetailScreen({ siteId, onBack, onBooked }: { siteId: string; onBack: ()
 }
 
 function ActiveScreen({ sessionId, onDone }: { sessionId: string; onDone: () => void }) {
-  return <ActiveScreenInner sessionId={sessionId} onDone={onDone} />;
-}
-
-function ActiveScreenInner({ sessionId, onDone }: { sessionId: string; onDone: () => void }) {
   const { data: sessions = [] } = useSessions();
   const session = sessions.find((x) => x.id === sessionId);
   const { data: sites = [] } = useSites();
