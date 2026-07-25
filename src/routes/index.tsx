@@ -248,7 +248,7 @@ function HowItWorks() {
 }
 
 const FEATURES = [
-  { icon: Radar, title: "ANPR & barrier control", body: "Plate-in / plate-out events wire directly into sessions and enforcement.", tint: "from-[oklch(0.72_0.17_148)] to-[oklch(0.5_0.14_160)]" },
+  { icon: Radar, title: "On-street & barrier coverage", body: "Works for kerbside bays, barrier-less lots, and ANPR-gated garages — one flow for drivers, one dashboard for operators.", tint: "from-[oklch(0.72_0.17_148)] to-[oklch(0.5_0.14_160)]" },
   { icon: CreditCard, title: "Payment orchestration", body: "External wallets or marketplace settlement — pick the route per operator.", tint: "from-[oklch(0.68_0.16_220)] to-[oklch(0.42_0.14_260)]" },
   { icon: ShieldCheck, title: "GDPR by design", body: "Role-based access, RLS, and full audit trails for every session and grant.", tint: "from-[oklch(0.72_0.15_170)] to-[oklch(0.48_0.13_195)]" },
   { icon: BarChart3, title: "Operator analytics", body: "Live occupancy, tariff performance, and GMV across every site.", tint: "from-[oklch(0.72_0.15_300)] to-[oklch(0.48_0.16_290)]" },
