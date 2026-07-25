@@ -182,7 +182,7 @@ const DICT = {
     "op.payout.fee": "Platform fee",
     "op.payout.net": "Net to operator",
     "op.payout.request": "Request payout",
-    "op.revenue14.hint": "Stacked bars show gross (total) vs. net (after ParkPunkt fee) per day across your sites.",
+    
 
     "prov.title": "Provider Hub",
     "prov.sub": "Real-time inventory feed and orchestration API sandbox.",
@@ -521,7 +521,7 @@ const DICT = {
     "op.payout.fee": "Plattformgebühr",
     "op.payout.net": "Netto an Betreiber",
     "op.payout.request": "Auszahlung beantragen",
-    "op.revenue14.hint": "Gestapelte Balken zeigen Brutto (Gesamt) vs. Netto (nach ParkPunkt-Gebühr) pro Tag über alle Standorte.",
+    
 
     "prov.title": "Anbieter-Hub",
     "prov.sub": "Echtzeit-Inventarfeed und Sandbox für die Orchestrierungs-API.",
