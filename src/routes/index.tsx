@@ -177,10 +177,10 @@ function HeroVisual() {
 function Stakeholders() {
   const { t } = useI18n();
   const items = [
-    { icon: Car, key: "driver", href: "/drive" },
-    { icon: Building2, key: "operator", href: "/operator" },
-    { icon: Radar, key: "enforce", href: "/enforcement" },
-    { icon: BarChart3, key: "provider", href: "/provider" },
+    { icon: Car, key: "driver", href: "/drive", tint: "from-[oklch(0.72_0.17_148)] to-[oklch(0.55_0.14_160)]" },
+    { icon: Building2, key: "operator", href: "/operator", tint: "from-[oklch(0.62_0.17_255)] to-[oklch(0.42_0.14_260)]" },
+    { icon: Radar, key: "enforce", href: "/enforcement", tint: "from-[oklch(0.72_0.17_35)] to-[oklch(0.52_0.16_25)]" },
+    { icon: BarChart3, key: "provider", href: "/provider", tint: "from-[oklch(0.72_0.15_300)] to-[oklch(0.48_0.16_290)]" },
   ] as const;
   return (
     <section id="stakeholders" className="border-t border-border/60 bg-secondary/40 py-20">
@@ -190,16 +190,20 @@ function Stakeholders() {
           <p className="mt-3 text-muted-foreground">{t("home.stake.sub")}</p>
         </div>
         <div className="mt-10 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {items.map((s) => (
-            <div key={s.key} className="group relative flex flex-col overflow-hidden rounded-2xl border border-border bg-card p-6 transition-all hover:-translate-y-1 hover:border-accent/50 hover:shadow-[var(--shadow-soft)]">
-              <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full opacity-0 blur-2xl transition-opacity group-hover:opacity-40" style={{ background: "var(--gradient-brand)" }} />
-              <div className="grid h-12 w-12 place-items-center rounded-xl bg-gradient-to-br from-primary/15 to-accent/15 text-primary">
-                <s.icon className="h-6 w-6" />
+          {items.map((s, i) => (
+            <div key={s.key} className="group relative flex flex-col overflow-hidden rounded-2xl border border-border bg-card p-6 transition-all duration-300 hover:-translate-y-1.5 hover:border-accent/60 hover:shadow-[var(--shadow-elegant)]">
+              <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full opacity-0 blur-3xl transition-opacity duration-500 group-hover:opacity-60" style={{ background: "var(--gradient-brand)" }} />
+              <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-accent/60 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
+              <div className="relative">
+                <div className={`grid h-14 w-14 place-items-center rounded-2xl bg-gradient-to-br ${s.tint} text-white shadow-lg shadow-primary/25 ring-1 ring-white/20 transition-transform duration-300 group-hover:scale-105 group-hover:-rotate-3`}>
+                  <s.icon className="h-7 w-7 drop-shadow" />
+                </div>
+                <span className="absolute -right-1 -top-2 rounded-full bg-background/80 px-2 py-0.5 font-mono text-[10px] tracking-widest text-muted-foreground ring-1 ring-border">0{i + 1}</span>
               </div>
-              <h3 className="mt-4 text-lg font-semibold">{t(`home.stake.${s.key}.title` as never)}</h3>
-              <p className="mt-2 flex-1 text-sm text-muted-foreground">{t(`home.stake.${s.key}.body` as never)}</p>
-              <Link to={s.href} className="mt-4 inline-flex items-center text-sm font-medium text-accent hover:underline">
-                {t(`home.stake.${s.key}.cta` as never)} <ArrowRight className="ml-1 h-4 w-4" />
+              <h3 className="mt-5 text-lg font-semibold tracking-tight">{t(`home.stake.${s.key}.title` as never)}</h3>
+              <p className="mt-2 flex-1 text-sm leading-relaxed text-muted-foreground">{t(`home.stake.${s.key}.body` as never)}</p>
+              <Link to={s.href} className="mt-5 inline-flex items-center gap-1.5 text-sm font-medium text-accent transition-all group-hover:gap-2.5">
+                {t(`home.stake.${s.key}.cta` as never)} <ArrowRight className="h-4 w-4" />
               </Link>
             </div>
           ))}
@@ -244,12 +248,12 @@ function HowItWorks() {
 }
 
 const FEATURES = [
-  { icon: Radar, title: "ANPR & barrier control", body: "Plate-in / plate-out events wire directly into sessions and enforcement." },
-  { icon: CreditCard, title: "Payment orchestration", body: "External wallets or marketplace settlement — pick the route per operator." },
-  { icon: ShieldCheck, title: "GDPR by design", body: "Role-based access, RLS, and full audit trails for every session and grant." },
-  { icon: BarChart3, title: "Operator analytics", body: "Live occupancy, tariff performance, and GMV across every site." },
-  { icon: Building2, title: "Multi-tenant orgs", body: "Operators and providers stay isolated with per-org data and permissions." },
-  { icon: Zap, title: "Provider API", body: "Standard REST orchestration for quote, book, extend and end operations." },
+  { icon: Radar, title: "ANPR & barrier control", body: "Plate-in / plate-out events wire directly into sessions and enforcement.", tint: "from-[oklch(0.72_0.17_148)] to-[oklch(0.5_0.14_160)]" },
+  { icon: CreditCard, title: "Payment orchestration", body: "External wallets or marketplace settlement — pick the route per operator.", tint: "from-[oklch(0.68_0.16_220)] to-[oklch(0.42_0.14_260)]" },
+  { icon: ShieldCheck, title: "GDPR by design", body: "Role-based access, RLS, and full audit trails for every session and grant.", tint: "from-[oklch(0.72_0.15_170)] to-[oklch(0.48_0.13_195)]" },
+  { icon: BarChart3, title: "Operator analytics", body: "Live occupancy, tariff performance, and GMV across every site.", tint: "from-[oklch(0.72_0.15_300)] to-[oklch(0.48_0.16_290)]" },
+  { icon: Building2, title: "Multi-tenant orgs", body: "Operators and providers stay isolated with per-org data and permissions.", tint: "from-[oklch(0.7_0.14_50)] to-[oklch(0.5_0.14_35)]" },
+  { icon: Zap, title: "Provider API", body: "Standard REST orchestration for quote, book, extend and end operations.", tint: "from-[oklch(0.78_0.16_90)] to-[oklch(0.55_0.14_70)]" },
 ];
 
 function Features() {
@@ -263,12 +267,18 @@ function Features() {
         </div>
         <div className="mt-10 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {FEATURES.map((f) => (
-            <div key={f.title} className="group rounded-2xl border border-border bg-card p-6 transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-[var(--shadow-soft)]">
-              <div className="grid h-11 w-11 place-items-center rounded-xl bg-gradient-to-br from-primary/15 to-accent/15 text-primary transition-colors group-hover:from-primary/25 group-hover:to-accent/25">
-                <f.icon className="h-5 w-5" />
+            <div key={f.title} className="group relative overflow-hidden rounded-2xl border border-border bg-card p-6 transition-all duration-300 hover:-translate-y-1 hover:border-primary/50 hover:shadow-[var(--shadow-elegant)]">
+              <div className={`pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-gradient-to-br ${f.tint} opacity-0 blur-3xl transition-opacity duration-500 group-hover:opacity-30`} />
+              <div className="relative flex items-start gap-4">
+                <div className={`relative grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-gradient-to-br ${f.tint} text-white shadow-lg ring-1 ring-white/20 transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6`}>
+                  <f.icon className="h-6 w-6 drop-shadow" />
+                  <span className="pointer-events-none absolute inset-0 rounded-2xl bg-gradient-to-t from-transparent to-white/25" />
+                </div>
+                <div className="flex-1 pt-1">
+                  <h3 className="text-base font-semibold tracking-tight">{f.title}</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{f.body}</p>
+                </div>
               </div>
-              <h3 className="mt-4 text-base font-semibold">{f.title}</h3>
-              <p className="mt-2 text-sm text-muted-foreground">{f.body}</p>
             </div>
           ))}
         </div>
