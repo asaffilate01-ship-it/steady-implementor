@@ -14,6 +14,44 @@ export type Database = {
   }
   public: {
     Tables: {
+      notices: {
+        Row: {
+          amount_cents: number
+          created_at: string
+          id: string
+          issued_by: string | null
+          plate: string
+          reason: string
+          site_id: string
+        }
+        Insert: {
+          amount_cents?: number
+          created_at?: string
+          id?: string
+          issued_by?: string | null
+          plate: string
+          reason: string
+          site_id: string
+        }
+        Update: {
+          amount_cents?: number
+          created_at?: string
+          id?: string
+          issued_by?: string | null
+          plate?: string
+          reason?: string
+          site_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notices_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       orgs: {
         Row: {
           created_at: string
@@ -41,7 +79,9 @@ export type Database = {
           display_name: string | null
           id: string
           org_id: string | null
+          payment_method: string | null
           phone: string | null
+          plate: string | null
           updated_at: string
         }
         Insert: {
@@ -49,7 +89,9 @@ export type Database = {
           display_name?: string | null
           id: string
           org_id?: string | null
+          payment_method?: string | null
           phone?: string | null
+          plate?: string | null
           updated_at?: string
         }
         Update: {
@@ -57,12 +99,126 @@ export type Database = {
           display_name?: string | null
           id?: string
           org_id?: string | null
+          payment_method?: string | null
           phone?: string | null
+          plate?: string | null
           updated_at?: string
         }
         Relationships: [
           {
             foreignKeyName: "profiles_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "orgs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sessions: {
+        Row: {
+          amount_cents: number
+          created_at: string
+          ends_at: string
+          id: string
+          payment_method: string | null
+          plate: string
+          price_cents_per_hour: number
+          site_id: string
+          started_at: string
+          status: Database["public"]["Enums"]["session_status"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount_cents?: number
+          created_at?: string
+          ends_at: string
+          id?: string
+          payment_method?: string | null
+          plate: string
+          price_cents_per_hour: number
+          site_id: string
+          started_at?: string
+          status?: Database["public"]["Enums"]["session_status"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount_cents?: number
+          created_at?: string
+          ends_at?: string
+          id?: string
+          payment_method?: string | null
+          plate?: string
+          price_cents_per_hour?: number
+          site_id?: string
+          started_at?: string
+          status?: Database["public"]["Enums"]["session_status"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sessions_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sites: {
+        Row: {
+          address: string
+          amenities: string[]
+          capacity: number
+          created_at: string
+          id: string
+          lat: number
+          lng: number
+          name: string
+          occupied: number
+          operator_name: string | null
+          org_id: string | null
+          price_cents_per_hour: number
+          type: Database["public"]["Enums"]["site_type"]
+          updated_at: string
+        }
+        Insert: {
+          address: string
+          amenities?: string[]
+          capacity: number
+          created_at?: string
+          id?: string
+          lat: number
+          lng: number
+          name: string
+          occupied?: number
+          operator_name?: string | null
+          org_id?: string | null
+          price_cents_per_hour: number
+          type?: Database["public"]["Enums"]["site_type"]
+          updated_at?: string
+        }
+        Update: {
+          address?: string
+          amenities?: string[]
+          capacity?: number
+          created_at?: string
+          id?: string
+          lat?: number
+          lng?: number
+          name?: string
+          occupied?: number
+          operator_name?: string | null
+          org_id?: string | null
+          price_cents_per_hour?: number
+          type?: Database["public"]["Enums"]["site_type"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sites_org_id_fkey"
             columns: ["org_id"]
             isOneToOne: false
             referencedRelation: "orgs"
@@ -114,10 +270,13 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_org_member: { Args: { _org_id: string }; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "operator" | "provider" | "enforcement"
       org_kind: "operator" | "provider"
+      session_status: "active" | "ended" | "cancelled"
+      site_type: "street" | "garage" | "lot"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -247,6 +406,8 @@ export const Constants = {
     Enums: {
       app_role: ["admin", "operator", "provider", "enforcement"],
       org_kind: ["operator", "provider"],
+      session_status: ["active", "ended", "cancelled"],
+      site_type: ["street", "garage", "lot"],
     },
   },
 } as const

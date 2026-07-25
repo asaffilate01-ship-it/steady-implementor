@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
@@ -8,9 +8,22 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
-import { store, useStore, euros, haversineKm, type Site } from "@/lib/parkpunkt-data";
-import { MapPin, Search, Zap, Clock, Car, ArrowLeft, CreditCard, CheckCircle2, Timer, Check } from "lucide-react";
+import {
+  euros,
+  haversineKm,
+  useSites,
+  useSessions,
+  useMyProfile,
+  useStartSession,
+  useEndSession,
+  useExtendSession,
+  useRealtimeSync,
+  type Site,
+  type Session,
+} from "@/lib/parkpunkt-db";
+import { MapPin, Search, Zap, Clock, Car, ArrowLeft, CreditCard, CheckCircle2, Timer, Check, LogIn } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/drive")({
   head: () => ({
@@ -41,7 +54,9 @@ const DESTINATIONS: Record<string, { lat: number; lng: number }> = {
 
 function DriverApp() {
   const [screen, setScreen] = useState<Screen>({ name: "search" });
-  const sessions = useStore((s) => s.sessions.filter((x) => x.status === "active"));
+  useRealtimeSync(["sites", "sessions"]);
+  const { data: allSessions = [] } = useSessions();
+  const active = allSessions.filter((x) => x.status === "active");
 
   return (
     <AppShell>
@@ -50,7 +65,8 @@ function DriverApp() {
         {screen.name === "search" && (
           <SearchScreen
             onSearch={(where, query) => setScreen({ name: "results", where, query })}
-            activeSessions={sessions.length}
+            activeSessions={active.length}
+            activeSession={active[0]}
             openActive={(id) => setScreen({ name: "active", sessionId: id })}
           />
         )}
@@ -104,10 +120,11 @@ function DriveStepper({ current }: { current: "search" | "results" | "detail" | 
   );
 }
 
-function SearchScreen({ onSearch, activeSessions, openActive }: { onSearch: (where: { lat: number; lng: number }, q: string) => void; activeSessions: number; openActive: (id: string) => void }) {
+function SearchScreen({ onSearch, activeSessions, activeSession, openActive }: { onSearch: (where: { lat: number; lng: number }, q: string) => void; activeSessions: number; activeSession?: Session; openActive: (id: string) => void }) {
   const [q, setQ] = useState("Alexanderplatz");
-  const plate = useStore((s) => s.plate);
-  const active = useStore((s) => s.sessions.find((x) => x.status === "active"));
+  const { data: profile } = useMyProfile();
+  const plate = profile?.plate ?? "—";
+  const active = activeSession;
   const { t } = useI18n();
   return (
     <div className="space-y-6">
@@ -165,15 +182,23 @@ function SearchScreen({ onSearch, activeSessions, openActive }: { onSearch: (whe
 }
 
 function ResultsScreen({ where, query, onBack, onSelect }: { where: { lat: number; lng: number }; query: string; onBack: () => void; onSelect: (id: string) => void }) {
-  const sites = useStore((s) => s.sites);
+  const { data: sites = [], isLoading } = useSites();
   const [sort, setSort] = useState("smart");
   const { t } = useI18n();
-  const enriched = useMemo(() => sites.map((s) => ({ ...s, distanceKm: haversineKm(where, s), free: s.capacity - s.occupied })), [sites, where]);
+  const enriched = useMemo(
+    () => sites.map((s) => ({ ...s, distanceKm: haversineKm(where, s), free: s.capacity - s.occupied })),
+    [sites, where],
+  );
   const sorted = useMemo(() => {
     const arr = [...enriched];
-    if (sort === "price") arr.sort((a, b) => a.pricePerHour - b.pricePerHour);
+    if (sort === "price") arr.sort((a, b) => a.price_cents_per_hour - b.price_cents_per_hour);
     else if (sort === "distance") arr.sort((a, b) => a.distanceKm - b.distanceKm);
-    else arr.sort((a, b) => a.distanceKm * 0.4 + a.pricePerHour * 0.4 + (a.free < 5 ? 5 : 0) - (b.distanceKm * 0.4 + b.pricePerHour * 0.4 + (b.free < 5 ? 5 : 0)));
+    else
+      arr.sort(
+        (a, b) =>
+          a.distanceKm * 0.4 + (a.price_cents_per_hour / 100) * 0.4 + (a.free < 5 ? 5 : 0) -
+          (b.distanceKm * 0.4 + (b.price_cents_per_hour / 100) * 0.4 + (b.free < 5 ? 5 : 0)),
+      );
     return arr;
   }, [enriched, sort]);
 
@@ -199,6 +224,7 @@ function ResultsScreen({ where, query, onBack, onSelect }: { where: { lat: numbe
         </div>
       </div>
       <div className="grid gap-3">
+        {isLoading && <div className="text-sm text-muted-foreground">…</div>}
         {sorted.map((s) => (
           <ResultRow key={s.id} site={s} onSelect={() => onSelect(s.id)} />
         ))}
@@ -218,11 +244,11 @@ function ResultRow({ site, onSelect }: { site: Site & { distanceKm: number; free
         <div className="grid h-12 w-12 place-items-center rounded-lg bg-primary/10 text-primary"><MapPin className="h-5 w-5" /></div>
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2"><div className="truncate font-medium">{site.name}</div><Badge className={badgeCls}>{badge}</Badge></div>
-          <div className="truncate text-xs text-muted-foreground">{site.address} · {site.distanceKm.toFixed(1)} km · {site.operator}</div>
+          <div className="truncate text-xs text-muted-foreground">{site.address} · {site.distanceKm.toFixed(1)} km · {site.operator_name ?? "—"}</div>
           <div className="mt-1 flex gap-1">{site.amenities.map((a) => <span key={a} className="rounded bg-secondary px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-muted-foreground">{a}</span>)}</div>
         </div>
         <div className="text-right">
-          <div className="text-lg font-semibold">€{site.pricePerHour.toFixed(2)}<span className="text-xs font-normal text-muted-foreground">/h</span></div>
+          <div className="text-lg font-semibold">{euros(site.price_cents_per_hour)}<span className="text-xs font-normal text-muted-foreground">/h</span></div>
           <div className="text-xs text-muted-foreground">{site.free} {t("common.free")} · {pct}% {t("common.full")}</div>
         </div>
       </CardContent>
@@ -231,12 +257,17 @@ function ResultRow({ site, onSelect }: { site: Site & { distanceKm: number; free
 }
 
 function DetailScreen({ siteId, onBack, onBooked }: { siteId: string; onBack: () => void; onBooked: (id: string) => void }) {
-  const site = useStore((s) => s.sites.find((x) => x.id === siteId))!;
-  const plate = useStore((s) => s.plate);
-  const pm = useStore((s) => s.paymentMethod);
+  const { data: sites = [] } = useSites();
+  const site = sites.find((x) => x.id === siteId);
+  const { data: profile } = useMyProfile();
+  const plate = profile?.plate ?? "";
+  const pm = profile?.payment_method ?? "";
   const [minutes, setMinutes] = useState(60);
   const { t } = useI18n();
-  const total = (site.pricePerHour * minutes) / 60;
+  const start = useStartSession();
+  if (!site) return <div className="text-sm text-muted-foreground">…</div>;
+  const total = (site.price_cents_per_hour * minutes) / 60 / 100;
+  const signedIn = !!profile;
 
   return (
     <div className="space-y-4">
@@ -244,24 +275,42 @@ function DetailScreen({ siteId, onBack, onBooked }: { siteId: string; onBack: ()
       <Card>
         <CardHeader><CardTitle className="flex items-center gap-2"><MapPin className="h-5 w-5 text-primary" />{site.name}</CardTitle></CardHeader>
         <CardContent className="space-y-4">
-          <div className="text-sm text-muted-foreground">{site.address} — {t("drive.operatedBy")} {site.operator}</div>
+          <div className="text-sm text-muted-foreground">{site.address} — {t("drive.operatedBy")} {site.operator_name ?? "—"}</div>
           <div className="grid grid-cols-3 gap-2 text-sm">
             <Stat label={t("drive.capacity")} value={String(site.capacity)} />
             <Stat label={t("drive.freeNow")} value={String(site.capacity - site.occupied)} />
-            <Stat label={t("drive.rate")} value={`€${site.pricePerHour.toFixed(2)}/h`} />
+            <Stat label={t("drive.rate")} value={`${euros(site.price_cents_per_hour)}/h`} />
           </div>
           <div className="space-y-2">
             <div className="flex items-center justify-between text-sm"><Label>{t("drive.duration")}</Label><span className="font-medium">{minutes} min</span></div>
             <Slider min={15} max={480} step={15} value={[minutes]} onValueChange={(v) => setMinutes(v[0])} />
           </div>
           <div className="space-y-1 rounded-md border border-border p-3 text-sm">
-            <Row label={t("drive.vehicle")} value={<span className="font-mono">{plate}</span>} />
-            <Row label={t("drive.payment")} value={<span className="inline-flex items-center gap-1"><CreditCard className="h-3.5 w-3.5" />{pm}</span>} />
+            <Row label={t("drive.vehicle")} value={<span className="font-mono">{plate || "—"}</span>} />
+            <Row label={t("drive.payment")} value={<span className="inline-flex items-center gap-1"><CreditCard className="h-3.5 w-3.5" />{pm || "—"}</span>} />
             <Row label={t("drive.total")} value={<span className="text-lg font-semibold">€{total.toFixed(2)}</span>} />
           </div>
-          <Button className="w-full" size="lg" onClick={() => { const s = store.startSession(site.id, minutes); onBooked(s.id); }}>
-            <Zap className="mr-2 h-4 w-4" />{t("drive.start")}
-          </Button>
+          {signedIn ? (
+            <Button
+              className="w-full"
+              size="lg"
+              disabled={start.isPending || !plate}
+              onClick={async () => {
+                try {
+                  const s = await start.mutateAsync({ site, minutes, plate: plate || "B-PP 0000", paymentMethod: pm || null });
+                  onBooked(s.id);
+                } catch (e) {
+                  toast.error((e as Error).message);
+                }
+              }}
+            >
+              <Zap className="mr-2 h-4 w-4" />{t("drive.start")}
+            </Button>
+          ) : (
+            <Button asChild className="w-full" size="lg">
+              <Link to="/auth"><LogIn className="mr-2 h-4 w-4" />Sign in to book</Link>
+            </Button>
+          )}
         </CardContent>
       </Card>
     </div>
@@ -269,12 +318,16 @@ function DetailScreen({ siteId, onBack, onBooked }: { siteId: string; onBack: ()
 }
 
 function ActiveScreen({ sessionId, onDone }: { sessionId: string; onDone: () => void }) {
-  const session = useStore((s) => s.sessions.find((x) => x.id === sessionId));
-  const site = useStore((s) => s.sites.find((x) => x.id === session?.siteId));
+  const { data: sessions = [] } = useSessions();
+  const session = sessions.find((x) => x.id === sessionId);
+  const { data: sites = [] } = useSites();
+  const site = sites.find((x) => x.id === session?.site_id);
+  const endM = useEndSession();
+  const extend = useExtendSession();
   const { t } = useI18n();
   if (!session || !site) return <div>{t("drive.notFound")} <Button variant="link" onClick={onDone}>{t("drive.goBack")}</Button></div>;
   const active = session.status === "active";
-  const remaining = Math.max(0, session.endsAt - Date.now());
+  const remaining = Math.max(0, new Date(session.ends_at).getTime() - Date.now());
   const mm = Math.floor(remaining / 60000);
   return (
     <div className="space-y-4">
@@ -288,19 +341,19 @@ function ActiveScreen({ sessionId, onDone }: { sessionId: string; onDone: () => 
         <CardContent className="space-y-4">
           <div className="rounded-md bg-primary/5 p-4 text-center">
             <div className="text-xs uppercase text-muted-foreground">{active ? t("drive.timeRemaining") : t("drive.sessionEnded")}</div>
-            <div className="mt-1 text-4xl font-semibold tabular-nums">{active ? `${mm} min` : euros(session.amountCents)}</div>
+            <div className="mt-1 text-4xl font-semibold tabular-nums">{active ? `${mm} min` : euros(session.amount_cents)}</div>
             <div className="mt-1 text-xs text-muted-foreground">{site.name}</div>
           </div>
           <div className="grid grid-cols-3 gap-2 text-sm">
             <Stat label={t("drive.plate")} value={session.plate} />
-            <Stat label={t("drive.rate")} value={`€${session.pricePerHour.toFixed(2)}/h`} />
-            <Stat label={t("drive.charged")} value={euros(session.amountCents)} />
+            <Stat label={t("drive.rate")} value={`${euros(session.price_cents_per_hour)}/h`} />
+            <Stat label={t("drive.charged")} value={euros(session.amount_cents)} />
           </div>
           {active && (
             <div className="grid grid-cols-3 gap-2">
-              <Button variant="secondary" onClick={() => store.extendSession(session.id, 30)}><Clock className="mr-1 h-4 w-4" />+30m</Button>
-              <Button variant="secondary" onClick={() => store.extendSession(session.id, 60)}><Clock className="mr-1 h-4 w-4" />+60m</Button>
-              <Button variant="destructive" onClick={() => store.endSession(session.id)}>{t("drive.end")}</Button>
+              <Button variant="secondary" onClick={() => extend.mutate({ session, minutes: 30 })}><Clock className="mr-1 h-4 w-4" />+30m</Button>
+              <Button variant="secondary" onClick={() => extend.mutate({ session, minutes: 60 })}><Clock className="mr-1 h-4 w-4" />+60m</Button>
+              <Button variant="destructive" onClick={() => endM.mutate(session.id)}>{t("drive.end")}</Button>
             </div>
           )}
           {!active && (

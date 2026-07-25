@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { listUsersWithRolesFn, grantRoleFn, revokeRoleFn, type AppRole } from "@/lib/auth.functions";
-import { useStore, euros } from "@/lib/parkpunkt-data";
+import { euros, useSites, useSessions, useNotices, useRealtimeSync } from "@/lib/parkpunkt-db";
 import { toast } from "sonner";
 import { Shield, ShieldCheck, X, Loader2 } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
@@ -40,9 +40,10 @@ function AdminGated() {
 const ROLES: AppRole[] = ["admin", "operator", "provider", "enforcement"];
 
 function AdminConsole() {
-  const sites = useStore((s) => s.sites);
-  const sessions = useStore((s) => s.sessions);
-  const notices = useStore((s) => s.notices);
+  useRealtimeSync(["sites", "sessions", "notices"]);
+  const { data: sites = [] } = useSites();
+  const { data: sessions = [] } = useSessions();
+  const { data: notices = [] } = useNotices();
   const { t } = useI18n();
   const listUsers = useServerFn(listUsersWithRolesFn);
   const grant = useServerFn(grantRoleFn);
@@ -65,7 +66,7 @@ function AdminConsole() {
     onError: (e) => toast.error((e as Error).message),
   });
 
-  const gmv = sessions.reduce((sum, s) => sum + s.amountCents, 0);
+  const gmv = sessions.reduce((sum, s) => sum + s.amount_cents, 0);
   const orgs = usersQ.data?.[0]?.orgs ?? [];
 
   return (

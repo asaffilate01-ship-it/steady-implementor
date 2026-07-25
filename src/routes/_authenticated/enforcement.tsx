@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AppShell } from "@/components/AppShell";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { store, useStore, euros } from "@/lib/parkpunkt-data";
+import { euros, useSites, useSessions, useNotices, useIssueNotice, useRealtimeSync } from "@/lib/parkpunkt-db";
 import { Camera, CheckCircle2, AlertTriangle, FileWarning } from "lucide-react";
 import { RoleGate } from "@/components/RoleGate";
 import { useI18n } from "@/lib/i18n";
@@ -37,21 +37,24 @@ function EnforcementGated() {
 function EnforcementApp() {
   const { t } = useI18n();
   const [plate, setPlate] = useState("");
-  const [siteId, setSiteId] = useState("S001");
+  const [siteId, setSiteId] = useState<string>("");
   const [reason, setReason] = useState(t("enf.reason.default"));
   const [amount, setAmount] = useState(35);
   const [scan, setScan] = useState<{ status: "unknown" | "valid" | "invalid"; sessionId?: string } | null>(null);
 
-  const sites = useStore((s) => s.sites);
-  const sessions = useStore((s) => s.sessions);
-  const notices = useStore((s) => s.notices);
+  useRealtimeSync(["sessions", "notices"]);
+  const { data: sites = [] } = useSites();
+  const { data: sessions = [] } = useSessions();
+  const { data: notices = [] } = useNotices();
+  const issue = useIssueNotice();
+  useEffect(() => { if (!siteId && sites[0]) setSiteId(sites[0].id); }, [siteId, sites]);
 
   const currentSite = useMemo(() => sites.find((s) => s.id === siteId), [sites, siteId]);
 
   function runScan() {
     const p = plate.trim().toUpperCase();
     if (!p) return;
-    const match = sessions.find((s) => s.plate.toUpperCase() === p && s.status === "active" && s.siteId === siteId && s.endsAt > Date.now());
+    const match = sessions.find((s) => s.plate.toUpperCase() === p && s.status === "active" && s.site_id === siteId && new Date(s.ends_at).getTime() > Date.now());
     setScan(match ? { status: "valid", sessionId: match.id } : { status: "invalid" });
   }
 
@@ -84,7 +87,7 @@ function EnforcementApp() {
             <CardContent className="space-y-3">
               <Field label={t("enf.reason")}><Input value={reason} onChange={(e) => setReason(e.target.value)}/></Field>
               <Field label={t("enf.amount")}><Input type="number" value={amount} onChange={(e) => setAmount(parseFloat(e.target.value)||0)}/></Field>
-              <Button variant="destructive" className="w-full" disabled={!plate || scan?.status === "valid"} onClick={() => { store.issueNotice(plate.toUpperCase(), siteId, reason, amount); setPlate(""); setScan(null); }}>
+              <Button variant="destructive" className="w-full" disabled={!plate || scan?.status === "valid" || !siteId} onClick={async () => { await issue.mutateAsync({ site_id: siteId, plate: plate.toUpperCase(), reason, amount_cents: Math.round(amount * 100) }); setPlate(""); setScan(null); }}>
                 {t("enf.issue")}
               </Button>
               {scan?.status === "valid" && <p className="text-xs text-muted-foreground">{t("enf.disabled")}</p>}
@@ -98,14 +101,14 @@ function EnforcementApp() {
             {notices.length === 0 && <div className="text-sm text-muted-foreground">{t("enf.empty")}</div>}
             <div className="divide-y divide-border">
               {notices.map((n) => {
-                const s = sites.find((x) => x.id === n.siteId);
+                const s = sites.find((x) => x.id === n.site_id);
                 return (
                   <div key={n.id} className="grid grid-cols-[1fr,1fr,2fr,120px,140px] items-center gap-3 py-2 text-sm">
-                    <div className="font-mono text-xs">{n.id}</div>
+                    <div className="font-mono text-xs">{n.id.slice(0,8)}</div>
                     <div className="font-mono">{n.plate}</div>
                     <div className="truncate">{s?.name} — {n.reason}</div>
-                    <div>{euros(n.amountCents)}</div>
-                    <div className="text-right"><Badge variant="outline">{new Date(n.createdAt).toLocaleTimeString()}</Badge></div>
+                    <div>{euros(n.amount_cents)}</div>
+                    <div className="text-right"><Badge variant="outline">{new Date(n.created_at).toLocaleTimeString()}</Badge></div>
                   </div>
                 );
               })}
