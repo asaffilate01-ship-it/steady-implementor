@@ -105,6 +105,7 @@ export type Database = {
           plate: string
           reason: string
           site_id: string
+          status: string
         }
         Insert: {
           amount_cents?: number
@@ -114,6 +115,7 @@ export type Database = {
           plate: string
           reason: string
           site_id: string
+          status?: string
         }
         Update: {
           amount_cents?: number
@@ -123,6 +125,7 @@ export type Database = {
           plate?: string
           reason?: string
           site_id?: string
+          status?: string
         }
         Relationships: [
           {
@@ -154,6 +157,86 @@ export type Database = {
           name?: string
         }
         Relationships: []
+      }
+      payments: {
+        Row: {
+          amount_cents: number
+          created_at: string
+          currency: string
+          description: string | null
+          driver_id: string
+          external_ref: string | null
+          id: string
+          method: string
+          notice_id: string | null
+          reservation_id: string | null
+          session_id: string | null
+          site_id: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          amount_cents: number
+          created_at?: string
+          currency?: string
+          description?: string | null
+          driver_id: string
+          external_ref?: string | null
+          id?: string
+          method?: string
+          notice_id?: string | null
+          reservation_id?: string | null
+          session_id?: string | null
+          site_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          amount_cents?: number
+          created_at?: string
+          currency?: string
+          description?: string | null
+          driver_id?: string
+          external_ref?: string | null
+          id?: string
+          method?: string
+          notice_id?: string | null
+          reservation_id?: string | null
+          session_id?: string | null
+          site_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_notice_id_fkey"
+            columns: ["notice_id"]
+            isOneToOne: false
+            referencedRelation: "notices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_reservation_id_fkey"
+            columns: ["reservation_id"]
+            isOneToOne: false
+            referencedRelation: "reservations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -269,6 +352,56 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      reservations: {
+        Row: {
+          created_at: string
+          currency: string
+          driver_id: string
+          ends_at: string
+          id: string
+          plate: string
+          price_cents: number
+          site_id: string
+          starts_at: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          currency?: string
+          driver_id: string
+          ends_at: string
+          id?: string
+          plate: string
+          price_cents?: number
+          site_id: string
+          starts_at: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          currency?: string
+          driver_id?: string
+          ends_at?: string
+          id?: string
+          plate?: string
+          price_cents?: number
+          site_id?: string
+          starts_at?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reservations_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       sessions: {
         Row: {
@@ -469,6 +602,7 @@ export type Database = {
         Returns: boolean
       }
       is_org_member: { Args: { _org_id: string }; Returns: boolean }
+      session_amount_cents: { Args: { _session_id: string }; Returns: number }
     }
     Enums: {
       app_role: "admin" | "operator" | "provider" | "enforcement"

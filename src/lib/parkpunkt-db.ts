@@ -8,6 +8,8 @@ export type Session = Database["public"]["Tables"]["sessions"]["Row"];
 export type Notice = Database["public"]["Tables"]["notices"]["Row"];
 export type Profile = Database["public"]["Tables"]["profiles"]["Row"];
 export type SiteInsert = Database["public"]["Tables"]["sites"]["Insert"];
+export type Payment = Database["public"]["Tables"]["payments"]["Row"];
+export type Reservation = Database["public"]["Tables"]["reservations"]["Row"];
 
 export const KEYS = {
   sites: ["sites"] as const,
@@ -15,6 +17,8 @@ export const KEYS = {
   myActive: ["sessions", "my-active"] as const,
   notices: ["notices"] as const,
   profile: ["profile"] as const,
+  payments: ["payments"] as const,
+  reservations: ["reservations"] as const,
 };
 
 export function euros(cents: number) {
@@ -131,15 +135,38 @@ export function useEndSession() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (id: string) => {
+      // Read session to compute final amount and record a payment.
+      const { data: sess, error: e0 } = await supabase.from("sessions").select("*").eq("id", id).single();
+      if (e0) throw e0;
+      const startedMs = new Date(sess.started_at).getTime();
+      const nowMs = Date.now();
+      const minutes = Math.max(1, Math.ceil((nowMs - startedMs) / 60_000));
+      const finalAmount = Math.round((sess.price_cents_per_hour * minutes) / 60);
       const { error } = await supabase
         .from("sessions")
-        .update({ status: "ended", ends_at: new Date().toISOString() })
+        .update({ status: "ended", ends_at: new Date(nowMs).toISOString(), amount_cents: finalAmount })
         .eq("id", id);
       if (error) throw error;
+
+      const { data: auth } = await supabase.auth.getSession();
+      const uid = auth.session?.user.id;
+      if (uid) {
+        await supabase.from("payments").insert({
+          driver_id: uid,
+          site_id: sess.site_id,
+          session_id: sess.id,
+          amount_cents: finalAmount,
+          method: (sess.payment_method as Payment["method"] | null) ?? "wallet",
+          status: "paid",
+          description: `Parking session · ${minutes} min`,
+        });
+      }
+      return { minutes, amount_cents: finalAmount };
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: KEYS.sessions });
       qc.invalidateQueries({ queryKey: KEYS.sites });
+      qc.invalidateQueries({ queryKey: KEYS.payments });
     },
   });
 }
@@ -201,8 +228,122 @@ export function useIssueNotice() {
   });
 }
 
+export function useUpdateNotice() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, patch }: { id: string; patch: Partial<Notice> }) => {
+      const { error } = await supabase.from("notices").update(patch).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: KEYS.notices });
+      qc.invalidateQueries({ queryKey: KEYS.payments });
+    },
+  });
+}
+
+export function usePayNotice() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (notice: Notice) => {
+      const { data: auth } = await supabase.auth.getSession();
+      const uid = auth.session?.user.id;
+      if (!uid) throw new Error("Sign in to pay");
+      const { error: eIns } = await supabase.from("payments").insert({
+        driver_id: uid,
+        site_id: notice.site_id,
+        notice_id: notice.id,
+        amount_cents: notice.amount_cents,
+        method: "card",
+        status: "paid",
+        description: `Notice · ${notice.reason}`,
+      });
+      if (eIns) throw eIns;
+      const { error: eUpd } = await supabase.from("notices").update({ status: "paid" }).eq("id", notice.id);
+      if (eUpd) throw eUpd;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: KEYS.notices });
+      qc.invalidateQueries({ queryKey: KEYS.payments });
+    },
+  });
+}
+
+// ============ PAYMENTS ============
+export function useMyPayments() {
+  return useQuery({
+    queryKey: KEYS.payments,
+    queryFn: async (): Promise<Payment[]> => {
+      const { data, error } = await supabase.from("payments").select("*").order("created_at", { ascending: false }).limit(200);
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+}
+
+// ============ RESERVATIONS ============
+export function useReservations() {
+  return useQuery({
+    queryKey: KEYS.reservations,
+    queryFn: async (): Promise<Reservation[]> => {
+      const { data, error } = await supabase.from("reservations").select("*").order("starts_at", { ascending: true });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+}
+
+export function useCreateReservation() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ site, plate, startsAt, minutes }: { site: Site; plate: string; startsAt: Date; minutes: number }) => {
+      const { data: auth } = await supabase.auth.getSession();
+      const uid = auth.session?.user.id;
+      if (!uid) throw new Error("Sign in to reserve");
+      const ends = new Date(startsAt.getTime() + minutes * 60_000);
+      const amount = Math.round((site.price_cents_per_hour * minutes) / 60);
+      const { data: res, error } = await supabase.from("reservations").insert({
+        driver_id: uid,
+        site_id: site.id,
+        plate,
+        starts_at: startsAt.toISOString(),
+        ends_at: ends.toISOString(),
+        price_cents: amount,
+        status: "confirmed",
+      }).select().single();
+      if (error) throw error;
+      // Pre-authorize payment.
+      await supabase.from("payments").insert({
+        driver_id: uid,
+        site_id: site.id,
+        reservation_id: res.id,
+        amount_cents: amount,
+        method: "card",
+        status: "paid",
+        description: `Reservation · ${site.name}`,
+      });
+      return res as Reservation;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: KEYS.reservations });
+      qc.invalidateQueries({ queryKey: KEYS.payments });
+    },
+  });
+}
+
+export function useCancelReservation() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("reservations").update({ status: "cancelled" }).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: KEYS.reservations }),
+  });
+}
+
 /** Subscribe to realtime changes on the given tables and invalidate matching queries. */
-export function useRealtimeSync(tables: Array<"sites" | "sessions" | "notices">) {
+export function useRealtimeSync(tables: Array<"sites" | "sessions" | "notices" | "payments" | "reservations">) {
   const qc = useQueryClient();
   useEffect(() => {
     const chan = supabase.channel("pp-live");
