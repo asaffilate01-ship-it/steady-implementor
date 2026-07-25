@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { useStore, haversineKm } from "@/lib/parkpunkt-data";
+import { haversineKm, useSites, useRealtimeSync } from "@/lib/parkpunkt-db";
 import { Boxes, Play, Radio } from "lucide-react";
 import { RoleGate } from "@/components/RoleGate";
 import { useI18n } from "@/lib/i18n";
@@ -34,7 +34,8 @@ function ProviderGated() {
 }
 
 function ProviderHub() {
-  const sites = useStore((s) => s.sites);
+  useRealtimeSync(["sites"]);
+  const { data: sites = [] } = useSites();
   const [lat, setLat] = useState(52.521);
   const [lng, setLng] = useState(13.413);
   const [max, setMax] = useState(5);
@@ -50,9 +51,9 @@ function ProviderHub() {
       .map((s) => ({
         provider_id: s.id,
         name: s.name,
-        operator: s.operator,
-        price_per_hour: s.pricePerHour,
-        quote_total: +((s.pricePerHour * duration / 60)).toFixed(2),
+        operator: s.operator_name,
+        price_per_hour: +(s.price_cents_per_hour / 100).toFixed(2),
+        quote_total: +((s.price_cents_per_hour * duration / 60) / 100).toFixed(2),
         currency: "EUR",
         distance_km: s.distance_km,
         availability: s.free,
@@ -86,8 +87,8 @@ function ProviderHub() {
             <CardContent className="space-y-2">
               {sites.map((s) => (
                 <div key={s.id} className="flex items-center justify-between rounded-md border border-border p-3">
-                  <div><div className="font-medium">{s.name}</div><div className="text-xs text-muted-foreground">{s.operator} · {s.id}</div></div>
-                  <div className="text-right text-sm"><div>{s.capacity - s.occupied} {t("common.free")}</div><div className="text-xs text-muted-foreground">€{s.pricePerHour.toFixed(2)}/h</div></div>
+                  <div><div className="font-medium">{s.name}</div><div className="text-xs text-muted-foreground">{s.operator_name ?? "—"} · {s.id.slice(0,8)}</div></div>
+                  <div className="text-right text-sm"><div>{s.capacity - s.occupied} {t("common.free")}</div><div className="text-xs text-muted-foreground">€{(s.price_cents_per_hour/100).toFixed(2)}/h</div></div>
                   <Badge variant="outline" className="ml-3 capitalize">{s.type}</Badge>
                 </div>
               ))}
