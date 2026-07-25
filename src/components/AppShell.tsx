@@ -184,11 +184,11 @@ function CommandRail({ visibleNav, anchors }: { visibleNav: NavItem[]; anchors?:
             to={n.to}
             data-active={active}
             className={cn(
-              "group relative z-10 inline-flex items-center gap-1.5 rounded-full px-3.5 py-2 text-sm font-medium tracking-tight transition-colors duration-200",
+              "group relative z-10 inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-3.5 py-2 text-sm font-medium tracking-tight transition-colors duration-200",
               active ? "text-primary-foreground" : "text-muted-foreground hover:text-foreground"
             )}
           >
-            <Icon className={cn("h-3.5 w-3.5 transition-transform duration-300", active ? "text-accent drop-shadow-[0_0_6px_color-mix(in_oklch,var(--accent)_60%,transparent)]" : "group-hover:scale-110 group-hover:rotate-[-6deg]")} />
+            <Icon className={cn("h-3.5 w-3.5 shrink-0 transition-transform duration-300", active ? "text-accent drop-shadow-[0_0_6px_color-mix(in_oklch,var(--accent)_60%,transparent)]" : "group-hover:scale-110 group-hover:rotate-[-6deg]")} />
             <span>{t(n.labelKey as never)}</span>
           </Link>
         );
