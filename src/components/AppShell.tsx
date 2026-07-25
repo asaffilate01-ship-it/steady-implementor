@@ -19,7 +19,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       <header className="sticky top-0 z-40 border-b border-border/60 bg-background/85 backdrop-blur">
         <div className="mx-auto flex h-14 max-w-7xl items-center gap-6 px-4">
           <Link to="/" className="flex items-center gap-2">
-            <img src={logoAsset.src} alt="ParkPunkt" className="h-8 w-auto" />
+            <img src={logoAsset.url} alt="ParkPunkt" className="h-8 w-auto" />
           </Link>
           <nav className="ml-4 flex flex-wrap items-center gap-1 text-sm">
             {NAV.map((n) => {
