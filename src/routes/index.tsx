@@ -59,9 +59,9 @@ function MarketingHeader({ signedIn }: { signedIn: boolean }) {
   const { t } = useI18n();
   return (
     <header className="sticky top-0 z-40 border-b border-border/60 bg-background/85 backdrop-blur">
-      <div className="mx-auto flex h-16 max-w-6xl items-center gap-3 px-4">
+      <div className="mx-auto flex h-16 max-w-6xl items-center gap-3 px-4 md:h-28">
         <Link to="/" className="flex items-center gap-2">
-          <img src={logoAsset.url} alt="ParkPunkt" className="h-9 w-auto" />
+          <img src={logoAsset.url} alt="ParkPunkt" className="h-10 w-auto md:h-24" />
         </Link>
         <nav className="ml-6 hidden gap-6 text-sm text-muted-foreground md:flex">
           <a href="#stakeholders" className="hover:text-foreground">For whom</a>
@@ -315,7 +315,7 @@ function Footer() {
     <footer className="border-t border-border/60 py-10">
       <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-4 text-sm text-muted-foreground md:flex-row">
         <div className="flex items-center gap-2">
-          <img src={logoAsset.url} alt="ParkPunkt" className="h-6 w-auto" />
+          <img src={logoAsset.url} alt="ParkPunkt" className="h-16 w-auto" />
           <span>© {new Date().getFullYear()} ParkPunkt · Finden. Parken. Bezahlen.</span>
         </div>
         <div className="flex gap-4">
