@@ -14,6 +14,8 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { supabase } from "@/integrations/supabase/client";
 import { Toaster } from "@/components/ui/sonner";
 import { I18nProvider } from "@/lib/i18n";
+import { CookieProvider } from "@/lib/cookies";
+import { BackToTop } from "@/components/BackToTop";
 
 function NotFoundComponent() {
   return (
@@ -132,9 +134,12 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <I18nProvider>
-        {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-        <Outlet />
-        <Toaster richColors position="top-right" />
+        <CookieProvider>
+          {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+          <Outlet />
+          <BackToTop />
+          <Toaster richColors position="top-right" />
+        </CookieProvider>
       </I18nProvider>
     </QueryClientProvider>
   );
