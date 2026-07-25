@@ -133,7 +133,7 @@ function json(body: unknown, status = 200) {
 }
 
 async function calculateFeeSplit(
-  admin: Awaited<ReturnType<typeof import("@/integrations/supabase/client.server").createAdminClient>>,
+  admin: any,
   site_id: string,
   amount_cents: number,
 ): Promise<{ platform_fee_cents: number; operator_net_cents: number }> {
