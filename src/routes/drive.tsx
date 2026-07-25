@@ -24,7 +24,7 @@ import {
   type Site,
   type Session,
 } from "@/lib/parkpunkt-db";
-import { MapPin, Search, Zap, Clock, Car, ArrowLeft, CreditCard, CheckCircle2, Timer, Check, LogIn, Receipt, CalendarClock, X as XIcon } from "lucide-react";
+import { MapPin, Search, Zap, Clock, Car, ArrowLeft, CreditCard, CheckCircle2, Timer, Check, LogIn, Receipt, CalendarClock, X as XIcon, Navigation, Building2 } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { toast } from "sonner";
 
@@ -46,6 +46,7 @@ type Screen =
   | { name: "search" }
   | { name: "results"; where: { lat: number; lng: number }; query: string }
   | { name: "detail"; siteId: string }
+  | { name: "arrived" }
   | { name: "active"; sessionId: string };
 
 const DESTINATIONS: Record<string, { lat: number; lng: number }> = {
@@ -68,6 +69,7 @@ function DriverApp() {
         {screen.name === "search" && (
           <SearchScreen
             onSearch={(where, query) => setScreen({ name: "results", where, query })}
+            onArrived={() => setScreen({ name: "arrived" })}
             activeSessions={active.length}
             activeSession={active[0]}
             openActive={(id) => setScreen({ name: "active", sessionId: id })}
@@ -77,13 +79,14 @@ function DriverApp() {
           <ResultsScreen where={screen.where} query={screen.query} onBack={() => setScreen({ name: "search" })} onSelect={(id) => setScreen({ name: "detail", siteId: id })} />
         )}
         {screen.name === "detail" && <DetailScreen siteId={screen.siteId} onBack={() => setScreen({ name: "search" })} onBooked={(id) => setScreen({ name: "active", sessionId: id })} />}
+        {screen.name === "arrived" && <ArrivedScreen onBack={() => setScreen({ name: "search" })} onBooked={(id) => setScreen({ name: "active", sessionId: id })} />}
         {screen.name === "active" && <ActiveScreen sessionId={screen.sessionId} onDone={() => setScreen({ name: "search" })} />}
       </div>
     </AppShell>
   );
 }
 
-function DriveStepper({ current }: { current: "search" | "results" | "detail" | "active" }) {
+function DriveStepper({ current }: { current: "search" | "results" | "detail" | "arrived" | "active" }) {
   const { t } = useI18n();
   const steps: { key: typeof current; label: string }[] = [
     { key: "search", label: t("home.how.find.title") },
@@ -91,7 +94,7 @@ function DriveStepper({ current }: { current: "search" | "results" | "detail" | 
     { key: "detail", label: t("home.how.park.title") },
     { key: "active", label: t("home.how.pay.title") },
   ];
-  const idx = steps.findIndex((s) => s.key === current);
+  const idx = current === "arrived" ? 2 : steps.findIndex((s) => s.key === current);
   return (
     <ol className="mb-6 flex items-center gap-2 overflow-x-auto pb-1 text-xs">
       {steps.map((s, i) => {
@@ -123,7 +126,7 @@ function DriveStepper({ current }: { current: "search" | "results" | "detail" | 
   );
 }
 
-function SearchScreen({ onSearch, activeSessions, activeSession, openActive }: { onSearch: (where: { lat: number; lng: number }, q: string) => void; activeSessions: number; activeSession?: Session; openActive: (id: string) => void }) {
+function SearchScreen({ onSearch, onArrived, activeSessions, activeSession, openActive }: { onSearch: (where: { lat: number; lng: number }, q: string) => void; onArrived: () => void; activeSessions: number; activeSession?: Session; openActive: (id: string) => void }) {
   const [q, setQ] = useState("Alexanderplatz");
   const { data: profile } = useMyProfile();
   const plate = profile?.plate ?? "—";
@@ -135,6 +138,19 @@ function SearchScreen({ onSearch, activeSessions, activeSession, openActive }: {
         <h1 className="text-2xl font-semibold tracking-tight">{t("drive.title")}</h1>
         <p className="text-sm text-muted-foreground">{t("drive.sub")}</p>
       </div>
+      <button
+        onClick={onArrived}
+        className="group relative flex w-full items-center gap-4 overflow-hidden rounded-xl border border-accent/40 bg-gradient-to-br from-accent/10 via-accent/5 to-transparent p-5 text-left transition hover:border-accent hover:shadow-[var(--shadow-soft)]"
+      >
+        <div className="grid h-12 w-12 shrink-0 place-items-center rounded-lg bg-accent text-accent-foreground">
+          <Navigation className="h-6 w-6" />
+        </div>
+        <div className="flex-1">
+          <div className="text-base font-semibold">{t("drive.arrived.cta")}</div>
+          <div className="text-xs text-muted-foreground">{t("drive.arrived.sub")}</div>
+        </div>
+        <Zap className="h-5 w-5 text-accent transition-transform group-hover:translate-x-1" />
+      </button>
       {active && (
         <Card className="cursor-pointer border-accent/50 bg-accent/5" onClick={() => openActive(active.id)}>
           <CardContent className="flex items-center justify-between p-4">
