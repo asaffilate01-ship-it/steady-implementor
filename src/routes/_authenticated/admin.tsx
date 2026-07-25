@@ -10,6 +10,11 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { listUsersWithRolesFn, grantRoleFn, revokeRoleFn, type AppRole } from "@/lib/auth.functions";
 import { euros, useSites, useSessions, useNotices, useRealtimeSync } from "@/lib/parkpunkt-db";
+import { useProviders, useSiteMappings } from "@/lib/providers-db";
+import { upsertProviderFn, deleteProviderFn, syncProviderFn } from "@/lib/providers.functions";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Plug, RefreshCw, Trash2, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { Shield, ShieldCheck, X, Loader2 } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
@@ -123,7 +128,88 @@ function AdminConsole() {
           </div>
         </CardContent>
       </Card>
+
+      <ProvidersAdmin />
     </div>
+  );
+}
+
+function ProvidersAdmin() {
+  const { t } = useI18n();
+  const { data: providers = [] } = useProviders();
+  const { data: mappings = [] } = useSiteMappings();
+  const qc = useQueryClient();
+  const upsert = useServerFn(upsertProviderFn);
+  const del = useServerFn(deleteProviderFn);
+  const sync = useServerFn(syncProviderFn);
+  const [form, setForm] = useState({ name: "", slug: "", kind: "operator" as const, api_base_url: "", status: "onboarding" as const, notes: "" });
+
+  const saveM = useMutation({
+    mutationFn: () => upsert({ data: {
+      name: form.name, slug: form.slug, kind: form.kind,
+      api_base_url: form.api_base_url || null, status: form.status, notes: form.notes || null,
+    } }),
+    onSuccess: () => { toast.success(t("adm.provSaved")); setForm({ name: "", slug: "", kind: "operator", api_base_url: "", status: "onboarding", notes: "" }); qc.invalidateQueries({ queryKey: ["providers"] }); },
+    onError: (e) => toast.error((e as Error).message),
+  });
+  const delM = useMutation({
+    mutationFn: (id: string) => del({ data: { id } }),
+    onSuccess: () => { toast.success(t("adm.provDeleted")); qc.invalidateQueries({ queryKey: ["providers"] }); qc.invalidateQueries({ queryKey: ["sites"] }); },
+  });
+  const syncM = useMutation({
+    mutationFn: (id: string) => sync({ data: { provider_id: id } }),
+    onSuccess: (r) => { toast.success(`${t("adm.provSynced")} +${r.created} / ~${r.updated}`); qc.invalidateQueries({ queryKey: ["sites"] }); qc.invalidateQueries({ queryKey: ["providers"] }); },
+    onError: (e) => toast.error((e as Error).message),
+  });
+
+  const siteCountBySlug = mappings.reduce<Record<string, number>>((acc, m) => {
+    acc[m.provider_id] = (acc[m.provider_id] ?? 0) + 1;
+    return acc;
+  }, {});
+
+  return (
+    <Card>
+      <CardHeader><CardTitle className="flex items-center gap-2"><Plug className="h-4 w-4" /> {t("adm.providers")}</CardTitle></CardHeader>
+      <CardContent className="space-y-4">
+        <div className="grid gap-2 md:grid-cols-6">
+          <div className="md:col-span-2"><Label className="text-xs">{t("adm.provName")}</Label><Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></div>
+          <div><Label className="text-xs">{t("adm.provSlug")}</Label><Input value={form.slug} onChange={(e) => setForm({ ...form, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "-") })} /></div>
+          <div><Label className="text-xs">{t("adm.provKind")}</Label>
+            <Select value={form.kind} onValueChange={(v) => setForm({ ...form, kind: v as typeof form.kind })}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {(["operator","municipal","datex","handyparken","other"] as const).map((k) => <SelectItem key={k} value={k}>{k}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="md:col-span-2"><Label className="text-xs">{t("adm.provBase")}</Label><Input placeholder="https://…" value={form.api_base_url} onChange={(e) => setForm({ ...form, api_base_url: e.target.value })} /></div>
+          <div className="md:col-span-6"><Button size="sm" disabled={!form.name || !form.slug || saveM.isPending} onClick={() => saveM.mutate()}><Plus className="mr-1 h-3 w-3" />{t("adm.provAdd")}</Button></div>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="text-left text-xs uppercase text-muted-foreground">
+              <tr><th className="py-2">{t("adm.provName")}</th><th>{t("adm.provKind")}</th><th>{t("adm.provStatus")}</th><th>{t("adm.provSites")}</th><th></th></tr>
+            </thead>
+            <tbody className="divide-y divide-border">
+              {providers.map((p) => (
+                <tr key={p.id}>
+                  <td className="py-2"><div className="font-medium">{p.name}</div><div className="font-mono text-xs text-muted-foreground">{p.slug}</div></td>
+                  <td><Badge variant="outline">{p.kind}</Badge></td>
+                  <td><Badge variant={p.status === "active" ? "default" : p.status === "paused" ? "destructive" : "secondary"}>{p.status}</Badge></td>
+                  <td className="text-xs text-muted-foreground">{siteCountBySlug[p.id] ?? 0}</td>
+                  <td className="text-right">
+                    <Button size="sm" variant="outline" disabled={syncM.isPending} onClick={() => syncM.mutate(p.id)}><RefreshCw className="mr-1 h-3 w-3" />{t("adm.provSync")}</Button>
+                    <Button size="sm" variant="ghost" className="ml-2 text-destructive" onClick={() => delM.mutate(p.id)}><Trash2 className="h-3 w-3" /></Button>
+                  </td>
+                </tr>
+              ))}
+              {providers.length === 0 && <tr><td colSpan={5} className="py-3 text-center text-sm text-muted-foreground">{t("adm.provNone")}</td></tr>}
+            </tbody>
+          </table>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 
