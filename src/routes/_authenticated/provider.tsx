@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { useStore, haversineKm } from "@/lib/parkpunkt-data";
 import { Boxes, Play, Radio } from "lucide-react";
 
-export const Route = createFileRoute("/provider")({
+export const Route = createFileRoute("/_authenticated/provider")({
   head: () => ({
     meta: [
       { title: "ParkPunkt Provider Hub" },

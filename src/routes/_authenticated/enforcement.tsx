@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { store, useStore, euros } from "@/lib/parkpunkt-data";
 import { Camera, CheckCircle2, AlertTriangle, FileWarning } from "lucide-react";
 
-export const Route = createFileRoute("/enforcement")({
+export const Route = createFileRoute("/_authenticated/enforcement")({
   head: () => ({
     meta: [
       { title: "ParkPunkt Enforcement" },

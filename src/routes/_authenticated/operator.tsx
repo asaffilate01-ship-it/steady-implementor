@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { store, useStore, euros } from "@/lib/parkpunkt-data";
 import { Building2, Plus, TrendingUp, Users, Euro, Activity } from "lucide-react";
 
-export const Route = createFileRoute("/operator")({
+export const Route = createFileRoute("/_authenticated/operator")({
   head: () => ({
     meta: [
       { title: "ParkPunkt Operator Dashboard" },
