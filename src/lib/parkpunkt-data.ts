@@ -1,4 +1,4 @@
-import { useSyncExternalStore } from "react";
+import { useSyncExternalStoreWithSelector } from "use-sync-external-store/shim/with-selector";
 
 export type Site = {
   id: string;
@@ -139,11 +139,14 @@ export const store = {
   },
 };
 
+const SSR_STATE: State = { sites: SEED_SITES, sessions: [], notices: [], plate: "B-PP 2026", paymentMethod: "Visa •• 4242" };
+
 export function useStore<T>(selector: (s: State) => T): T {
-  return useSyncExternalStore(
+  return useSyncExternalStoreWithSelector(
     (l) => store.subscribe(l),
-    () => selector(store.get()),
-    () => selector(load()),
+    () => store.get(),
+    () => SSR_STATE,
+    selector,
   );
 }
 
