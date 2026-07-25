@@ -13,6 +13,14 @@ import { Route as DriveRouteImport } from './routes/drive'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as BlogIndexRouteImport } from './routes/blog/index'
+import { Route as LegalTermsRouteImport } from './routes/legal/terms'
+import { Route as LegalPrivacyRouteImport } from './routes/legal/privacy'
+import { Route as LegalImprintRouteImport } from './routes/legal/imprint'
+import { Route as LegalGdprRouteImport } from './routes/legal/gdpr'
+import { Route as LegalCookiesRouteImport } from './routes/legal/cookies'
+import { Route as LegalComplaintsRouteImport } from './routes/legal/complaints'
+import { Route as BlogSlugRouteImport } from './routes/blog/$slug'
 import { Route as AuthenticatedProviderRouteImport } from './routes/_authenticated/provider'
 import { Route as AuthenticatedOperatorRouteImport } from './routes/_authenticated/operator'
 import { Route as AuthenticatedEnforcementRouteImport } from './routes/_authenticated/enforcement'
@@ -35,6 +43,46 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BlogIndexRoute = BlogIndexRouteImport.update({
+  id: '/blog/',
+  path: '/blog/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LegalTermsRoute = LegalTermsRouteImport.update({
+  id: '/legal/terms',
+  path: '/legal/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LegalPrivacyRoute = LegalPrivacyRouteImport.update({
+  id: '/legal/privacy',
+  path: '/legal/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LegalImprintRoute = LegalImprintRouteImport.update({
+  id: '/legal/imprint',
+  path: '/legal/imprint',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LegalGdprRoute = LegalGdprRouteImport.update({
+  id: '/legal/gdpr',
+  path: '/legal/gdpr',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LegalCookiesRoute = LegalCookiesRouteImport.update({
+  id: '/legal/cookies',
+  path: '/legal/cookies',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LegalComplaintsRoute = LegalComplaintsRouteImport.update({
+  id: '/legal/complaints',
+  path: '/legal/complaints',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BlogSlugRoute = BlogSlugRouteImport.update({
+  id: '/blog/$slug',
+  path: '/blog/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedProviderRoute = AuthenticatedProviderRouteImport.update({
@@ -67,6 +115,14 @@ export interface FileRoutesByFullPath {
   '/enforcement': typeof AuthenticatedEnforcementRoute
   '/operator': typeof AuthenticatedOperatorRoute
   '/provider': typeof AuthenticatedProviderRoute
+  '/blog/$slug': typeof BlogSlugRoute
+  '/legal/complaints': typeof LegalComplaintsRoute
+  '/legal/cookies': typeof LegalCookiesRoute
+  '/legal/gdpr': typeof LegalGdprRoute
+  '/legal/imprint': typeof LegalImprintRoute
+  '/legal/privacy': typeof LegalPrivacyRoute
+  '/legal/terms': typeof LegalTermsRoute
+  '/blog/': typeof BlogIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -76,6 +132,14 @@ export interface FileRoutesByTo {
   '/enforcement': typeof AuthenticatedEnforcementRoute
   '/operator': typeof AuthenticatedOperatorRoute
   '/provider': typeof AuthenticatedProviderRoute
+  '/blog/$slug': typeof BlogSlugRoute
+  '/legal/complaints': typeof LegalComplaintsRoute
+  '/legal/cookies': typeof LegalCookiesRoute
+  '/legal/gdpr': typeof LegalGdprRoute
+  '/legal/imprint': typeof LegalImprintRoute
+  '/legal/privacy': typeof LegalPrivacyRoute
+  '/legal/terms': typeof LegalTermsRoute
+  '/blog': typeof BlogIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -87,6 +151,14 @@ export interface FileRoutesById {
   '/_authenticated/enforcement': typeof AuthenticatedEnforcementRoute
   '/_authenticated/operator': typeof AuthenticatedOperatorRoute
   '/_authenticated/provider': typeof AuthenticatedProviderRoute
+  '/blog/$slug': typeof BlogSlugRoute
+  '/legal/complaints': typeof LegalComplaintsRoute
+  '/legal/cookies': typeof LegalCookiesRoute
+  '/legal/gdpr': typeof LegalGdprRoute
+  '/legal/imprint': typeof LegalImprintRoute
+  '/legal/privacy': typeof LegalPrivacyRoute
+  '/legal/terms': typeof LegalTermsRoute
+  '/blog/': typeof BlogIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -98,6 +170,14 @@ export interface FileRouteTypes {
     | '/enforcement'
     | '/operator'
     | '/provider'
+    | '/blog/$slug'
+    | '/legal/complaints'
+    | '/legal/cookies'
+    | '/legal/gdpr'
+    | '/legal/imprint'
+    | '/legal/privacy'
+    | '/legal/terms'
+    | '/blog/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -107,6 +187,14 @@ export interface FileRouteTypes {
     | '/enforcement'
     | '/operator'
     | '/provider'
+    | '/blog/$slug'
+    | '/legal/complaints'
+    | '/legal/cookies'
+    | '/legal/gdpr'
+    | '/legal/imprint'
+    | '/legal/privacy'
+    | '/legal/terms'
+    | '/blog'
   id:
     | '__root__'
     | '/'
@@ -117,6 +205,14 @@ export interface FileRouteTypes {
     | '/_authenticated/enforcement'
     | '/_authenticated/operator'
     | '/_authenticated/provider'
+    | '/blog/$slug'
+    | '/legal/complaints'
+    | '/legal/cookies'
+    | '/legal/gdpr'
+    | '/legal/imprint'
+    | '/legal/privacy'
+    | '/legal/terms'
+    | '/blog/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -124,6 +220,14 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   DriveRoute: typeof DriveRoute
+  BlogSlugRoute: typeof BlogSlugRoute
+  LegalComplaintsRoute: typeof LegalComplaintsRoute
+  LegalCookiesRoute: typeof LegalCookiesRoute
+  LegalGdprRoute: typeof LegalGdprRoute
+  LegalImprintRoute: typeof LegalImprintRoute
+  LegalPrivacyRoute: typeof LegalPrivacyRoute
+  LegalTermsRoute: typeof LegalTermsRoute
+  BlogIndexRoute: typeof BlogIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -154,6 +258,62 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/blog/': {
+      id: '/blog/'
+      path: '/blog'
+      fullPath: '/blog/'
+      preLoaderRoute: typeof BlogIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/legal/terms': {
+      id: '/legal/terms'
+      path: '/legal/terms'
+      fullPath: '/legal/terms'
+      preLoaderRoute: typeof LegalTermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/legal/privacy': {
+      id: '/legal/privacy'
+      path: '/legal/privacy'
+      fullPath: '/legal/privacy'
+      preLoaderRoute: typeof LegalPrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/legal/imprint': {
+      id: '/legal/imprint'
+      path: '/legal/imprint'
+      fullPath: '/legal/imprint'
+      preLoaderRoute: typeof LegalImprintRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/legal/gdpr': {
+      id: '/legal/gdpr'
+      path: '/legal/gdpr'
+      fullPath: '/legal/gdpr'
+      preLoaderRoute: typeof LegalGdprRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/legal/cookies': {
+      id: '/legal/cookies'
+      path: '/legal/cookies'
+      fullPath: '/legal/cookies'
+      preLoaderRoute: typeof LegalCookiesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/legal/complaints': {
+      id: '/legal/complaints'
+      path: '/legal/complaints'
+      fullPath: '/legal/complaints'
+      preLoaderRoute: typeof LegalComplaintsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/blog/$slug': {
+      id: '/blog/$slug'
+      path: '/blog/$slug'
+      fullPath: '/blog/$slug'
+      preLoaderRoute: typeof BlogSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/provider': {
@@ -209,6 +369,14 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   DriveRoute: DriveRoute,
+  BlogSlugRoute: BlogSlugRoute,
+  LegalComplaintsRoute: LegalComplaintsRoute,
+  LegalCookiesRoute: LegalCookiesRoute,
+  LegalGdprRoute: LegalGdprRoute,
+  LegalImprintRoute: LegalImprintRoute,
+  LegalPrivacyRoute: LegalPrivacyRoute,
+  LegalTermsRoute: LegalTermsRoute,
+  BlogIndexRoute: BlogIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

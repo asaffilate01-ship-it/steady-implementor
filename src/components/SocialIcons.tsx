@@ -1,5 +1,5 @@
 import { Facebook, Instagram, Linkedin, Youtube, type LucideIcon } from "lucide-react";
-import type { SVGProps } from "react";
+import type { ReactElement, SVGProps } from "react";
 
 function XIcon(props: SVGProps<SVGSVGElement>) {
   return (
@@ -17,7 +17,8 @@ function TikTokIcon(props: SVGProps<SVGSVGElement>) {
   );
 }
 
-type Social = { label: string; href: string; Icon: LucideIcon | ((p: SVGProps<SVGSVGElement>) => JSX.Element) };
+type SvgComp = (p: SVGProps<SVGSVGElement>) => ReactElement;
+type Social = { label: string; href: string; Icon: LucideIcon | SvgComp };
 
 export const SOCIALS: Social[] = [
   { label: "X", href: "https://x.com/parkpunkt", Icon: XIcon },
@@ -50,10 +51,10 @@ export function SocialRow({ className = "" }: { className?: string }) {
 export function ShareRow({ title, url, className = "" }: { title: string; url: string; className?: string }) {
   const enc = encodeURIComponent(url);
   const encTitle = encodeURIComponent(title);
-  const shares: { label: string; href: string; Icon: (p: SVGProps<SVGSVGElement>) => JSX.Element | LucideIcon }[] = [
+  const shares: { label: string; href: string; Icon: SvgComp | LucideIcon }[] = [
     { label: "X", href: `https://twitter.com/intent/tweet?url=${enc}&text=${encTitle}`, Icon: XIcon },
-    { label: "Facebook", href: `https://www.facebook.com/sharer/sharer.php?u=${enc}`, Icon: Facebook as unknown as (p: SVGProps<SVGSVGElement>) => JSX.Element },
-    { label: "LinkedIn", href: `https://www.linkedin.com/sharing/share-offsite/?url=${enc}`, Icon: Linkedin as unknown as (p: SVGProps<SVGSVGElement>) => JSX.Element },
+    { label: "Facebook", href: `https://www.facebook.com/sharer/sharer.php?u=${enc}`, Icon: Facebook },
+    { label: "LinkedIn", href: `https://www.linkedin.com/sharing/share-offsite/?url=${enc}`, Icon: Linkedin },
   ];
   return (
     <div className={`flex items-center gap-2 ${className}`}>

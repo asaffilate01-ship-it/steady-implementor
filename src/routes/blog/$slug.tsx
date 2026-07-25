@@ -71,7 +71,7 @@ function PostPage() {
         </div>
         <img src={post.cover} alt="" className="mt-8 aspect-[16/9] w-full rounded-2xl border border-border object-cover" />
         <div className="prose prose-neutral mt-8 max-w-none text-foreground/90 [&_p]:mt-5 [&_p]:leading-relaxed">
-          {post.body[lang].map((para, i) => <p key={i}>{para}</p>)}
+          {post.body[lang].map((para: string, i: number) => <p key={i}>{para}</p>)}
         </div>
         <div className="mt-10 flex flex-wrap items-center justify-between gap-3 border-t border-border/60 pt-6">
           <span className="text-sm text-muted-foreground">{t("blog.share")}</span>
