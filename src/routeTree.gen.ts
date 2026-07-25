@@ -15,6 +15,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedProviderRouteImport } from './routes/_authenticated/provider'
 import { Route as AuthenticatedOperatorRouteImport } from './routes/_authenticated/operator'
 import { Route as AuthenticatedEnforcementRouteImport } from './routes/_authenticated/enforcement'
+import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
@@ -46,10 +47,16 @@ const AuthenticatedEnforcementRoute =
     path: '/enforcement',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/admin': typeof AuthenticatedAdminRoute
   '/enforcement': typeof AuthenticatedEnforcementRoute
   '/operator': typeof AuthenticatedOperatorRoute
   '/provider': typeof AuthenticatedProviderRoute
@@ -57,6 +64,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/admin': typeof AuthenticatedAdminRoute
   '/enforcement': typeof AuthenticatedEnforcementRoute
   '/operator': typeof AuthenticatedOperatorRoute
   '/provider': typeof AuthenticatedProviderRoute
@@ -66,20 +74,28 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/enforcement': typeof AuthenticatedEnforcementRoute
   '/_authenticated/operator': typeof AuthenticatedOperatorRoute
   '/_authenticated/provider': typeof AuthenticatedProviderRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/enforcement' | '/operator' | '/provider'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/admin'
+    | '/enforcement'
+    | '/operator'
+    | '/provider'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/enforcement' | '/operator' | '/provider'
+  to: '/' | '/auth' | '/admin' | '/enforcement' | '/operator' | '/provider'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/_authenticated/admin'
     | '/_authenticated/enforcement'
     | '/_authenticated/operator'
     | '/_authenticated/provider'
@@ -135,16 +151,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedEnforcementRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/admin': {
+      id: '/_authenticated/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AuthenticatedAdminRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
   AuthenticatedEnforcementRoute: typeof AuthenticatedEnforcementRoute
   AuthenticatedOperatorRoute: typeof AuthenticatedOperatorRoute
   AuthenticatedProviderRoute: typeof AuthenticatedProviderRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAdminRoute: AuthenticatedAdminRoute,
   AuthenticatedEnforcementRoute: AuthenticatedEnforcementRoute,
   AuthenticatedOperatorRoute: AuthenticatedOperatorRoute,
   AuthenticatedProviderRoute: AuthenticatedProviderRoute,
