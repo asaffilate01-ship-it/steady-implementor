@@ -8,8 +8,8 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
-import { euros, useSites, useSessions, useUpdateSite, useAddSite, useMyPayments, useRealtimeSync, type Site } from "@/lib/parkpunkt-db";
-import { Building2, Plus, TrendingUp, Users, Euro, Activity, BarChart3 } from "lucide-react";
+import { euros, useSites, useSessions, useUpdateSite, useAddSite, useMyPayments, usePayouts, useRealtimeSync, type Site } from "@/lib/parkpunkt-db";
+import { Building2, Plus, TrendingUp, Users, Euro, Activity, BarChart3, Wallet, CreditCard, PiggyBank } from "lucide-react";
 import { RoleGate } from "@/components/RoleGate";
 import { useI18n } from "@/lib/i18n";
 
