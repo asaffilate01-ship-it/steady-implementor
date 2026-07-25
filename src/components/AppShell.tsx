@@ -195,12 +195,12 @@ function CommandRail({ visibleNav, anchors }: { visibleNav: NavItem[]; anchors?:
       })}
       {anchors && anchors.length > 0 && (
         <>
-          <span className="mx-1 h-4 w-px bg-border/80" />
+          <span className="mx-1 hidden h-4 w-px bg-border/80 lg:block" />
           {anchors.map((a) => (
             <a
               key={a.href}
               href={a.href}
-              className="whitespace-nowrap rounded-full px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary/70 hover:text-foreground"
+              className="hidden whitespace-nowrap rounded-full px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary/70 hover:text-foreground lg:inline-flex"
             >
               {t(a.labelKey as never)}
             </a>
@@ -230,7 +230,7 @@ function AnchorRail({ anchors }: { anchors: AnchorLink[] }) {
         <a
           key={a.href}
           href={a.href}
-          className="whitespace-nowrap rounded-full px-3.5 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary/70 hover:text-foreground"
+          className="hidden whitespace-nowrap rounded-full px-3.5 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary/70 hover:text-foreground lg:inline-flex"
         >
           {t(a.labelKey as never)}
         </a>
