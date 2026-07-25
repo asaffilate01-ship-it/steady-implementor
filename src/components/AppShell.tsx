@@ -43,9 +43,9 @@ export function AppShell({ children }: { children: ReactNode }) {
     <div className="min-h-screen bg-background text-foreground">
       <header className="sticky top-0 z-40 border-b border-border/60 bg-background/80 backdrop-blur-xl supports-[backdrop-filter]:bg-background/70">
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-accent/40 to-transparent" />
-        <div className="mx-auto flex h-16 max-w-7xl items-center gap-4 px-4 md:h-28">
+        <div className="mx-auto flex h-16 max-w-7xl items-center gap-4 px-4 md:h-30">
           <Link to="/" className="group flex items-center gap-2">
-            <img src={logoAsset.url} alt="ParkPunkt" className="h-10 w-auto transition-transform group-hover:scale-105 md:h-24" />
+            <img src={logoAsset.url} alt="ParkPunkt" className="h-10 w-auto transition-transform group-hover:scale-105 md:h-26" />
           </Link>
           {visibleNav.length > 0 && (
             <nav className="ml-4 hidden flex-1 items-center gap-1 rounded-full border border-border/70 bg-secondary/40 p-1 text-sm shadow-sm md:flex md:w-fit">
