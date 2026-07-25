@@ -14,6 +14,88 @@ export type Database = {
   }
   public: {
     Tables: {
+      api_keys: {
+        Row: {
+          created_at: string
+          id: string
+          key_hash: string
+          key_prefix: string
+          last_used_at: string | null
+          name: string
+          owner_user_id: string | null
+          provider_id: string | null
+          revoked_at: string | null
+          scopes: string[]
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          key_hash: string
+          key_prefix: string
+          last_used_at?: string | null
+          name: string
+          owner_user_id?: string | null
+          provider_id?: string | null
+          revoked_at?: string | null
+          scopes?: string[]
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          key_hash?: string
+          key_prefix?: string
+          last_used_at?: string | null
+          name?: string
+          owner_user_id?: string | null
+          provider_id?: string | null
+          revoked_at?: string | null
+          scopes?: string[]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "api_keys_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "providers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      api_request_log: {
+        Row: {
+          api_key_id: string | null
+          created_at: string
+          id: string
+          latency_ms: number
+          path: string
+          status: number
+        }
+        Insert: {
+          api_key_id?: string | null
+          created_at?: string
+          id?: string
+          latency_ms?: number
+          path: string
+          status: number
+        }
+        Update: {
+          api_key_id?: string | null
+          created_at?: string
+          id?: string
+          latency_ms?: number
+          path?: string
+          status?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "api_request_log_api_key_id_fkey"
+            columns: ["api_key_id"]
+            isOneToOne: false
+            referencedRelation: "api_keys"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notices: {
         Row: {
           amount_cents: number
@@ -114,6 +196,80 @@ export type Database = {
           },
         ]
       }
+      provider_credentials: {
+        Row: {
+          created_at: string
+          credential_ref: string
+          id: string
+          provider_id: string
+        }
+        Insert: {
+          created_at?: string
+          credential_ref: string
+          id?: string
+          provider_id: string
+        }
+        Update: {
+          created_at?: string
+          credential_ref?: string
+          id?: string
+          provider_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "provider_credentials_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "providers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      providers: {
+        Row: {
+          api_base_url: string | null
+          auth_type: Database["public"]["Enums"]["provider_auth"]
+          contact_email: string | null
+          country: string
+          created_at: string
+          id: string
+          kind: Database["public"]["Enums"]["provider_kind"]
+          name: string
+          notes: string | null
+          slug: string
+          status: Database["public"]["Enums"]["provider_status"]
+          updated_at: string
+        }
+        Insert: {
+          api_base_url?: string | null
+          auth_type?: Database["public"]["Enums"]["provider_auth"]
+          contact_email?: string | null
+          country?: string
+          created_at?: string
+          id?: string
+          kind?: Database["public"]["Enums"]["provider_kind"]
+          name: string
+          notes?: string | null
+          slug: string
+          status?: Database["public"]["Enums"]["provider_status"]
+          updated_at?: string
+        }
+        Update: {
+          api_base_url?: string | null
+          auth_type?: Database["public"]["Enums"]["provider_auth"]
+          contact_email?: string | null
+          country?: string
+          created_at?: string
+          id?: string
+          kind?: Database["public"]["Enums"]["provider_kind"]
+          name?: string
+          notes?: string | null
+          slug?: string
+          status?: Database["public"]["Enums"]["provider_status"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
       sessions: {
         Row: {
           amount_cents: number
@@ -162,6 +318,48 @@ export type Database = {
             foreignKeyName: "sessions_site_id_fkey"
             columns: ["site_id"]
             isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      site_provider_mapping: {
+        Row: {
+          created_at: string
+          external_site_id: string
+          id: string
+          last_synced_at: string | null
+          provider_id: string
+          site_id: string
+        }
+        Insert: {
+          created_at?: string
+          external_site_id: string
+          id?: string
+          last_synced_at?: string | null
+          provider_id: string
+          site_id: string
+        }
+        Update: {
+          created_at?: string
+          external_site_id?: string
+          id?: string
+          last_synced_at?: string | null
+          provider_id?: string
+          site_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "site_provider_mapping_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "providers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "site_provider_mapping_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: true
             referencedRelation: "sites"
             referencedColumns: ["id"]
           },
@@ -275,6 +473,14 @@ export type Database = {
     Enums: {
       app_role: "admin" | "operator" | "provider" | "enforcement"
       org_kind: "operator" | "provider"
+      provider_auth: "none" | "api_key" | "oauth2" | "basic"
+      provider_kind:
+        | "operator"
+        | "municipal"
+        | "datex"
+        | "handyparken"
+        | "other"
+      provider_status: "active" | "paused" | "onboarding"
       session_status: "active" | "ended" | "cancelled"
       site_type: "street" | "garage" | "lot"
     }
@@ -406,6 +612,9 @@ export const Constants = {
     Enums: {
       app_role: ["admin", "operator", "provider", "enforcement"],
       org_kind: ["operator", "provider"],
+      provider_auth: ["none", "api_key", "oauth2", "basic"],
+      provider_kind: ["operator", "municipal", "datex", "handyparken", "other"],
+      provider_status: ["active", "paused", "onboarding"],
       session_status: ["active", "ended", "cancelled"],
       site_type: ["street", "garage", "lot"],
     },
