@@ -279,3 +279,106 @@ function Stat({ label, value }: { label: string; value: string | number }) {
     <Card><CardContent className="p-4"><div className="text-xs uppercase text-muted-foreground">{label}</div><div className="mt-1 text-2xl font-semibold">{value}</div></CardContent></Card>
   );
 }
+
+function CommissionAdmin() {
+  const { t } = useI18n();
+  const qc = useQueryClient();
+  const listOrgs = useServerFn(listOrgsFn);
+  const updateOrg = useServerFn(updateOrgCommissionFn);
+  const updateProvider = useServerFn(updateProviderCommissionFn);
+  const { data: providers = [] } = useProviders();
+
+  const orgsQ = useQuery({
+    queryKey: ["admin-orgs"],
+    queryFn: () => listOrgs(),
+  });
+
+  const saveOrgM = useMutation({
+    mutationFn: (v: { org_id: string; platform_fee_bps: number; platform_fixed_fee_cents: number }) => updateOrg({ data: v }),
+    onSuccess: () => { toast.success(t("adm.commission.saved")); qc.invalidateQueries({ queryKey: ["admin-orgs"] }); },
+    onError: (e) => toast.error((e as Error).message),
+  });
+  const saveProvM = useMutation({
+    mutationFn: (v: { provider_id: string; platform_fee_bps: number; platform_fixed_fee_cents: number }) => updateProvider({ data: v }),
+    onSuccess: () => { toast.success(t("adm.commission.saved")); qc.invalidateQueries({ queryKey: ["providers"] }); },
+    onError: (e) => toast.error((e as Error).message),
+  });
+
+  return (
+    <Card>
+      <CardHeader><CardTitle>{t("adm.commission.title")}</CardTitle></CardHeader>
+      <CardContent className="space-y-6">
+        <p className="text-sm text-muted-foreground">{t("adm.commission.sub")}</p>
+
+        <div>
+          <h3 className="mb-3 text-sm font-medium">{t("adm.commission.org")}</h3>
+          {orgsQ.isLoading && <div className="text-sm text-muted-foreground">{t("common.loading")}</div>}
+          <div className="grid gap-3">
+            {orgsQ.data?.map((o) => (
+              <CommissionRow
+                key={o.id}
+                name={o.name}
+                bps={o.platform_fee_bps}
+                fixed={o.platform_fixed_fee_cents}
+                onSave={(bps, fixed) => saveOrgM.mutate({ org_id: o.id, platform_fee_bps: bps, platform_fixed_fee_cents: fixed })}
+                pending={saveOrgM.isPending}
+              />
+            ))}
+            {orgsQ.data?.length === 0 && <div className="text-sm text-muted-foreground">{t("adm.orgs.empty")}</div>}
+          </div>
+        </div>
+
+        <div>
+          <h3 className="mb-3 text-sm font-medium">{t("adm.commission.provider")}</h3>
+          <div className="grid gap-3">
+            {providers.map((p) => (
+              <CommissionRow
+                key={p.id}
+                name={p.name}
+                bps={p.platform_fee_bps}
+                fixed={p.platform_fixed_fee_cents}
+                onSave={(bps, fixed) => saveProvM.mutate({ provider_id: p.id, platform_fee_bps: bps, platform_fixed_fee_cents: fixed })}
+                pending={saveProvM.isPending}
+              />
+            ))}
+            {providers.length === 0 && <div className="text-sm text-muted-foreground">{t("adm.provNone")}</div>}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function CommissionRow({
+  name, bps, fixed, onSave, pending,
+}: {
+  name: string;
+  bps: number;
+  fixed: number;
+  onSave: (bps: number, fixed: number) => void;
+  pending: boolean;
+}) {
+  const { t } = useI18n();
+  const [feePct, setFeePct] = useState(bps / 100);
+  const [feeFixed, setFeeFixed] = useState(fixed);
+  const changed = feePct !== bps / 100 || feeFixed !== fixed;
+  return (
+    <div className="flex flex-wrap items-end gap-3 rounded-md border border-border p-3 text-sm">
+      <div className="min-w-[180px] flex-1">
+        <div className="font-medium">{name}</div>
+        <div className="text-xs text-muted-foreground">{(feePct).toFixed(2)}% + {feeFixed}¢</div>
+      </div>
+      <div className="w-32">
+        <Label className="text-xs">{t("adm.commission.bps")}</Label>
+        <Input type="number" step="0.1" value={feePct} onChange={(e) => setFeePct(parseFloat(e.target.value) || 0)} />
+      </div>
+      <div className="w-32">
+        <Label className="text-xs">{t("adm.commission.fixed")}</Label>
+        <Input type="number" value={feeFixed} onChange={(e) => setFeeFixed(parseInt(e.target.value) || 0)} />
+      </div>
+      <div>
+        <Button size="sm" disabled={!changed || pending} onClick={() => onSave(Math.round(feePct * 100), feeFixed)}>{t("adm.commission.save")}</Button>
+      </div>
+    </div>
+  );
+}
