@@ -83,7 +83,7 @@ export function CookieProvider({ children }: { children: ReactNode }) {
         persist({ ...DEFAULT, analytics: false, marketing: false });
         setOpen(false);
       },
-      save: (p) => {
+      save: (p: Partial<CookiePrefs>) => {
         persist({ ...prefs, ...p });
         setOpen(false);
       },
