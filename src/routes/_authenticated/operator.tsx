@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
-import { store, useStore, euros } from "@/lib/parkpunkt-data";
+import { euros, useSites, useSessions, useUpdateSite, useAddSite, useRealtimeSync, type Site } from "@/lib/parkpunkt-db";
 import { Building2, Plus, TrendingUp, Users, Euro, Activity } from "lucide-react";
 import { RoleGate } from "@/components/RoleGate";
 import { useI18n } from "@/lib/i18n";
@@ -36,13 +36,14 @@ function OperatorGated() {
 }
 
 function OperatorDashboard() {
-  const sites = useStore((s) => s.sites);
-  const sessions = useStore((s) => s.sessions);
+  useRealtimeSync(["sites", "sessions"]);
+  const { data: sites = [] } = useSites();
+  const { data: sessions = [] } = useSessions();
   const { t } = useI18n();
   const totals = useMemo(() => {
     const capacity = sites.reduce((a, s) => a + s.capacity, 0);
     const occupied = sites.reduce((a, s) => a + s.occupied, 0);
-    const revenue = sessions.reduce((a, s) => a + s.amountCents, 0);
+    const revenue = sessions.reduce((a, s) => a + s.amount_cents, 0);
     return { capacity, occupied, revenue, pct: capacity ? Math.round((occupied/capacity)*100) : 0 };
   }, [sites, sessions]);
 
@@ -65,7 +66,7 @@ function OperatorDashboard() {
             <div className="grid grid-cols-[1.5fr,1fr,1fr,1.2fr,120px,120px] gap-3 border-b border-border px-4 py-2 text-xs uppercase text-muted-foreground">
               <div>{t("op.col.site")}</div><div>{t("op.col.operator")}</div><div>{t("op.col.type")}</div><div>{t("op.col.occupancy")}</div><div>{t("op.col.rate")}</div><div className="text-right">{t("common.actions")}</div>
             </div>
-            {sites.map((s) => <SiteRow key={s.id} id={s.id}/>)}
+            {sites.map((s) => <SiteRow key={s.id} site={s}/>)}
           </CardContent>
         </Card>
 
@@ -75,13 +76,13 @@ function OperatorDashboard() {
             {sessions.length === 0 && <div className="text-sm text-muted-foreground">{t("op.recent.empty")}</div>}
             <div className="divide-y divide-border">
               {sessions.slice(0,10).map((x) => {
-                const site = sites.find((y) => y.id === x.siteId);
+                const site = sites.find((y) => y.id === x.site_id);
                 return (
                   <div key={x.id} className="grid grid-cols-[1fr,1fr,1fr,120px,120px] items-center gap-3 py-2 text-sm">
-                    <div className="font-mono text-xs">{x.id}</div>
+                    <div className="font-mono text-xs">{x.id.slice(0,8)}</div>
                     <div className="truncate">{site?.name}</div>
                     <div className="font-mono">{x.plate}</div>
-                    <div>{euros(x.amountCents)}</div>
+                    <div>{euros(x.amount_cents)}</div>
                     <div className="text-right"><Badge className={x.status === "active" ? "bg-accent text-accent-foreground" : "bg-muted text-muted-foreground"}>{x.status}</Badge></div>
                   </div>
                 );
@@ -97,20 +98,20 @@ function KPI({ icon, label, value, sub }: { icon: React.ReactNode; label:string;
   return <Card><CardContent className="p-4"><div className="flex items-center gap-2 text-xs uppercase text-muted-foreground">{icon}{label}</div><div className="mt-1 text-2xl font-semibold">{value}</div>{sub && <div className="text-xs text-muted-foreground">{sub}</div>}</CardContent></Card>;
 }
 
-function SiteRow({ id }: { id: string }) {
-  const site = useStore((s) => s.sites.find((x) => x.id === id))!;
+function SiteRow({ site }: { site: Site }) {
   const pct = Math.round((site.occupied / site.capacity) * 100);
-  const [rate, setRate] = useState(site.pricePerHour);
+  const [rate, setRate] = useState(site.price_cents_per_hour / 100);
+  const update = useUpdateSite();
   return (
     <div className="grid grid-cols-[1.5fr,1fr,1fr,1.2fr,120px,120px] items-center gap-3 border-b border-border px-4 py-3 text-sm last:border-0">
       <div><div className="font-medium">{site.name}</div><div className="text-xs text-muted-foreground">{site.address}</div></div>
-      <div>{site.operator}</div>
+      <div>{site.operator_name ?? "—"}</div>
       <div><Badge variant="outline" className="capitalize">{site.type}</Badge></div>
       <div className="space-y-1"><Progress value={pct}/><div className="text-xs text-muted-foreground">{site.occupied}/{site.capacity} ({pct}%)</div></div>
-      <div className="flex items-center gap-1"><span>€</span><Input type="number" step="0.1" value={rate} onChange={(e) => setRate(parseFloat(e.target.value)||0)} onBlur={() => store.updateSite(site.id, { pricePerHour: rate })} className="h-8"/></div>
+      <div className="flex items-center gap-1"><span>€</span><Input type="number" step="0.1" value={rate} onChange={(e) => setRate(parseFloat(e.target.value)||0)} onBlur={() => update.mutate({ id: site.id, patch: { price_cents_per_hour: Math.round(rate * 100) } })} className="h-8"/></div>
       <div className="flex justify-end gap-1">
-        <Button size="sm" variant="secondary" onClick={() => store.updateSite(site.id, { occupied: Math.max(0, site.occupied - 1) })}>−</Button>
-        <Button size="sm" variant="secondary" onClick={() => store.updateSite(site.id, { occupied: Math.min(site.capacity, site.occupied + 1) })}>+</Button>
+        <Button size="sm" variant="secondary" onClick={() => update.mutate({ id: site.id, patch: { occupied: Math.max(0, site.occupied - 1) } })}>−</Button>
+        <Button size="sm" variant="secondary" onClick={() => update.mutate({ id: site.id, patch: { occupied: Math.min(site.capacity, site.occupied + 1) } })}>+</Button>
       </div>
     </div>
   );
@@ -120,6 +121,7 @@ function AddSiteDialog() {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState(""); const [addr, setAddr] = useState(""); const [cap, setCap] = useState(50); const [rate, setRate] = useState(2.5); const [op, setOp] = useState("Custom");
   const { t } = useI18n();
+  const add = useAddSite();
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild><Button><Plus className="mr-1 h-4 w-4"/>{t("op.addSite")}</Button></DialogTrigger>
@@ -134,9 +136,9 @@ function AddSiteDialog() {
           </div>
         </div>
         <DialogFooter>
-          <Button onClick={() => {
+          <Button disabled={add.isPending} onClick={async () => {
             if (!name || !addr) return;
-            store.addSite({ id: "S"+Math.random().toString(36).slice(2,6).toUpperCase(), name, address: addr, lat: 52.52, lng: 13.4, capacity: cap, occupied: 0, pricePerHour: rate, operator: op, amenities: [], type: "lot" });
+            await add.mutateAsync({ name, address: addr, lat: 52.52, lng: 13.4, capacity: cap, price_cents_per_hour: Math.round(rate * 100), operator_name: op, amenities: [], type: "lot" });
             setOpen(false);
           }}>{t("common.create")}</Button>
         </DialogFooter>
