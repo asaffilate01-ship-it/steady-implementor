@@ -10,8 +10,9 @@ import { Progress } from "@/components/ui/progress";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { store, useStore, euros } from "@/lib/parkpunkt-data";
 import { Building2, Plus, TrendingUp, Users, Euro, Activity } from "lucide-react";
+import { RoleGate } from "@/components/RoleGate";
 
-export const Route = createFileRoute("/operator")({
+export const Route = createFileRoute("/_authenticated/operator")({
   head: () => ({
     meta: [
       { title: "ParkPunkt Operator Dashboard" },
@@ -20,8 +21,18 @@ export const Route = createFileRoute("/operator")({
       { property: "og:description", content: "Sites, tariffs, occupancy — one dashboard." },
     ],
   }),
-  component: OperatorDashboard,
+  component: OperatorGated,
 });
+
+function OperatorGated() {
+  return (
+    <AppShell>
+      <RoleGate allow={["operator", "admin"]}>
+        <OperatorDashboard />
+      </RoleGate>
+    </AppShell>
+  );
+}
 
 function OperatorDashboard() {
   const sites = useStore((s) => s.sites);
@@ -34,7 +45,6 @@ function OperatorDashboard() {
   }, [sites, sessions]);
 
   return (
-    <AppShell>
       <div className="mx-auto max-w-7xl space-y-6 px-4 py-6">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div><h1 className="text-2xl font-semibold tracking-tight">Operator Dashboard</h1><p className="text-sm text-muted-foreground">Live occupancy, tariffs and site management</p></div>
@@ -78,7 +88,6 @@ function OperatorDashboard() {
           </CardContent>
         </Card>
       </div>
-    </AppShell>
   );
 }
 

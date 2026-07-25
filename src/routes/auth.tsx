@@ -1,0 +1,116 @@
+import { createFileRoute, useNavigate, useSearch, Link } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import { z } from "zod";
+import { supabase } from "@/integrations/supabase/client";
+import { lovable } from "@/integrations/lovable";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { toast } from "sonner";
+import logoAsset from "@/assets/parkpunkt-logo.png.asset.json";
+
+const searchSchema = z.object({ redirect: z.string().optional() });
+
+export const Route = createFileRoute("/auth")({
+  head: () => ({
+    meta: [
+      { title: "Sign in — ParkPunkt" },
+      { name: "description", content: "Sign in to access ParkPunkt operator, provider, enforcement or admin dashboards." },
+      { name: "robots", content: "noindex" },
+    ],
+  }),
+  validateSearch: (s) => searchSchema.parse(s),
+  component: AuthPage,
+});
+
+function AuthPage() {
+  const navigate = useNavigate();
+  const { redirect } = useSearch({ from: "/auth" });
+  const [mode, setMode] = useState<"signin" | "signup">("signin");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [displayName, setDisplayName] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  // If already signed in, bounce out
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      if (data.session) navigate({ to: redirect ?? "/", replace: true });
+    });
+  }, [navigate, redirect]);
+
+  async function onSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setBusy(true);
+    try {
+      if (mode === "signup") {
+        const { error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: { emailRedirectTo: window.location.origin, data: { display_name: displayName || email } },
+        });
+        if (error) throw error;
+        toast.success("Account created");
+      } else {
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+      }
+      navigate({ to: redirect ?? "/", replace: true });
+    } catch (err) {
+      toast.error((err as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function onGoogle() {
+    setBusy(true);
+    const result = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin });
+    if (result.error) {
+      toast.error(result.error.message ?? "Google sign-in failed");
+      setBusy(false);
+      return;
+    }
+    if (result.redirected) return;
+    navigate({ to: redirect ?? "/", replace: true });
+  }
+
+  return (
+    <div className="min-h-screen bg-background">
+      <div className="mx-auto flex min-h-screen max-w-md flex-col items-center justify-center px-4 py-10">
+        <Link to="/" className="mb-6"><img src={logoAsset.url} alt="ParkPunkt" className="h-10 w-auto" /></Link>
+        <Card className="w-full">
+          <CardHeader>
+            <CardTitle>{mode === "signin" ? "Sign in" : "Create account"}</CardTitle>
+            <CardDescription>Access ParkPunkt operator, provider, enforcement, or admin dashboards.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <Button type="button" variant="outline" className="w-full" onClick={onGoogle} disabled={busy}>
+              Continue with Google
+            </Button>
+            <div className="flex items-center gap-2 text-xs text-muted-foreground"><div className="h-px flex-1 bg-border" /><span>or</span><div className="h-px flex-1 bg-border" /></div>
+            <form onSubmit={onSubmit} className="space-y-3">
+              {mode === "signup" && (
+                <div className="space-y-1"><Label>Name</Label><Input value={displayName} onChange={(e) => setDisplayName(e.target.value)} placeholder="Your name" /></div>
+              )}
+              <div className="space-y-1"><Label>Email</Label><Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email" /></div>
+              <div className="space-y-1"><Label>Password</Label><Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={8} autoComplete={mode === "signin" ? "current-password" : "new-password"} /></div>
+              <Button type="submit" className="w-full" disabled={busy}>{mode === "signin" ? "Sign in" : "Create account"}</Button>
+            </form>
+            <div className="text-center text-sm">
+              {mode === "signin" ? (
+                <button className="text-primary underline" onClick={() => setMode("signup")}>Need an account? Sign up</button>
+              ) : (
+                <button className="text-primary underline" onClick={() => setMode("signin")}>Have an account? Sign in</button>
+              )}
+            </div>
+            <div className="text-center text-xs text-muted-foreground">
+              The driver app is available without signing in — <Link to="/" className="underline">go home</Link>.
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}

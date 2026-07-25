@@ -9,8 +9,9 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { store, useStore, euros } from "@/lib/parkpunkt-data";
 import { Camera, CheckCircle2, AlertTriangle, FileWarning } from "lucide-react";
+import { RoleGate } from "@/components/RoleGate";
 
-export const Route = createFileRoute("/enforcement")({
+export const Route = createFileRoute("/_authenticated/enforcement")({
   head: () => ({
     meta: [
       { title: "ParkPunkt Enforcement" },
@@ -19,8 +20,18 @@ export const Route = createFileRoute("/enforcement")({
       { property: "og:description", content: "Plate scan, verify, and issue notice." },
     ],
   }),
-  component: EnforcementApp,
+  component: EnforcementGated,
 });
+
+function EnforcementGated() {
+  return (
+    <AppShell>
+      <RoleGate allow={["enforcement", "admin"]}>
+        <EnforcementApp />
+      </RoleGate>
+    </AppShell>
+  );
+}
 
 function EnforcementApp() {
   const [plate, setPlate] = useState("");
@@ -43,7 +54,6 @@ function EnforcementApp() {
   }
 
   return (
-    <AppShell>
       <div className="mx-auto max-w-5xl space-y-6 px-4 py-6">
         <div><h1 className="text-2xl font-semibold tracking-tight">Enforcement</h1><p className="text-sm text-muted-foreground">ANPR-assisted plate verification and notice issuance.</p></div>
 
@@ -101,7 +111,6 @@ function EnforcementApp() {
           </CardContent>
         </Card>
       </div>
-    </AppShell>
   );
 }
 function Field({ label, children }: { label:string; children: React.ReactNode }) {

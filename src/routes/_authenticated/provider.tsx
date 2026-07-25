@@ -8,8 +8,9 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { useStore, haversineKm } from "@/lib/parkpunkt-data";
 import { Boxes, Play, Radio } from "lucide-react";
+import { RoleGate } from "@/components/RoleGate";
 
-export const Route = createFileRoute("/provider")({
+export const Route = createFileRoute("/_authenticated/provider")({
   head: () => ({
     meta: [
       { title: "ParkPunkt Provider Hub" },
@@ -18,8 +19,18 @@ export const Route = createFileRoute("/provider")({
       { property: "og:description", content: "Inventory, quotes, and API orchestration." },
     ],
   }),
-  component: ProviderHub,
+  component: ProviderGated,
 });
+
+function ProviderGated() {
+  return (
+    <AppShell>
+      <RoleGate allow={["provider", "admin"]}>
+        <ProviderHub />
+      </RoleGate>
+    </AppShell>
+  );
+}
 
 function ProviderHub() {
   const sites = useStore((s) => s.sites);
@@ -50,7 +61,6 @@ function ProviderHub() {
   }, [sites, lat, lng, max, duration]);
 
   return (
-    <AppShell>
       <div className="mx-auto max-w-6xl space-y-6 px-4 py-6">
         <div><h1 className="text-2xl font-semibold tracking-tight">Provider Hub</h1><p className="text-sm text-muted-foreground">Real-time inventory feed and orchestration API sandbox.</p></div>
 
@@ -83,7 +93,6 @@ function ProviderHub() {
           </Card>
         </div>
       </div>
-    </AppShell>
   );
 }
 function Field({ label, children }: { label:string; children: React.ReactNode }) {
