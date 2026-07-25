@@ -280,14 +280,14 @@ function MobileOverlay({
               to={item.to}
               onClick={onClose}
               className={cn(
-                "group flex items-center gap-4 rounded-2xl px-4 py-4 text-lg font-semibold transition-all",
+                "group flex items-center gap-4 whitespace-nowrap rounded-2xl px-4 py-4 text-lg font-semibold transition-all",
                 active
                   ? "bg-gradient-to-r from-primary to-primary/85 text-primary-foreground shadow-lg"
                   : "text-foreground hover:bg-secondary/70"
               )}
               style={{ animation: `slideIn 0.35s ease-out ${idx * 0.05}s both` }}
             >
-              <span className={cn("flex h-10 w-10 items-center justify-center rounded-xl transition-transform group-hover:scale-110", active ? "bg-white/15" : "bg-secondary")}>
+              <span className={cn("flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-transform group-hover:scale-110", active ? "bg-white/15" : "bg-secondary")}>
                 <Icon className="h-5 w-5" />
               </span>
               {item.label}
