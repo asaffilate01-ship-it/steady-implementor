@@ -58,16 +58,9 @@ export function AppShell({ children, anchors }: { children: ReactNode; anchors?:
       <div className="pointer-events-none fixed inset-x-0 top-0 z-30 h-20 bg-gradient-to-b from-background via-background/80 to-transparent" />
 
       <header className="fixed inset-x-0 top-0 z-40 px-4 pt-3 md:pt-4">
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between rounded-2xl border border-border/60 bg-background/75 px-3 shadow-[0_8px_32px_-12px_color-mix(in_oklch,var(--primary)_18%,transparent),0_1px_0_0_rgba(255,255,255,0.5)_inset] backdrop-blur-xl supports-[backdrop-filter]:bg-background/65 md:h-[4.5rem] md:rounded-3xl md:px-5">
-          <Link to="/" className="group flex items-center gap-2.5" aria-label="ParkPunkt — home">
-            <img src={logoAsset.url} alt="ParkPunkt" className="h-10 w-auto transition-transform duration-300 group-hover:scale-105 md:h-24" />
-            <span className="hidden items-center gap-1.5 text-sm font-semibold tracking-tight text-foreground/90 lg:inline-flex">
-              ParkPunkt
-              <span className="relative flex h-2 w-2">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent opacity-75" />
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-accent" />
-              </span>
-            </span>
+        <div className="mx-auto flex h-20 max-w-7xl items-center justify-between rounded-2xl border border-border/60 bg-background/75 px-3 shadow-[0_8px_32px_-12px_color-mix(in_oklch,var(--primary)_18%,transparent),0_1px_0_0_rgba(255,255,255,0.5)_inset] backdrop-blur-xl supports-[backdrop-filter]:bg-background/65 md:h-28 md:rounded-3xl md:px-5">
+          <Link to="/" className="group flex items-center" aria-label="ParkPunkt — home">
+            <img src={logoAsset.url} alt="ParkPunkt" className="h-12 w-auto transition-transform duration-300 group-hover:scale-105 md:h-24" />
           </Link>
 
           <div className="hidden items-center gap-1 md:flex">
