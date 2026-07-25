@@ -132,6 +132,22 @@ function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), { status, headers: CORS_HEADERS });
 }
 
+async function calculateFeeSplit(
+  admin: Awaited<ReturnType<typeof import("@/integrations/supabase/client.server").createAdminClient>>,
+  site_id: string,
+  amount_cents: number,
+): Promise<{ platform_fee_cents: number; operator_net_cents: number }> {
+  try {
+    const { data } = await admin.rpc("calculate_platform_fee", { _site_id: site_id, _amount_cents: amount_cents }).single();
+    if (data && typeof data.platform_fee_cents === "number" && typeof data.operator_net_cents === "number") {
+      return { platform_fee_cents: data.platform_fee_cents, operator_net_cents: data.operator_net_cents };
+    }
+  } catch { /* fall through */ }
+  // Fallback: default 5% platform fee
+  const fee = Math.round(amount_cents * 0.05);
+  return { platform_fee_cents: fee, operator_net_cents: amount_cents - fee };
+}
+
 async function logRequest(api_key_id: string | null, path: string, status: number, latency_ms: number) {
   try {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
