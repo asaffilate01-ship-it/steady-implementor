@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AppShell } from "@/components/AppShell";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -47,7 +47,7 @@ function EnforcementApp() {
   const { data: sessions = [] } = useSessions();
   const { data: notices = [] } = useNotices();
   const issue = useIssueNotice();
-  if (!siteId && sites[0]) setSiteId(sites[0].id);
+  useEffect(() => { if (!siteId && sites[0]) setSiteId(sites[0].id); }, [siteId, sites]);
 
   const currentSite = useMemo(() => sites.find((s) => s.id === siteId), [sites, siteId]);
 
