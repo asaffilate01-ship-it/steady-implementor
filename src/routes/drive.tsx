@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { store, useStore, euros, haversineKm, type Site } from "@/lib/parkpunkt-data";
-import { MapPin, Search, Zap, Clock, Car, ArrowLeft, CreditCard, CheckCircle2, Timer } from "lucide-react";
+import { MapPin, Search, Zap, Clock, Car, ArrowLeft, CreditCard, CheckCircle2, Timer, Check } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/drive")({
@@ -46,6 +46,7 @@ function DriverApp() {
   return (
     <AppShell>
       <div className="mx-auto max-w-3xl px-4 py-6">
+        <DriveStepper current={screen.name} />
         {screen.name === "search" && (
           <SearchScreen
             onSearch={(where, query) => setScreen({ name: "results", where, query })}
@@ -60,6 +61,46 @@ function DriverApp() {
         {screen.name === "active" && <ActiveScreen sessionId={screen.sessionId} onDone={() => setScreen({ name: "search" })} />}
       </div>
     </AppShell>
+  );
+}
+
+function DriveStepper({ current }: { current: "search" | "results" | "detail" | "active" }) {
+  const { t } = useI18n();
+  const steps: { key: typeof current; label: string }[] = [
+    { key: "search", label: t("home.how.find.title") },
+    { key: "results", label: t("drive.search") },
+    { key: "detail", label: t("home.how.park.title") },
+    { key: "active", label: t("home.how.pay.title") },
+  ];
+  const idx = steps.findIndex((s) => s.key === current);
+  return (
+    <ol className="mb-6 flex items-center gap-2 overflow-x-auto pb-1 text-xs">
+      {steps.map((s, i) => {
+        const done = i < idx;
+        const active = i === idx;
+        return (
+          <li key={s.key} className="flex items-center gap-2">
+            <span
+              className={
+                "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 font-medium transition-colors " +
+                (active
+                  ? "border-primary/50 bg-primary/10 text-foreground"
+                  : done
+                    ? "border-accent/40 bg-accent/10 text-accent"
+                    : "border-border bg-secondary/40 text-muted-foreground")
+              }
+            >
+              <span className="grid h-4 w-4 place-items-center rounded-full bg-background/70 text-[10px] font-semibold tabular-nums">
+                {done ? <Check className="h-3 w-3" /> : i + 1}
+              </span>
+              <span className="whitespace-nowrap">{s.label}</span>
+            </span>
+            {i < steps.length - 1 && <span className="h-px w-4 bg-border" aria-hidden />}
+          </li>
+        );
+      })}
+      <li className="ml-auto whitespace-nowrap text-muted-foreground">{idx + 1} {t("step.of")} {steps.length}</li>
+    </ol>
   );
 }
 
