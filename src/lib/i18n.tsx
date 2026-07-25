@@ -291,6 +291,7 @@ const DICT = {
     "nav.skip": "Zum Inhalt springen",
     "nav.menu": "Menü",
     "nav.close": "Menü schließen",
+    "nav.onpage": "Auf dieser Seite",
     "step.of": "von",
 
     "home.badge": "Park-Betriebssystem",
