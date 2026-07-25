@@ -12,7 +12,7 @@ export function SiteFooter() {
       <div className="mx-auto grid max-w-6xl gap-10 px-4 py-14 md:grid-cols-5">
         <div className="md:col-span-2">
           <Link to="/" className="flex items-center gap-2">
-            <img src={logoAsset.url} alt="ParkPunkt" className="h-16 w-auto" />
+            <img src={logoAsset.url} alt="ParkPunkt" className="h-10 w-auto" />
           </Link>
           <p className="mt-3 max-w-sm text-sm text-muted-foreground">{t("home.subtitle")}</p>
           <div className="mt-5">
