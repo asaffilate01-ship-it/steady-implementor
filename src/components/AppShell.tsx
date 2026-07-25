@@ -200,7 +200,7 @@ function CommandRail({ visibleNav, anchors }: { visibleNav: NavItem[]; anchors?:
             <a
               key={a.href}
               href={a.href}
-              className="rounded-full px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary/70 hover:text-foreground"
+              className="whitespace-nowrap rounded-full px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary/70 hover:text-foreground"
             >
               {t(a.labelKey as never)}
             </a>
