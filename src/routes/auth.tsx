@@ -103,7 +103,7 @@ function AuthPage() {
   return (
     <div className="min-h-screen bg-background">
       <div className="mx-auto flex min-h-screen max-w-md flex-col items-center justify-center px-4 py-10">
-        <Link to="/" className="mb-6"><img src={logoAsset.url} alt="ParkPunkt" className="h-10 w-auto" /></Link>
+        <Link to="/" className="mb-6"><img src={logoAsset.url} alt="ParkPunkt" className="h-[5.5rem] w-auto" /></Link>
         <Card className="w-full">
           <CardHeader>
             <CardTitle>{mode === "signin" ? t("auth.signin") : t("auth.signup")}</CardTitle>

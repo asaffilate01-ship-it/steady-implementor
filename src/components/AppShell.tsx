@@ -42,9 +42,9 @@ export function AppShell({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <header className="sticky top-0 z-40 border-b border-border/60 bg-background/85 backdrop-blur">
-        <div className="mx-auto flex h-14 max-w-7xl items-center gap-4 px-4">
+        <div className="mx-auto flex h-16 max-w-7xl items-center gap-4 px-4 md:h-28">
           <Link to="/" className="flex items-center gap-2">
-            <img src={logoAsset.url} alt="ParkPunkt" className="h-8 w-auto" />
+            <img src={logoAsset.url} alt="ParkPunkt" className="h-10 w-auto md:h-24" />
           </Link>
           <nav className="ml-2 flex flex-1 flex-wrap items-center gap-1 text-sm">
             {visibleNav.map((n) => {
