@@ -315,19 +315,152 @@ function CTA({ signedIn }: { signedIn: boolean }) {
   );
 }
 
-function Footer() {
+const STAKEHOLDER_FEATURES = {
+  driver: {
+    icon: Car,
+    tint: "from-[oklch(0.72_0.17_148)] to-[oklch(0.5_0.14_160)]",
+    en: [
+      "Live availability across kerbside, lots and garages",
+      "One-tap start, extend or end from your phone",
+      "Transparent per-minute pricing — no minimum stay",
+      "Automatic receipts and monthly VAT-ready statements",
+      "Multi-vehicle profiles for family and fleet cars",
+      "Barrier auto-open at ANPR-fitted sites",
+    ],
+    de: [
+      "Live-Verfügbarkeit für Straße, Parkplatz und Parkhaus",
+      "Ein-Tipp: Start, Verlängern, Beenden vom Handy",
+      "Transparente Minutenpreise — keine Mindestdauer",
+      "Automatische Belege und monatliche MwSt.-Aufstellung",
+      "Mehrere Fahrzeuge für Familie und Fuhrpark",
+      "Automatische Schranke bei ANPR-Standorten",
+    ],
+  },
+  operator: {
+    icon: Building2,
+    tint: "from-[oklch(0.62_0.17_255)] to-[oklch(0.42_0.14_260)]",
+    en: [
+      "Multi-site dashboard with live occupancy heat-maps",
+      "Dynamic tariff engine with time-of-day rules",
+      "Revenue, GMV and utilisation analytics",
+      "Instant payout reconciliation with PSD2 rails",
+      "Multi-tenant org isolation with RLS-scoped access",
+      "Site-level audit trail for every tariff change",
+    ],
+    de: [
+      "Multi-Standort-Dashboard mit Live-Auslastungs-Heatmap",
+      "Dynamische Tarif-Engine mit Zeitfenster-Regeln",
+      "Umsatz-, GMV- und Auslastungs-Analytik",
+      "Sofortiger Payout-Abgleich über PSD2",
+      "Multi-Mandanten-Isolation mit RLS-Zugriff",
+      "Audit-Trail für jede Tarifänderung",
+    ],
+  },
+  enforce: {
+    icon: Radar,
+    tint: "from-[oklch(0.72_0.17_35)] to-[oklch(0.52_0.16_25)]",
+    en: [
+      "One-tap plate scan with ANPR-assisted lookup",
+      "Instant valid/invalid session verdict",
+      "Structured notice issuance with photo evidence",
+      "Offline-first officer mode with sync-back",
+      "Chain-of-custody log for every enforcement action",
+      "Dispute portal for drivers under a single URL",
+    ],
+    de: [
+      "Ein-Tipp Kennzeichen-Scan mit ANPR-Abgleich",
+      "Sofortiger Gültig/Ungültig-Bescheid",
+      "Strukturierte Bescheiderstellung mit Fotobeweis",
+      "Offline-first Modus mit späterem Sync",
+      "Chain-of-Custody-Log für jede Maßnahme",
+      "Widerspruchsportal für Fahrer über eine URL",
+    ],
+  },
+  provider: {
+    icon: BarChart3,
+    tint: "from-[oklch(0.72_0.15_300)] to-[oklch(0.48_0.16_290)]",
+    en: [
+      "Standard REST endpoints: quote, book, extend, end",
+      "Webhooks for session lifecycle and settlement",
+      "Sandbox with seeded inventory and test plates",
+      "Marketplace payout with per-site commission splits",
+      "Rate-limited, signed requests with per-key scopes",
+      "OpenAPI schema and typed SDKs for TS and Python",
+    ],
+    de: [
+      "Standard-REST: Angebot, Buchung, Verlängerung, Ende",
+      "Webhooks für Sitzungs-Lifecycle und Abrechnung",
+      "Sandbox mit Test-Inventar und Test-Kennzeichen",
+      "Marktplatz-Payout mit Provisions-Split je Standort",
+      "Rate-limitierte, signierte Requests mit Scopes",
+      "OpenAPI-Schema und typisierte SDKs (TS/Python)",
+    ],
+  },
+} as const;
+
+type StakeKey = keyof typeof STAKEHOLDER_FEATURES;
+
+function StakeholderFeatures() {
+  const { t, lang } = useI18n();
+  const [active, setActive] = useState<StakeKey>("driver");
+  const cfg = STAKEHOLDER_FEATURES[active];
+  const Icon = cfg.icon;
+  const items = cfg[lang];
+  const titleKey: Record<StakeKey, "feat.driver.title" | "feat.operator.title" | "feat.enforce.title" | "feat.provider.title"> = {
+    driver: "feat.driver.title",
+    operator: "feat.operator.title",
+    enforce: "feat.enforce.title",
+    provider: "feat.provider.title",
+  };
   return (
-    <footer className="border-t border-border/60 py-10">
-      <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-4 text-sm text-muted-foreground md:flex-row">
-        <div className="flex items-center gap-2">
-          <img src={logoAsset.url} alt="ParkPunkt" className="h-16 w-auto" />
-          <span>© {new Date().getFullYear()} ParkPunkt · Finden. Parken. Bezahlen.</span>
+    <section id="capabilities" className="border-t border-border/60 py-20">
+      <div className="mx-auto max-w-6xl px-4">
+        <div className="flex flex-wrap items-end justify-between gap-6">
+          <div className="max-w-2xl">
+            <h2 className="text-3xl font-semibold tracking-tight md:text-4xl">{t(titleKey[active])}</h2>
+            <p className="mt-3 text-sm text-muted-foreground">{t("feat.showFor")}:</p>
+          </div>
+          <div className="flex flex-wrap gap-1 rounded-full border border-border/70 bg-secondary/40 p-1">
+            {(Object.keys(STAKEHOLDER_FEATURES) as StakeKey[]).map((k) => {
+              const label = t(`home.stake.${k}.title` as never);
+              const isActive = k === active;
+              return (
+                <button
+                  key={k}
+                  onClick={() => setActive(k)}
+                  className={`rounded-full px-3.5 py-1.5 text-xs font-medium transition-all ${
+                    isActive
+                      ? "bg-gradient-to-b from-primary to-primary/85 text-primary-foreground shadow-[0_4px_14px_-4px_color-mix(in_oklch,var(--primary)_60%,transparent)]"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                  type="button"
+                >
+                  {label}
+                </button>
+              );
+            })}
+          </div>
         </div>
-        <div className="flex gap-4">
-          <Link to="/drive" className="hover:text-foreground">Driver</Link>
-          <Link to="/auth" className="hover:text-foreground">Sign in</Link>
+
+        <div className="mt-10 grid gap-6 md:grid-cols-[220px_1fr]">
+          <div className={`relative overflow-hidden rounded-3xl bg-gradient-to-br ${cfg.tint} p-8 text-white shadow-[var(--shadow-elegant)] ring-1 ring-white/15`}>
+            <div className="pointer-events-none absolute -right-8 -top-8 h-40 w-40 rounded-full bg-white/15 blur-3xl" />
+            <Icon className="relative h-10 w-10 drop-shadow" />
+            <div className="relative mt-6 text-2xl font-semibold tracking-tight">{t(`home.stake.${active}.title` as never)}</div>
+            <div className="relative mt-1 text-sm text-white/80">{t(`home.stake.${active}.body` as never)}</div>
+          </div>
+          <ul className="grid gap-3 sm:grid-cols-2">
+            {items.map((it) => (
+              <li key={it} className="group flex items-start gap-3 rounded-2xl border border-border bg-card p-4 transition-all hover:-translate-y-0.5 hover:border-accent/60 hover:shadow-[var(--shadow-soft)]">
+                <span className="mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full bg-accent/15 text-accent">
+                  <CheckCircle2 className="h-3.5 w-3.5" />
+                </span>
+                <span className="text-sm leading-relaxed text-foreground/90">{it}</span>
+              </li>
+            ))}
+          </ul>
         </div>
       </div>
-    </footer>
+    </section>
   );
 }
