@@ -61,7 +61,6 @@ function ProviderHub() {
   }, [sites, lat, lng, max, duration]);
 
   return (
-    <AppShell>
       <div className="mx-auto max-w-6xl space-y-6 px-4 py-6">
         <div><h1 className="text-2xl font-semibold tracking-tight">Provider Hub</h1><p className="text-sm text-muted-foreground">Real-time inventory feed and orchestration API sandbox.</p></div>
 
@@ -94,7 +93,6 @@ function ProviderHub() {
           </Card>
         </div>
       </div>
-    </AppShell>
   );
 }
 function Field({ label, children }: { label:string; children: React.ReactNode }) {
