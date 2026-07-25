@@ -11,7 +11,7 @@ import type { AppRole } from "@/lib/auth.functions";
 
 type NavItem = { to: string; label: string; roles?: AppRole[] };
 const NAV: NavItem[] = [
-  { to: "/", label: "Driver" },
+  { to: "/drive", label: "Driver App" },
   { to: "/operator", label: "Operator", roles: ["operator", "admin"] },
   { to: "/provider", label: "Provider Hub", roles: ["provider", "admin"] },
   { to: "/enforcement", label: "Enforcement", roles: ["enforcement", "admin"] },
@@ -32,11 +32,10 @@ export function AppShell({ children }: { children: ReactNode }) {
     router.navigate({ to: "/", replace: true });
   }
 
-  const visibleNav = NAV.filter((n) => {
-    if (!n.roles) return true;
-    if (!user) return true; // still show so users can discover; RoleGate shows access denied
-    return hasRole(rolesData?.roles, ...n.roles);
-  });
+  // Only signed-in users see the workspace nav. Everyone else just sees the logo + Sign in.
+  const visibleNav = user
+    ? NAV.filter((n) => !n.roles || hasRole(rolesData?.roles, ...n.roles))
+    : [];
 
   return (
     <div className="min-h-screen bg-background text-foreground">
