@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,7 +24,7 @@ import {
   type Site,
   type Session,
 } from "@/lib/parkpunkt-db";
-import { MapPin, Search, Zap, Clock, Car, ArrowLeft, CreditCard, CheckCircle2, Timer, Check, LogIn, Receipt, CalendarClock, X as XIcon } from "lucide-react";
+import { MapPin, Search, Zap, Clock, Car, ArrowLeft, CreditCard, CheckCircle2, Timer, Check, LogIn, Receipt, CalendarClock, X as XIcon, Navigation, Building2 } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { toast } from "sonner";
 
@@ -46,6 +46,7 @@ type Screen =
   | { name: "search" }
   | { name: "results"; where: { lat: number; lng: number }; query: string }
   | { name: "detail"; siteId: string }
+  | { name: "arrived" }
   | { name: "active"; sessionId: string };
 
 const DESTINATIONS: Record<string, { lat: number; lng: number }> = {
@@ -68,6 +69,7 @@ function DriverApp() {
         {screen.name === "search" && (
           <SearchScreen
             onSearch={(where, query) => setScreen({ name: "results", where, query })}
+            onArrived={() => setScreen({ name: "arrived" })}
             activeSessions={active.length}
             activeSession={active[0]}
             openActive={(id) => setScreen({ name: "active", sessionId: id })}
@@ -77,13 +79,14 @@ function DriverApp() {
           <ResultsScreen where={screen.where} query={screen.query} onBack={() => setScreen({ name: "search" })} onSelect={(id) => setScreen({ name: "detail", siteId: id })} />
         )}
         {screen.name === "detail" && <DetailScreen siteId={screen.siteId} onBack={() => setScreen({ name: "search" })} onBooked={(id) => setScreen({ name: "active", sessionId: id })} />}
+        {screen.name === "arrived" && <ArrivedScreen onBack={() => setScreen({ name: "search" })} onBooked={(id) => setScreen({ name: "active", sessionId: id })} />}
         {screen.name === "active" && <ActiveScreen sessionId={screen.sessionId} onDone={() => setScreen({ name: "search" })} />}
       </div>
     </AppShell>
   );
 }
 
-function DriveStepper({ current }: { current: "search" | "results" | "detail" | "active" }) {
+function DriveStepper({ current }: { current: "search" | "results" | "detail" | "arrived" | "active" }) {
   const { t } = useI18n();
   const steps: { key: typeof current; label: string }[] = [
     { key: "search", label: t("home.how.find.title") },
@@ -91,7 +94,7 @@ function DriveStepper({ current }: { current: "search" | "results" | "detail" | 
     { key: "detail", label: t("home.how.park.title") },
     { key: "active", label: t("home.how.pay.title") },
   ];
-  const idx = steps.findIndex((s) => s.key === current);
+  const idx = current === "arrived" ? 2 : steps.findIndex((s) => s.key === current);
   return (
     <ol className="mb-6 flex items-center gap-2 overflow-x-auto pb-1 text-xs">
       {steps.map((s, i) => {
@@ -123,7 +126,7 @@ function DriveStepper({ current }: { current: "search" | "results" | "detail" | 
   );
 }
 
-function SearchScreen({ onSearch, activeSessions, activeSession, openActive }: { onSearch: (where: { lat: number; lng: number }, q: string) => void; activeSessions: number; activeSession?: Session; openActive: (id: string) => void }) {
+function SearchScreen({ onSearch, onArrived, activeSessions, activeSession, openActive }: { onSearch: (where: { lat: number; lng: number }, q: string) => void; onArrived: () => void; activeSessions: number; activeSession?: Session; openActive: (id: string) => void }) {
   const [q, setQ] = useState("Alexanderplatz");
   const { data: profile } = useMyProfile();
   const plate = profile?.plate ?? "—";
@@ -135,6 +138,19 @@ function SearchScreen({ onSearch, activeSessions, activeSession, openActive }: {
         <h1 className="text-2xl font-semibold tracking-tight">{t("drive.title")}</h1>
         <p className="text-sm text-muted-foreground">{t("drive.sub")}</p>
       </div>
+      <button
+        onClick={onArrived}
+        className="group relative flex w-full items-center gap-4 overflow-hidden rounded-xl border border-accent/40 bg-gradient-to-br from-accent/10 via-accent/5 to-transparent p-5 text-left transition hover:border-accent hover:shadow-[var(--shadow-soft)]"
+      >
+        <div className="grid h-12 w-12 shrink-0 place-items-center rounded-lg bg-accent text-accent-foreground">
+          <Navigation className="h-6 w-6" />
+        </div>
+        <div className="flex-1">
+          <div className="text-base font-semibold">{t("drive.arrived.cta")}</div>
+          <div className="text-xs text-muted-foreground">{t("drive.arrived.sub")}</div>
+        </div>
+        <Zap className="h-5 w-5 text-accent transition-transform group-hover:translate-x-1" />
+      </button>
       {active && (
         <Card className="cursor-pointer border-accent/50 bg-accent/5" onClick={() => openActive(active.id)}>
           <CardContent className="flex items-center justify-between p-4">
@@ -437,4 +453,163 @@ function Stat({ label, value }: { label: string; value: string }) {
 }
 function Row({ label, value }: { label: string; value: React.ReactNode }) {
   return <div className="flex items-center justify-between"><span className="text-muted-foreground">{label}</span><span>{value}</span></div>;
+}
+
+function ArrivedScreen({ onBack, onBooked }: { onBack: () => void; onBooked: (id: string) => void }) {
+  const { t } = useI18n();
+  const { data: sites = [] } = useSites();
+  const { data: profile } = useMyProfile();
+  const start = useStartSession();
+  const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const [detecting, setDetecting] = useState(true);
+  const [manual, setManual] = useState(false);
+  const [street, setStreet] = useState("");
+  const [code, setCode] = useState("");
+  const [siteId, setSiteId] = useState<string | null>(null);
+  const [minutes, setMinutes] = useState(60);
+  const [plate, setPlate] = useState(profile?.plate ?? "");
+  useEffect(() => { if (profile?.plate) setPlate(profile.plate); }, [profile?.plate]);
+
+  // Detect location (fallback: Berlin center)
+  useEffect(() => {
+    if (!navigator.geolocation) {
+      setCoords({ lat: 52.520, lng: 13.405 });
+      setDetecting(false);
+      return;
+    }
+    const timer = setTimeout(() => { setCoords({ lat: 52.520, lng: 13.405 }); setDetecting(false); }, 3000);
+    navigator.geolocation.getCurrentPosition(
+      (p) => { clearTimeout(timer); setCoords({ lat: p.coords.latitude, lng: p.coords.longitude }); setDetecting(false); },
+      () => { clearTimeout(timer); setCoords({ lat: 52.520, lng: 13.405 }); setDetecting(false); },
+    );
+  }, []);
+
+  const zoneCode = (s: Site) => `PP-${s.id.slice(0, 4).toUpperCase()}`;
+
+  const nearest = useMemo(() => {
+    if (!coords || sites.length === 0) return null;
+    return [...sites].sort((a, b) => haversineKm(coords, a) - haversineKm(coords, b))[0];
+  }, [coords, sites]);
+
+  const selectedSite = useMemo(() => {
+    if (siteId) return sites.find((s) => s.id === siteId) ?? null;
+    if (!manual) return nearest;
+    const codeUp = code.trim().toUpperCase();
+    const streetLc = street.trim().toLowerCase();
+    const byCode = codeUp ? sites.find((s) => zoneCode(s) === codeUp) : null;
+    if (byCode) return byCode;
+    if (streetLc) return sites.find((s) => s.address.toLowerCase().includes(streetLc) || s.name.toLowerCase().includes(streetLc)) ?? null;
+    return null;
+  }, [manual, siteId, sites, nearest, code, street]);
+
+  const amount = selectedSite ? Math.round((selectedSite.price_cents_per_hour * minutes) / 60) : 0;
+  const feeCents = Math.round(amount * 0.05); // matches DB default; trigger recomputes exactly on insert
+  const operatorNet = amount - feeCents;
+
+  return (
+    <div className="space-y-4">
+      <Button variant="ghost" size="sm" onClick={onBack}><ArrowLeft className="mr-1 h-4 w-4" />{t("common.back")}</Button>
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2"><Navigation className="h-5 w-5 text-accent" />{t("drive.arrived.title")}</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-5">
+          <p className="text-sm text-muted-foreground">{t("drive.arrived.sub")}</p>
+
+          {detecting && (
+            <div className="rounded-md border border-border bg-secondary/40 p-4 text-sm text-muted-foreground">
+              {t("drive.arrived.detecting")}
+            </div>
+          )}
+
+          {!detecting && !manual && nearest && (
+            <div className="space-y-3 rounded-md border border-accent/40 bg-accent/5 p-4">
+              <div className="text-xs uppercase tracking-wide text-muted-foreground">{t("drive.arrived.confirm")}</div>
+              <div className="text-lg font-semibold">{nearest.name}</div>
+              <div className="text-sm text-muted-foreground">{nearest.address}</div>
+              <div className="flex items-center gap-2 pt-1">
+                <Badge variant="outline" className="font-mono text-xs">{t("drive.arrived.code")}: {zoneCode(nearest)}</Badge>
+                <Badge className="bg-primary/10 text-primary" variant="outline"><Building2 className="mr-1 h-3 w-3" />{nearest.operator_name ?? "—"}</Badge>
+              </div>
+              <div className="flex gap-2 pt-2">
+                <Button size="sm" className="flex-1" onClick={() => setSiteId(nearest.id)}><Check className="mr-1 h-4 w-4" />{t("drive.arrived.yes")}</Button>
+                <Button size="sm" variant="outline" className="flex-1" onClick={() => setManual(true)}>{t("drive.arrived.no")}</Button>
+              </div>
+            </div>
+          )}
+
+          {manual && !siteId && (
+            <div className="space-y-3 rounded-md border border-border p-4">
+              <div className="space-y-1.5">
+                <Label>{t("drive.arrived.manual.street")}</Label>
+                <Input value={street} onChange={(e) => setStreet(e.target.value)} placeholder="Alexanderplatz 1" />
+              </div>
+              <div className="space-y-1.5">
+                <Label>{t("drive.arrived.manual.code")}</Label>
+                <Input value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} placeholder="PP-XXXX" className="font-mono" />
+              </div>
+              {selectedSite ? (
+                <div className="rounded-md bg-accent/10 p-2 text-xs text-accent">
+                  ✓ {selectedSite.name} — {selectedSite.address}
+                </div>
+              ) : (street || code) ? (
+                <div className="text-xs text-muted-foreground">{t("drive.arrived.nomatch")}</div>
+              ) : null}
+              {selectedSite && (
+                <Button size="sm" className="w-full" onClick={() => setSiteId(selectedSite.id)}><Check className="mr-1 h-4 w-4" />{t("drive.arrived.yes")}</Button>
+              )}
+            </div>
+          )}
+
+          {siteId && selectedSite && (
+            <div className="space-y-4">
+              <div className="rounded-md border border-border p-3">
+                <div className="text-xs uppercase text-muted-foreground">{t("drive.arrived.provider")}</div>
+                <div className="mt-1 flex items-center gap-2 text-sm font-medium"><Building2 className="h-4 w-4 text-primary" />{selectedSite.operator_name ?? "—"}</div>
+                <div className="text-xs text-muted-foreground">{selectedSite.name} · <span className="font-mono">{zoneCode(selectedSite)}</span></div>
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-sm"><Label>{t("drive.duration")}</Label><span className="font-medium">{minutes} min</span></div>
+                <Slider min={15} max={480} step={15} value={[minutes]} onValueChange={(v) => setMinutes(v[0])} />
+              </div>
+              <div className="space-y-1.5">
+                <Label>{t("drive.plate")}</Label>
+                <Input value={plate} onChange={(e) => setPlate(e.target.value.toUpperCase())} placeholder="B-PP 1234" className="font-mono uppercase" />
+              </div>
+              <div className="space-y-1 rounded-md border border-border p-3 text-sm">
+                <Row label={t("drive.rate")} value={`${euros(selectedSite.price_cents_per_hour)}/h`} />
+                <Row label={t("drive.arrived.operatorNet")} value={<span className="text-muted-foreground">{euros(operatorNet)}</span>} />
+                <Row label={t("drive.arrived.fee")} value={<span className="text-muted-foreground">{euros(feeCents)}</span>} />
+                <div className="my-1 h-px bg-border" />
+                <Row label={t("drive.total")} value={<span className="text-lg font-semibold">{euros(amount)}</span>} />
+              </div>
+              {profile ? (
+                <Button
+                  className="w-full"
+                  size="lg"
+                  disabled={start.isPending || !plate.trim()}
+                  onClick={async () => {
+                    try {
+                      const s = await start.mutateAsync({ site: selectedSite, minutes, plate: plate.trim(), paymentMethod: profile.payment_method ?? null });
+                      toast.success(t("drive.arrived.settled"));
+                      onBooked(s.id);
+                    } catch (e) {
+                      toast.error((e as Error).message);
+                    }
+                  }}
+                >
+                  <CreditCard className="mr-2 h-4 w-4" />{t("drive.arrived.pay")} · {euros(amount)}
+                </Button>
+              ) : (
+                <Button asChild className="w-full" size="lg">
+                  <Link to="/auth"><LogIn className="mr-2 h-4 w-4" />Sign in to pay</Link>
+                </Button>
+              )}
+              <div className="text-center text-xs text-muted-foreground">{t("drive.arrived.settled")}</div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
 }
