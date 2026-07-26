@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,7 +24,7 @@ import {
   type Site,
   type Session,
 } from "@/lib/parkpunkt-db";
-import { MapPin, Search, Zap, Clock, Car, ArrowLeft, CreditCard, CheckCircle2, Timer, Check, LogIn, Receipt, CalendarClock, X as XIcon, Navigation, Building2 } from "lucide-react";
+import { MapPin, Search, Zap, Clock, Car, ArrowLeft, CreditCard, CheckCircle2, Timer, Check, LogIn, Receipt, CalendarClock, X as XIcon, Navigation, Building2, ScanLine, Camera, Upload, Ticket } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { toast } from "sonner";
 
@@ -47,6 +47,7 @@ type Screen =
   | { name: "results"; where: { lat: number; lng: number }; query: string }
   | { name: "detail"; siteId: string }
   | { name: "arrived" }
+  | { name: "scan" }
   | { name: "active"; sessionId: string };
 
 const DESTINATIONS: Record<string, { lat: number; lng: number }> = {
@@ -70,6 +71,7 @@ function DriverApp() {
           <SearchScreen
             onSearch={(where, query) => setScreen({ name: "results", where, query })}
             onArrived={() => setScreen({ name: "arrived" })}
+            onScan={() => setScreen({ name: "scan" })}
             activeSessions={active.length}
             activeSession={active[0]}
             openActive={(id) => setScreen({ name: "active", sessionId: id })}
@@ -80,13 +82,14 @@ function DriverApp() {
         )}
         {screen.name === "detail" && <DetailScreen siteId={screen.siteId} onBack={() => setScreen({ name: "search" })} onBooked={(id) => setScreen({ name: "active", sessionId: id })} />}
         {screen.name === "arrived" && <ArrivedScreen onBack={() => setScreen({ name: "search" })} onBooked={(id) => setScreen({ name: "active", sessionId: id })} />}
+        {screen.name === "scan" && <ScanTicketScreen onBack={() => setScreen({ name: "search" })} onBooked={(id) => setScreen({ name: "active", sessionId: id })} />}
         {screen.name === "active" && <ActiveScreen sessionId={screen.sessionId} onDone={() => setScreen({ name: "search" })} />}
       </div>
     </AppShell>
   );
 }
 
-function DriveStepper({ current }: { current: "search" | "results" | "detail" | "arrived" | "active" }) {
+function DriveStepper({ current }: { current: "search" | "results" | "detail" | "arrived" | "scan" | "active" }) {
   const { t } = useI18n();
   const steps: { key: typeof current; label: string }[] = [
     { key: "search", label: t("home.how.find.title") },
@@ -94,7 +97,7 @@ function DriveStepper({ current }: { current: "search" | "results" | "detail" | 
     { key: "detail", label: t("home.how.park.title") },
     { key: "active", label: t("home.how.pay.title") },
   ];
-  const idx = current === "arrived" ? 2 : steps.findIndex((s) => s.key === current);
+  const idx = current === "arrived" || current === "scan" ? 2 : steps.findIndex((s) => s.key === current);
   return (
     <ol className="mb-6 flex items-center gap-2 overflow-x-auto pb-1 text-xs">
       {steps.map((s, i) => {
@@ -126,7 +129,7 @@ function DriveStepper({ current }: { current: "search" | "results" | "detail" | 
   );
 }
 
-function SearchScreen({ onSearch, onArrived, activeSessions, activeSession, openActive }: { onSearch: (where: { lat: number; lng: number }, q: string) => void; onArrived: () => void; activeSessions: number; activeSession?: Session; openActive: (id: string) => void }) {
+function SearchScreen({ onSearch, onArrived, onScan, activeSessions, activeSession, openActive }: { onSearch: (where: { lat: number; lng: number }, q: string) => void; onArrived: () => void; onScan: () => void; activeSessions: number; activeSession?: Session; openActive: (id: string) => void }) {
   const [q, setQ] = useState("Alexanderplatz");
   const { data: profile } = useMyProfile();
   const plate = profile?.plate ?? "—";
@@ -150,6 +153,19 @@ function SearchScreen({ onSearch, onArrived, activeSessions, activeSession, open
           <div className="text-xs text-muted-foreground">{t("drive.arrived.sub")}</div>
         </div>
         <Zap className="h-5 w-5 text-accent transition-transform group-hover:translate-x-1" />
+      </button>
+      <button
+        onClick={onScan}
+        className="group relative flex w-full items-center gap-4 overflow-hidden rounded-xl border border-primary/40 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent p-5 text-left transition hover:border-primary hover:shadow-[var(--shadow-soft)]"
+      >
+        <div className="grid h-12 w-12 shrink-0 place-items-center rounded-lg bg-primary text-primary-foreground">
+          <ScanLine className="h-6 w-6" />
+        </div>
+        <div className="flex-1">
+          <div className="text-base font-semibold">{t("drive.scan.cta")}</div>
+          <div className="text-xs text-muted-foreground">{t("drive.scan.ctaSub")}</div>
+        </div>
+        <Ticket className="h-5 w-5 text-primary transition-transform group-hover:translate-x-1" />
       </button>
       {active && (
         <Card className="cursor-pointer border-accent/50 bg-accent/5" onClick={() => openActive(active.id)}>
@@ -390,6 +406,260 @@ function DetailScreen({ siteId, onBack, onBooked }: { siteId: string; onBack: ()
             <Button asChild className="w-full" size="lg">
               <Link to="/auth"><LogIn className="mr-2 h-4 w-4" />Sign in to book</Link>
             </Button>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Scan machine ticket → pay via app instead of at the pay-station
+// ---------------------------------------------------------------------------
+
+type BarcodeDetectorLike = {
+  detect: (source: CanvasImageSource | ImageBitmapSource) => Promise<Array<{ rawValue: string; format?: string }>>;
+};
+
+function ScanTicketScreen({ onBack, onBooked }: { onBack: () => void; onBooked: (id: string) => void }) {
+  const { t } = useI18n();
+  const { data: sites = [] } = useSites();
+  const { data: profile } = useMyProfile();
+  const start = useStartSession();
+
+  const [supported, setSupported] = useState<boolean | null>(null);
+  const [cameraOn, setCameraOn] = useState(false);
+  const [permError, setPermError] = useState(false);
+  const [ticketRef, setTicketRef] = useState<string | null>(null);
+  const [manualCode, setManualCode] = useState("");
+  const [siteId, setSiteId] = useState<string | null>(null);
+  const [minutes, setMinutes] = useState(60);
+  const [plate, setPlate] = useState(profile?.plate ?? "");
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const rafRef = useRef<number | null>(null);
+  const detectorRef = useRef<BarcodeDetectorLike | null>(null);
+
+  useEffect(() => { if (profile?.plate) setPlate(profile.plate); }, [profile?.plate]);
+
+  useEffect(() => {
+    const w = window as unknown as { BarcodeDetector?: new (opts?: { formats?: string[] }) => BarcodeDetectorLike };
+    setSupported(typeof w.BarcodeDetector === "function");
+  }, []);
+
+  const stopCamera = () => {
+    if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    rafRef.current = null;
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((t) => t.stop());
+      streamRef.current = null;
+    }
+    setCameraOn(false);
+  };
+  useEffect(() => () => stopCamera(), []);
+
+  const startCamera = async () => {
+    setPermError(false);
+    try {
+      const w = window as unknown as { BarcodeDetector?: new (opts?: { formats?: string[] }) => BarcodeDetectorLike };
+      if (!w.BarcodeDetector) { setSupported(false); return; }
+      detectorRef.current = new w.BarcodeDetector({ formats: ["code_128", "code_39", "ean_13", "qr_code", "pdf417", "itf"] });
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+      streamRef.current = stream;
+      setCameraOn(true);
+      // Wait for video element to mount, then attach.
+      setTimeout(async () => {
+        const v = videoRef.current;
+        if (!v) return;
+        v.srcObject = stream;
+        await v.play().catch(() => undefined);
+        const tick = async () => {
+          if (!detectorRef.current || !videoRef.current) return;
+          try {
+            const codes = await detectorRef.current.detect(videoRef.current);
+            if (codes && codes[0]?.rawValue) {
+              handleDetected(codes[0].rawValue);
+              return;
+            }
+          } catch {
+            // ignore per-frame errors
+          }
+          rafRef.current = requestAnimationFrame(tick);
+        };
+        rafRef.current = requestAnimationFrame(tick);
+      }, 50);
+    } catch {
+      setPermError(true);
+      setCameraOn(false);
+    }
+  };
+
+  const handleDetected = (raw: string) => {
+    stopCamera();
+    const clean = raw.replace(/\s+/g, "").toUpperCase();
+    const ref = `TKT-${clean.slice(-8) || clean}`;
+    setTicketRef(ref);
+    // Heuristic: try to auto-match a site by embedded PP-XXXX or numeric prefix.
+    const zoneMatch = clean.match(/PP-?[A-Z0-9]{4}/);
+    if (zoneMatch) {
+      const target = zoneMatch[0].replace("-", "");
+      const hit = sites.find((s) => `PP${s.id.slice(0, 4).toUpperCase()}` === target);
+      if (hit) setSiteId(hit.id);
+    }
+    toast.success(t("drive.scan.detected"));
+  };
+
+  const handleFile = async (file: File) => {
+    const w = window as unknown as { BarcodeDetector?: new (opts?: { formats?: string[] }) => BarcodeDetectorLike };
+    if (!w.BarcodeDetector) { setSupported(false); return; }
+    try {
+      const det = new w.BarcodeDetector({ formats: ["code_128", "code_39", "ean_13", "qr_code", "pdf417", "itf"] });
+      const bmp = await createImageBitmap(file);
+      const codes = await det.detect(bmp);
+      if (codes[0]?.rawValue) handleDetected(codes[0].rawValue);
+      else toast.error(t("drive.scan.noMatch"));
+    } catch {
+      toast.error(t("drive.scan.noMatch"));
+    }
+  };
+
+  const selectedSite = siteId ? sites.find((s) => s.id === siteId) ?? null : null;
+  const amount = selectedSite ? Math.round((selectedSite.price_cents_per_hour * minutes) / 60) : 0;
+  const feeCents = Math.round(amount * 0.05);
+  const operatorNet = amount - feeCents;
+
+  return (
+    <div className="space-y-4">
+      <Button variant="ghost" size="sm" onClick={() => { stopCamera(); onBack(); }}><ArrowLeft className="mr-1 h-4 w-4" />{t("common.back")}</Button>
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2"><ScanLine className="h-5 w-5 text-primary" />{t("drive.scan.title")}</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-5">
+          <p className="text-sm text-muted-foreground">{t("drive.scan.sub")}</p>
+
+          {!ticketRef && (
+            <div className="space-y-3">
+              {supported === false && (
+                <div className="rounded-md border border-yellow-500/40 bg-yellow-500/10 p-3 text-xs text-yellow-700 dark:text-yellow-300">
+                  {t("drive.scan.notSupported")}
+                </div>
+              )}
+              {permError && (
+                <div className="rounded-md border border-destructive/40 bg-destructive/10 p-3 text-xs text-destructive">
+                  {t("drive.scan.permDenied")}
+                </div>
+              )}
+              <div className="relative aspect-[4/3] w-full overflow-hidden rounded-lg border border-border bg-black/90">
+                {cameraOn ? (
+                  <>
+                    <video ref={videoRef} playsInline muted className="h-full w-full object-cover" />
+                    <div className="pointer-events-none absolute inset-6 rounded-md border-2 border-accent/70" />
+                    <div className="pointer-events-none absolute left-1/2 top-1/2 h-0.5 w-2/3 -translate-x-1/2 animate-pulse bg-accent" />
+                  </>
+                ) : (
+                  <div className="grid h-full place-items-center text-xs text-white/60">
+                    <div className="flex flex-col items-center gap-2">
+                      <Camera className="h-8 w-8" />
+                      <span>{t("drive.scan.start")}</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                {cameraOn ? (
+                  <Button variant="secondary" onClick={stopCamera}>{t("drive.scan.stop")}</Button>
+                ) : (
+                  <Button onClick={startCamera} disabled={supported === false}><Camera className="mr-1 h-4 w-4" />{t("drive.scan.start")}</Button>
+                )}
+                <label className="inline-flex cursor-pointer items-center justify-center rounded-md border border-border bg-secondary px-3 py-2 text-sm font-medium hover:bg-secondary/80">
+                  <Upload className="mr-1 h-4 w-4" />{t("drive.scan.uploadPhoto")}
+                  <input type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f); }} />
+                </label>
+              </div>
+              <div className="space-y-2 rounded-md border border-dashed border-border p-3">
+                <Label className="text-xs">{t("drive.scan.manual")}</Label>
+                <div className="flex gap-2">
+                  <Input value={manualCode} onChange={(e) => setManualCode(e.target.value)} placeholder={t("drive.scan.manualPlaceholder")} className="font-mono" />
+                  <Button size="sm" variant="outline" disabled={!manualCode.trim()} onClick={() => handleDetected(manualCode.trim())}>{t("drive.scan.useManual")}</Button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {ticketRef && (
+            <div className="space-y-4">
+              <div className="rounded-md border border-accent/40 bg-accent/5 p-3">
+                <div className="text-xs uppercase tracking-wide text-muted-foreground">{t("drive.scan.ticketRef")}</div>
+                <div className="mt-1 font-mono text-lg font-semibold">{ticketRef}</div>
+              </div>
+
+              {!selectedSite && (
+                <div className="space-y-2 rounded-md border border-border p-3">
+                  <Label className="text-xs">{t("drive.scan.needSite")}</Label>
+                  <Select value={siteId ?? ""} onValueChange={(v) => setSiteId(v)}>
+                    <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
+                    <SelectContent>
+                      {sites.filter((s) => s.type !== "street").map((s) => (
+                        <SelectItem key={s.id} value={s.id}>{s.name} · {s.operator_name ?? "—"}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
+              {selectedSite && (
+                <>
+                  <div className="rounded-md border border-border p-3">
+                    <div className="text-xs uppercase text-muted-foreground">{t("drive.arrived.provider")}</div>
+                    <div className="mt-1 flex items-center gap-2 text-sm font-medium"><Building2 className="h-4 w-4 text-primary" />{selectedSite.operator_name ?? "—"}</div>
+                    <div className="text-xs text-muted-foreground">{selectedSite.name}</div>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between text-sm"><Label>{t("drive.duration")}</Label><span className="font-medium">{minutes} min</span></div>
+                    <Slider min={15} max={480} step={15} value={[minutes]} onValueChange={(v) => setMinutes(v[0])} />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label>{t("drive.plate")}</Label>
+                    <Input value={plate} onChange={(e) => setPlate(e.target.value.toUpperCase())} placeholder="B-PP 1234" className="font-mono uppercase" />
+                  </div>
+                  <div className="space-y-1 rounded-md border border-border p-3 text-sm">
+                    <Row label={t("drive.rate")} value={`${euros(selectedSite.price_cents_per_hour)}/h`} />
+                    <Row label={t("drive.arrived.operatorNet")} value={<span className="text-muted-foreground">{euros(operatorNet)}</span>} />
+                    <Row label={t("drive.arrived.fee")} value={<span className="text-muted-foreground">{euros(feeCents)}</span>} />
+                    <div className="my-1 h-px bg-border" />
+                    <Row label={t("drive.total")} value={<span className="text-lg font-semibold">{euros(amount)}</span>} />
+                  </div>
+                  {profile ? (
+                    <Button
+                      className="w-full"
+                      size="lg"
+                      disabled={start.isPending || !plate.trim()}
+                      onClick={async () => {
+                        try {
+                          const s = await start.mutateAsync({ site: selectedSite, minutes, plate: plate.trim(), paymentMethod: profile.payment_method ?? null });
+                          toast.success(`${t("drive.scan.detected")} · ${ticketRef}`);
+                          onBooked(s.id);
+                        } catch (e) {
+                          toast.error((e as Error).message);
+                        }
+                      }}
+                    >
+                      <CreditCard className="mr-2 h-4 w-4" />{t("drive.scan.pay")} · {euros(amount)}
+                    </Button>
+                  ) : (
+                    <Button asChild className="w-full" size="lg">
+                      <Link to="/auth"><LogIn className="mr-2 h-4 w-4" />Sign in to pay</Link>
+                    </Button>
+                  )}
+                  <div className="text-center text-xs text-muted-foreground">{t("drive.scan.hint")}</div>
+                </>
+              )}
+
+              <Button variant="ghost" size="sm" className="w-full" onClick={() => { setTicketRef(null); setSiteId(null); }}>
+                <ScanLine className="mr-1 h-4 w-4" />{t("drive.scan.start")}
+              </Button>
+            </div>
           )}
         </CardContent>
       </Card>
