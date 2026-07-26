@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -435,10 +435,10 @@ function ScanTicketScreen({ onBack, onBooked }: { onBack: () => void; onBooked: 
   const [siteId, setSiteId] = useState<string | null>(null);
   const [minutes, setMinutes] = useState(60);
   const [plate, setPlate] = useState(profile?.plate ?? "");
-  const videoRef = React.useRef<HTMLVideoElement | null>(null);
-  const streamRef = React.useRef<MediaStream | null>(null);
-  const rafRef = React.useRef<number | null>(null);
-  const detectorRef = React.useRef<BarcodeDetectorLike | null>(null);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const rafRef = useRef<number | null>(null);
+  const detectorRef = useRef<BarcodeDetectorLike | null>(null);
 
   useEffect(() => { if (profile?.plate) setPlate(profile.plate); }, [profile?.plate]);
 
@@ -600,7 +600,7 @@ function ScanTicketScreen({ onBack, onBooked }: { onBack: () => void; onBooked: 
                   <Select value={siteId ?? ""} onValueChange={(v) => setSiteId(v)}>
                     <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
                     <SelectContent>
-                      {sites.filter((s) => s.type !== "on-street").map((s) => (
+                      {sites.filter((s) => s.type !== "street").map((s) => (
                         <SelectItem key={s.id} value={s.id}>{s.name} · {s.operator_name ?? "—"}</SelectItem>
                       ))}
                     </SelectContent>
