@@ -89,7 +89,7 @@ function DriverApp() {
   );
 }
 
-function DriveStepper({ current }: { current: "search" | "results" | "detail" | "arrived" | "active" }) {
+function DriveStepper({ current }: { current: "search" | "results" | "detail" | "arrived" | "scan" | "active" }) {
   const { t } = useI18n();
   const steps: { key: typeof current; label: string }[] = [
     { key: "search", label: t("home.how.find.title") },
@@ -97,7 +97,7 @@ function DriveStepper({ current }: { current: "search" | "results" | "detail" | 
     { key: "detail", label: t("home.how.park.title") },
     { key: "active", label: t("home.how.pay.title") },
   ];
-  const idx = current === "arrived" ? 2 : steps.findIndex((s) => s.key === current);
+  const idx = current === "arrived" || current === "scan" ? 2 : steps.findIndex((s) => s.key === current);
   return (
     <ol className="mb-6 flex items-center gap-2 overflow-x-auto pb-1 text-xs">
       {steps.map((s, i) => {
@@ -129,7 +129,7 @@ function DriveStepper({ current }: { current: "search" | "results" | "detail" | 
   );
 }
 
-function SearchScreen({ onSearch, onArrived, activeSessions, activeSession, openActive }: { onSearch: (where: { lat: number; lng: number }, q: string) => void; onArrived: () => void; activeSessions: number; activeSession?: Session; openActive: (id: string) => void }) {
+function SearchScreen({ onSearch, onArrived, onScan, activeSessions, activeSession, openActive }: { onSearch: (where: { lat: number; lng: number }, q: string) => void; onArrived: () => void; onScan: () => void; activeSessions: number; activeSession?: Session; openActive: (id: string) => void }) {
   const [q, setQ] = useState("Alexanderplatz");
   const { data: profile } = useMyProfile();
   const plate = profile?.plate ?? "—";
@@ -153,6 +153,19 @@ function SearchScreen({ onSearch, onArrived, activeSessions, activeSession, open
           <div className="text-xs text-muted-foreground">{t("drive.arrived.sub")}</div>
         </div>
         <Zap className="h-5 w-5 text-accent transition-transform group-hover:translate-x-1" />
+      </button>
+      <button
+        onClick={onScan}
+        className="group relative flex w-full items-center gap-4 overflow-hidden rounded-xl border border-primary/40 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent p-5 text-left transition hover:border-primary hover:shadow-[var(--shadow-soft)]"
+      >
+        <div className="grid h-12 w-12 shrink-0 place-items-center rounded-lg bg-primary text-primary-foreground">
+          <ScanLine className="h-6 w-6" />
+        </div>
+        <div className="flex-1">
+          <div className="text-base font-semibold">{t("drive.scan.cta")}</div>
+          <div className="text-xs text-muted-foreground">{t("drive.scan.ctaSub")}</div>
+        </div>
+        <Ticket className="h-5 w-5 text-primary transition-transform group-hover:translate-x-1" />
       </button>
       {active && (
         <Card className="cursor-pointer border-accent/50 bg-accent/5" onClick={() => openActive(active.id)}>
