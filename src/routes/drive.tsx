@@ -24,7 +24,7 @@ import {
   type Site,
   type Session,
 } from "@/lib/parkpunkt-db";
-import { MapPin, Search, Zap, Clock, Car, ArrowLeft, CreditCard, CheckCircle2, Timer, Check, LogIn, Receipt, CalendarClock, X as XIcon, Navigation, Building2 } from "lucide-react";
+import { MapPin, Search, Zap, Clock, Car, ArrowLeft, CreditCard, CheckCircle2, Timer, Check, LogIn, Receipt, CalendarClock, X as XIcon, Navigation, Building2, ScanLine, Camera, Upload, Ticket } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { toast } from "sonner";
 
@@ -47,6 +47,7 @@ type Screen =
   | { name: "results"; where: { lat: number; lng: number }; query: string }
   | { name: "detail"; siteId: string }
   | { name: "arrived" }
+  | { name: "scan" }
   | { name: "active"; sessionId: string };
 
 const DESTINATIONS: Record<string, { lat: number; lng: number }> = {
@@ -70,6 +71,7 @@ function DriverApp() {
           <SearchScreen
             onSearch={(where, query) => setScreen({ name: "results", where, query })}
             onArrived={() => setScreen({ name: "arrived" })}
+            onScan={() => setScreen({ name: "scan" })}
             activeSessions={active.length}
             activeSession={active[0]}
             openActive={(id) => setScreen({ name: "active", sessionId: id })}
@@ -80,6 +82,7 @@ function DriverApp() {
         )}
         {screen.name === "detail" && <DetailScreen siteId={screen.siteId} onBack={() => setScreen({ name: "search" })} onBooked={(id) => setScreen({ name: "active", sessionId: id })} />}
         {screen.name === "arrived" && <ArrivedScreen onBack={() => setScreen({ name: "search" })} onBooked={(id) => setScreen({ name: "active", sessionId: id })} />}
+        {screen.name === "scan" && <ScanTicketScreen onBack={() => setScreen({ name: "search" })} onBooked={(id) => setScreen({ name: "active", sessionId: id })} />}
         {screen.name === "active" && <ActiveScreen sessionId={screen.sessionId} onDone={() => setScreen({ name: "search" })} />}
       </div>
     </AppShell>
