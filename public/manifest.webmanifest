@@ -1,0 +1,15 @@
+{
+  "name": "ParkPunkt — Finden. Parken. Bezahlen.",
+  "short_name": "ParkPunkt",
+  "description": "One parking platform for drivers, operators, cities and mobility providers.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0b1a2e",
+  "theme_color": "#16345c",
+  "lang": "en",
+  "icons": [
+    { "src": "/parkpunkt-icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "/favicon.ico", "sizes": "48x48", "type": "image/x-icon" }
+  ]
+}
