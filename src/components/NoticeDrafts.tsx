@@ -98,9 +98,9 @@ export function NoticeDrafts({
               className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border/60 bg-background/40 px-3 py-2"
             >
               <div>
-                <p className="font-mono text-sm font-semibold">{d.plate}</p>
+                <p className="font-mono text-sm font-semibold">{d.plate ?? "—"}</p>
                 <p className="text-xs text-muted-foreground">
-                  {d.reason} · {euros(d.amount_cents)}
+                  {d.reason ?? "—"} · {euros(d.amount_cents ?? 0)}
                 </p>
               </div>
               <div className="flex items-center gap-2">
@@ -109,7 +109,11 @@ export function NoticeDrafts({
                   <Button
                     size="sm"
                     onClick={() =>
-                      onIssue({ plate: d.plate, reason: d.reason, amount_cents: d.amount_cents })
+                      onIssue({
+                        plate: d.plate ?? "",
+                        reason: d.reason ?? "",
+                        amount_cents: d.amount_cents ?? 0,
+                      })
                     }
                   >
                     {L("Use", "Übernehmen")}
