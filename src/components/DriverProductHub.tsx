@@ -35,9 +35,7 @@ export function DriverProductHub() {
   return (
     <Card className="border-border/60 bg-card/70 backdrop-blur">
       <CardHeader className="pb-3">
-        <CardTitle className="text-base">
-          {L("Your parking profile", "Ihr Parkprofil")}
-        </CardTitle>
+        <CardTitle className="text-base">{L("Your parking profile", "Ihr Parkprofil")}</CardTitle>
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="vehicles">
@@ -134,11 +132,18 @@ function VehiclesPanel({ L }: { L: Tr }) {
         </div>
         <div className="space-y-1.5">
           <Label>{L("Country", "Land")}</Label>
-          <Input value={country} onChange={(e) => setCountry(e.target.value.toUpperCase().slice(0, 3))} />
+          <Input
+            value={country}
+            onChange={(e) => setCountry(e.target.value.toUpperCase().slice(0, 3))}
+          />
         </div>
         <div className="space-y-1.5">
           <Label>{L("Label", "Bezeichnung")}</Label>
-          <Input value={label} onChange={(e) => setLabel(e.target.value)} placeholder={L("Family car", "Familienauto")} />
+          <Input
+            value={label}
+            onChange={(e) => setLabel(e.target.value)}
+            placeholder={L("Family car", "Familienauto")}
+          />
         </div>
         <div className="flex items-end">
           <Button className="w-full" onClick={add} disabled={save.isPending}>
@@ -211,7 +216,9 @@ function FavouritesPanel({ L }: { L: Tr }) {
   return (
     <div className="space-y-2">
       {sites.length === 0 && (
-        <p className="text-sm text-muted-foreground">{L("No locations yet.", "Noch keine Standorte.")}</p>
+        <p className="text-sm text-muted-foreground">
+          {L("No locations yet.", "Noch keine Standorte.")}
+        </p>
       )}
       {sites.slice(0, 12).map((site) => {
         const isFavourite = favouriteIds.has(site.id);
@@ -250,7 +257,9 @@ function AccessPanel({ L }: { L: Tr }) {
         )}
       </p>
       {passes.length === 0 && (
-        <p className="text-sm text-muted-foreground">{L("No access passes yet.", "Noch keine Zugangspässe.")}</p>
+        <p className="text-sm text-muted-foreground">
+          {L("No access passes yet.", "Noch keine Zugangspässe.")}
+        </p>
       )}
       {passes.map((pass) => (
         <div
@@ -304,7 +313,8 @@ function FleetPanel({ L }: { L: Tr }) {
                     monthly_limit_cents: Math.max(0, Math.round(Number(limit) || 0) * 100),
                   },
                   {
-                    onSuccess: () => toast.success(L("Business account created", "Firmenkonto erstellt")),
+                    onSuccess: () =>
+                      toast.success(L("Business account created", "Firmenkonto erstellt")),
                     onError: (e) => toast.error((e as Error).message),
                   },
                 )

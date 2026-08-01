@@ -6,7 +6,11 @@ export const Route = createFileRoute("/legal/complaints")({
   head: () => ({
     meta: [
       { title: "Complaints — ParkPunkt" },
-      { name: "description", content: "How to raise a complaint about a ParkPunkt session, charge, or operator interaction." },
+      {
+        name: "description",
+        content:
+          "How to raise a complaint about a ParkPunkt session, charge, or operator interaction.",
+      },
       { property: "og:title", content: "Complaints — ParkPunkt" },
       { property: "og:type", content: "article" },
       { property: "og:url", content: "/legal/complaints" },
@@ -19,11 +23,18 @@ export const Route = createFileRoute("/legal/complaints")({
 function ComplaintsPage() {
   return (
     <LegalLayout title="Complaints" updated="25 July 2026">
-      <p>We want ParkPunkt to work every time you use it. When it doesn't, this is how to tell us — and what to expect back.</p>
+      <p>
+        We want ParkPunkt to work every time you use it. When it doesn't, this is how to tell us —
+        and what to expect back.
+      </p>
       <h2>How to file</h2>
       <ol className="mt-3 list-decimal space-y-1 pl-6">
-        <li>In the driver app, open the session and tap <em>Report an issue</em>.</li>
-        <li>Or email {legalConfig.complaintsEmail} with your session ID and a short description.</li>
+        <li>
+          In the driver app, open the session and tap <em>Report an issue</em>.
+        </li>
+        <li>
+          Or email {legalConfig.complaintsEmail} with your session ID and a short description.
+        </li>
         <li>For enforcement notices, use the dispute link on the notice itself.</li>
       </ol>
       <h2>Our commitment</h2>

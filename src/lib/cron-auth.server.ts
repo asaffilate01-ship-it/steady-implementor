@@ -2,7 +2,7 @@ import { timingSafeEqual } from "node:crypto";
 
 /** Constant-time bearer-token check for internal cron endpoints. */
 export function isAuthorizedCronRequest(request: Request): boolean {
-  const secret = process.env['PARKPUNKT_CRON_SECRET'];
+  const secret = process.env["PARKPUNKT_CRON_SECRET"];
   if (!secret || secret.length < 32) return false;
   const header = request.headers.get("authorization") ?? "";
   if (!header.toLowerCase().startsWith("bearer ")) return false;

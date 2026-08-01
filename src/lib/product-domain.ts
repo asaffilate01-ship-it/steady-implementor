@@ -55,8 +55,7 @@ export function computeTariffQuote(
     reservationFeeCents,
     totalCents: parkingCents + serviceFeeCents + reservationFeeCents,
     cappedByDailyCap,
-    exceedsMaxStay:
-      tariff.max_stay_minutes != null && safeMinutes > tariff.max_stay_minutes,
+    exceedsMaxStay: tariff.max_stay_minutes != null && safeMinutes > tariff.max_stay_minutes,
   };
 }
 

@@ -38,7 +38,8 @@ export const POSTS: BlogPost[] = [
     date: "2026-07-12",
     minutes: 6,
     tag: "Product",
-    cover: "https://images.unsplash.com/photo-1573348722427-f1d6819fdf98?auto=format&fit=crop&w=1600&q=70",
+    cover:
+      "https://images.unsplash.com/photo-1573348722427-f1d6819fdf98?auto=format&fit=crop&w=1600&q=70",
   },
   {
     slug: "anpr-without-the-lock-in",
@@ -66,7 +67,8 @@ export const POSTS: BlogPost[] = [
     date: "2026-06-28",
     minutes: 8,
     tag: "Engineering",
-    cover: "https://images.unsplash.com/photo-1506521781263-d8422e82f27a?auto=format&fit=crop&w=1600&q=70",
+    cover:
+      "https://images.unsplash.com/photo-1506521781263-d8422e82f27a?auto=format&fit=crop&w=1600&q=70",
   },
   {
     slug: "gdpr-and-your-license-plate",
@@ -94,7 +96,8 @@ export const POSTS: BlogPost[] = [
     date: "2026-05-14",
     minutes: 5,
     tag: "Compliance",
-    cover: "https://images.unsplash.com/photo-1590650046871-92c887180603?auto=format&fit=crop&w=1600&q=70",
+    cover:
+      "https://images.unsplash.com/photo-1590650046871-92c887180603?auto=format&fit=crop&w=1600&q=70",
   },
 ];
 

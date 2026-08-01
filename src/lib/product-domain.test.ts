@@ -10,7 +10,12 @@ import {
 describe("computeTariffQuote", () => {
   it("applies free minutes, minimum charge and service fee", () => {
     const q = computeTariffQuote(
-      { price_cents_per_hour: 240, free_minutes: 15, minimum_charge_cents: 100, service_fee_cents: 29 },
+      {
+        price_cents_per_hour: 240,
+        free_minutes: 15,
+        minimum_charge_cents: 100,
+        service_fee_cents: 29,
+      },
       30,
     );
     expect(q.chargeableMinutes).toBe(15);
@@ -19,7 +24,10 @@ describe("computeTariffQuote", () => {
   });
 
   it("charges nothing inside the free period", () => {
-    const q = computeTariffQuote({ price_cents_per_hour: 300, free_minutes: 30, service_fee_cents: 29 }, 20);
+    const q = computeTariffQuote(
+      { price_cents_per_hour: 300, free_minutes: 30, service_fee_cents: 29 },
+      20,
+    );
     expect(q.totalCents).toBe(0);
   });
 

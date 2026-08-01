@@ -8,7 +8,10 @@ export const Route = createFileRoute("/legal/imprint")({
       { title: "Imprint — ParkPunkt" },
       { name: "description", content: "Legal disclosure per § 5 DDG for the ParkPunkt operator." },
       { property: "og:title", content: "Imprint — ParkPunkt" },
-      { property: "og:description", content: "Legal disclosure per § 5 DDG for the ParkPunkt operator." },
+      {
+        property: "og:description",
+        content: "Legal disclosure per § 5 DDG for the ParkPunkt operator.",
+      },
       { property: "og:type", content: "article" },
       { property: "og:url", content: "/legal/imprint" },
       { name: "twitter:card", content: "summary" },
