@@ -4,10 +4,8 @@ export const Route = createFileRoute("/api/public/cron/sync-providers")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const auth = request.headers.get("authorization") ?? "";
-        const token = auth.toLowerCase().startsWith("bearer ") ? auth.slice(7).trim() : "";
-        const expected = process.env.PARKPUNKT_CRON_SECRET;
-        if (!expected || expected.length < 32 || token !== expected) {
+        const { isAuthorizedCronRequest } = await import("@/lib/cron-auth.server");
+        if (!isAuthorizedCronRequest(request)) {
           return json({ error: "Unauthorized" }, 401);
         }
 
