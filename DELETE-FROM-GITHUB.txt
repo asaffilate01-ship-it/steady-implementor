@@ -1,0 +1,4 @@
+.env
+
+Delete this tracked file from the GitHub repository after applying the update.
+Use .env.example as the safe configuration template and keep real values in an untracked .env.local file.
