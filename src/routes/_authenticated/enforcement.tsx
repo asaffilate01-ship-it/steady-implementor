@@ -265,6 +265,8 @@ function EnforcementApp() {
         </Card>
       </div>
 
+      <NoticeDrafts siteId={siteId || null} />
+
       <Card>
         <CardHeader>
           <CardTitle>
