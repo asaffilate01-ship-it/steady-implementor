@@ -48,13 +48,33 @@ export function SocialRow({ className = "" }: { className?: string }) {
   );
 }
 
-export function ShareRow({ title, url, className = "" }: { title: string; url: string; className?: string }) {
+export function ShareRow({
+  title,
+  url,
+  className = "",
+}: {
+  title: string;
+  url: string;
+  className?: string;
+}) {
   const enc = encodeURIComponent(url);
   const encTitle = encodeURIComponent(title);
   const shares: { label: string; href: string; Icon: SvgComp | LucideIcon }[] = [
-    { label: "X", href: `https://twitter.com/intent/tweet?url=${enc}&text=${encTitle}`, Icon: XIcon },
-    { label: "Facebook", href: `https://www.facebook.com/sharer/sharer.php?u=${enc}`, Icon: Facebook },
-    { label: "LinkedIn", href: `https://www.linkedin.com/sharing/share-offsite/?url=${enc}`, Icon: Linkedin },
+    {
+      label: "X",
+      href: `https://twitter.com/intent/tweet?url=${enc}&text=${encTitle}`,
+      Icon: XIcon,
+    },
+    {
+      label: "Facebook",
+      href: `https://www.facebook.com/sharer/sharer.php?u=${enc}`,
+      Icon: Facebook,
+    },
+    {
+      label: "LinkedIn",
+      href: `https://www.linkedin.com/sharing/share-offsite/?url=${enc}`,
+      Icon: Linkedin,
+    },
   ];
   return (
     <div className={`flex items-center gap-2 ${className}`}>

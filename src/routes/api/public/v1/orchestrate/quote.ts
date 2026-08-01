@@ -1,10 +1,18 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "@/integrations/supabase/types";
+import { filterAndRankQuotes, quoteAmountCents } from "@/lib/parking-domain";
 
 const inputSchema = z.object({
   lat: z.number().min(-90).max(90),
   lng: z.number().min(-180).max(180),
-  duration_minutes: z.number().int().min(5).max(24 * 60).default(60),
+  duration_minutes: z
+    .number()
+    .int()
+    .min(5)
+    .max(24 * 60)
+    .default(60),
   radius_m: z.number().int().min(50).max(50_000).default(5_000),
   max_results: z.number().int().min(1).max(50).default(10),
 });
@@ -21,7 +29,9 @@ const RATE_LIMIT_PER_MIN = 60;
 async function sha256Hex(input: string): Promise<string> {
   const buf = new TextEncoder().encode(input);
   const digest = await crypto.subtle.digest("SHA-256", buf);
-  return Array.from(new Uint8Array(digest)).map((b) => b.toString(16).padStart(2, "0")).join("");
+  return Array.from(new Uint8Array(digest))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
 }
 
 function haversineKm(a: { lat: number; lng: number }, b: { lat: number; lng: number }) {
@@ -41,85 +51,133 @@ export const Route = createFileRoute("/api/public/v1/orchestrate/quote")({
       POST: async ({ request }) => {
         const started = Date.now();
         const authHeader = request.headers.get("authorization") ?? "";
-        const bearer = authHeader.toLowerCase().startsWith("bearer ") ? authHeader.slice(7).trim() : "";
+        const bearer = authHeader.toLowerCase().startsWith("bearer ")
+          ? authHeader.slice(7).trim()
+          : "";
         if (!bearer.startsWith("pk_")) {
-          return json({ error: "Missing or invalid Bearer token. Expected 'Authorization: Bearer pk_…'." }, 401);
+          return json(
+            { error: "Missing or invalid Bearer token. Expected 'Authorization: Bearer pk_…'." },
+            401,
+          );
         }
 
         // Load admin client to look up the key (RLS-bypass; we only reveal safe fields).
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
         const key_hash = await sha256Hex(bearer);
         const { data: keyRow } = await supabaseAdmin
-          .from("api_keys").select("id, revoked_at, scopes").eq("key_hash", key_hash).maybeSingle();
+          .from("api_keys")
+          .select("id, revoked_at, scopes")
+          .eq("key_hash", key_hash)
+          .maybeSingle();
         if (!keyRow || keyRow.revoked_at) {
           await logRequest(null, "/api/public/v1/orchestrate/quote", 401, Date.now() - started);
           return json({ error: "Invalid or revoked API key." }, 401);
         }
         if (!(keyRow.scopes ?? []).includes("orchestrate:quote")) {
-          await logRequest(keyRow.id, "/api/public/v1/orchestrate/quote", 403, Date.now() - started);
+          await logRequest(
+            keyRow.id,
+            "/api/public/v1/orchestrate/quote",
+            403,
+            Date.now() - started,
+          );
           return json({ error: "Key lacks scope 'orchestrate:quote'." }, 403);
         }
 
-        // Rate limit: 60/min per key (rolling)
-        const since = new Date(Date.now() - 60_000).toISOString();
-        const { count } = await supabaseAdmin.from("api_request_log").select("id", { count: "exact", head: true })
-          .eq("api_key_id", keyRow.id).gte("created_at", since);
-        if ((count ?? 0) >= RATE_LIMIT_PER_MIN) {
-          await logRequest(keyRow.id, "/api/public/v1/orchestrate/quote", 429, Date.now() - started);
+        // Atomic fixed-window limiter; concurrent calls cannot bypass it.
+        const { data: allowed, error: rateLimitError } = await supabaseAdmin.rpc(
+          "consume_api_rate_limit",
+          {
+            _api_key_id: keyRow.id,
+            _request_limit: RATE_LIMIT_PER_MIN,
+            _window_seconds: 60,
+          },
+        );
+        if (rateLimitError) {
+          await logRequest(
+            keyRow.id,
+            "/api/public/v1/orchestrate/quote",
+            500,
+            Date.now() - started,
+          );
+          return json({ error: "Rate limiter unavailable." }, 500);
+        }
+        if (!allowed) {
+          await logRequest(
+            keyRow.id,
+            "/api/public/v1/orchestrate/quote",
+            429,
+            Date.now() - started,
+          );
           return json({ error: "Rate limit exceeded (60/min)." }, 429);
         }
 
         // Parse & validate body
         let body: unknown;
-        try { body = await request.json(); } catch { body = {}; }
+        try {
+          body = await request.json();
+        } catch {
+          body = {};
+        }
         const parsed = inputSchema.safeParse(body);
         if (!parsed.success) {
-          await logRequest(keyRow.id, "/api/public/v1/orchestrate/quote", 400, Date.now() - started);
+          await logRequest(
+            keyRow.id,
+            "/api/public/v1/orchestrate/quote",
+            400,
+            Date.now() - started,
+          );
           return json({ error: "Invalid input", details: parsed.error.flatten() }, 400);
         }
         const q = parsed.data;
 
         // Load candidate sites (all — dataset is small; filter in JS)
-        const { data: sites, error } = await supabaseAdmin.from("sites")
-          .select("id, name, address, lat, lng, capacity, occupied, price_cents_per_hour, type, operator_name");
+        const { data: sites, error } = await supabaseAdmin
+          .from("sites")
+          .select(
+            "id, name, address, lat, lng, capacity, occupied, price_cents_per_hour, type, operator_name",
+          );
         if (error) {
-          await logRequest(keyRow.id, "/api/public/v1/orchestrate/quote", 500, Date.now() - started);
+          await logRequest(
+            keyRow.id,
+            "/api/public/v1/orchestrate/quote",
+            500,
+            Date.now() - started,
+          );
           return json({ error: error.message }, 500);
         }
 
-        const results = await Promise.all(
-          (sites ?? [])
-            .map(async (s) => {
-              const distance_km = haversineKm({ lat: q.lat, lng: q.lng }, { lat: s.lat, lng: s.lng });
-              const amount_cents = Math.round((s.price_cents_per_hour * q.duration_minutes) / 60);
-              const split = await calculateFeeSplit(supabaseAdmin, s.id, amount_cents);
-              return {
-                site_id: s.id,
-                name: s.name,
-                address: s.address,
-                operator: s.operator_name,
-                type: s.type,
-                distance_m: Math.round(distance_km * 1000),
-                available: Math.max(0, s.capacity - s.occupied),
-                capacity: s.capacity,
-                quote: {
-                  amount_cents,
-                  price_cents_per_hour: s.price_cents_per_hour,
-                  currency: "EUR",
-                  platform_fee_cents: split.platform_fee_cents,
-                  operator_net_cents: split.operator_net_cents,
-                },
-              };
-            })
-            .filter(async (p) => (await p).distance_m <= q.radius_m && (await p).available > 0)
+        const candidates = await Promise.all(
+          (sites ?? []).map(async (s) => {
+            const distance_km = haversineKm({ lat: q.lat, lng: q.lng }, { lat: s.lat, lng: s.lng });
+            const amount_cents = quoteAmountCents(s.price_cents_per_hour, q.duration_minutes);
+            const split = await calculateFeeSplit(supabaseAdmin, s.id, amount_cents);
+            return {
+              site_id: s.id,
+              name: s.name,
+              address: s.address,
+              operator: s.operator_name,
+              type: s.type,
+              distance_m: Math.round(distance_km * 1000),
+              available: Math.max(0, s.capacity - s.occupied),
+              capacity: s.capacity,
+              quote: {
+                amount_cents,
+                price_cents_per_hour: s.price_cents_per_hour,
+                currency: "EUR",
+                platform_fee_cents: split.platform_fee_cents,
+                operator_net_cents: split.operator_net_cents,
+              },
+            };
+          }),
         );
 
-        const sorted = results
-          .sort((a, b) => a.distance_m - b.distance_m)
-          .slice(0, q.max_results);
+        const sorted = filterAndRankQuotes(candidates, q.radius_m, q.max_results);
 
         // Update last_used_at + log
-        await supabaseAdmin.from("api_keys").update({ last_used_at: new Date().toISOString() }).eq("id", keyRow.id);
+        await supabaseAdmin
+          .from("api_keys")
+          .update({ last_used_at: new Date().toISOString() })
+          .eq("id", keyRow.id);
         await logRequest(keyRow.id, "/api/public/v1/orchestrate/quote", 200, Date.now() - started);
 
         return json({ query: q, count: sorted.length, results: sorted });
@@ -133,24 +191,47 @@ function json(body: unknown, status = 200) {
 }
 
 async function calculateFeeSplit(
-  admin: any,
+  admin: SupabaseClient<Database>,
   site_id: string,
   amount_cents: number,
 ): Promise<{ platform_fee_cents: number; operator_net_cents: number }> {
   try {
-    const { data } = await admin.rpc("calculate_platform_fee", { _site_id: site_id, _amount_cents: amount_cents }).single();
-    if (data && typeof data.platform_fee_cents === "number" && typeof data.operator_net_cents === "number") {
-      return { platform_fee_cents: data.platform_fee_cents, operator_net_cents: data.operator_net_cents };
+    const { data } = await admin
+      .rpc("calculate_platform_fee", {
+        _site_id: site_id,
+        _amount_cents: amount_cents,
+        _org_id: null as unknown as string,
+        _provider_id: null as unknown as string,
+      })
+      .single();
+    if (
+      data &&
+      typeof data.platform_fee_cents === "number" &&
+      typeof data.operator_net_cents === "number"
+    ) {
+      return {
+        platform_fee_cents: data.platform_fee_cents,
+        operator_net_cents: data.operator_net_cents,
+      };
     }
-  } catch { /* fall through */ }
+  } catch {
+    /* fall through */
+  }
   // Fallback: default 5% platform fee
   const fee = Math.round(amount_cents * 0.05);
   return { platform_fee_cents: fee, operator_net_cents: amount_cents - fee };
 }
 
-async function logRequest(api_key_id: string | null, path: string, status: number, latency_ms: number) {
+async function logRequest(
+  api_key_id: string | null,
+  path: string,
+  status: number,
+  latency_ms: number,
+) {
   try {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     await supabaseAdmin.from("api_request_log").insert({ api_key_id, path, status, latency_ms });
-  } catch { /* best-effort */ }
+  } catch {
+    /* best-effort */
+  }
 }

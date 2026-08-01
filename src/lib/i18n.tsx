@@ -32,23 +32,27 @@ const DICT = {
     "home.cta.driver": "Try the driver app",
     "home.cta.signin": "Sign in for operators",
     "home.badge.anpr": "On-street & barrier-ready",
-    "home.badge.psd2": "PSD2 compliant",
-    "home.badge.gdpr": "GDPR by design",
+    "home.badge.psd2": "PSD2-ready payment flow",
+    "home.badge.gdpr": "GDPR control foundation",
 
     "home.stake.title": "One platform, every role",
     "home.stake.sub":
       "ParkPunkt unifies the parking value chain — from the driver at the kerb to the operator, the enforcement officer and the mobility provider.",
     "home.stake.driver.title": "Drivers",
-    "home.stake.driver.body": "Find nearby spots, start a session in one tap, extend or end from your phone.",
+    "home.stake.driver.body":
+      "Find nearby spots, start a session in one tap, extend or end from your phone.",
     "home.stake.driver.cta": "Open driver app",
     "home.stake.operator.title": "Operators",
-    "home.stake.operator.body": "Manage sites, tariffs and occupancy in real time. Track revenue and utilisation.",
+    "home.stake.operator.body":
+      "Manage sites, tariffs and occupancy in real time. Track revenue and utilisation.",
     "home.stake.operator.cta": "Operator dashboard",
     "home.stake.enforce.title": "Enforcement",
-    "home.stake.enforce.body": "ANPR-driven verification — scan a plate, see the session status, issue a notice.",
+    "home.stake.enforce.body":
+      "ANPR-driven verification — scan a plate, see the session status, issue a notice.",
     "home.stake.enforce.cta": "Enforcement tools",
     "home.stake.provider.title": "Providers",
-    "home.stake.provider.body": "Plug into the orchestration API to quote, book and settle across the network.",
+    "home.stake.provider.body":
+      "Plug into the orchestration API to quote, book and settle across the network.",
     "home.stake.provider.cta": "Provider hub",
 
     "home.how.title": "How it works",
@@ -57,9 +61,11 @@ const DICT = {
     "home.how.find.title": "Find",
     "home.how.find.body": "Search by address or POI. See live availability, rates and distance.",
     "home.how.park.title": "Park",
-    "home.how.park.body": "Pay for on-street bays or barrier-less lots straight from the app — no machine, no city-specific app to download. Where ANPR is fitted, the barrier just opens.",
+    "home.how.park.body":
+      "Pay for on-street bays or barrier-less lots straight from the app — no machine, no city-specific app to download. Where ANPR is fitted, the barrier just opens.",
     "home.how.pay.title": "Pay",
-    "home.how.pay.body": "Charged only for the time used. Receipts land in your account automatically.",
+    "home.how.pay.body":
+      "Charged only for the time used. Receipts land in your account automatically.",
     "home.how.step": "Step",
 
     "home.feat.title": "Built for the whole parking stack",
@@ -124,10 +130,11 @@ const DICT = {
     "drive.sessionEnded": "Session ended",
     "drive.charged": "Charged",
     "drive.end": "End",
+    "drive.paymentPending": "Payment is being processed",
     "drive.notFound": "Session not found.",
     "drive.goBack": "Go back",
     "drive.backSearch": "Back to search",
-    "drive.receipt": "Receipt sent to your account.",
+    "drive.receipt": "Session ended. Your receipt will be available after payment completes.",
     "drive.status.active": "ACTIVE",
     "drive.status.ended": "ENDED",
 
@@ -135,6 +142,8 @@ const DICT = {
     "drive.arrived.title": "Pay for parking here",
     "drive.arrived.sub": "We route your payment to the local parking provider — you keep one app.",
     "drive.arrived.detecting": "Detecting your location…",
+    "drive.arrived.locationUnavailable":
+      "We could not confirm your location. Enter the street or parking-zone code instead.",
     "drive.arrived.confirm": "You're at",
     "drive.arrived.code": "Parking zone code",
     "drive.arrived.yes": "Yes, that's correct",
@@ -152,14 +161,16 @@ const DICT = {
     "drive.scan.cta": "Scan machine ticket",
     "drive.scan.ctaSub": "Barrier car park with an ANPR ticket — scan the barcode to pay.",
     "drive.scan.title": "Scan your parking ticket",
-    "drive.scan.sub": "Point the camera at the barcode on your machine-issued ticket. We'll settle the exit fee with the operator — no queue at the pay station.",
+    "drive.scan.sub":
+      "Point the camera at the barcode on your machine-issued ticket. We'll settle the exit fee with the operator — no queue at the pay station.",
     "drive.scan.start": "Start camera",
     "drive.scan.stop": "Stop camera",
     "drive.scan.uploadPhoto": "Upload a photo instead",
     "drive.scan.manual": "Or type the ticket number",
     "drive.scan.manualPlaceholder": "e.g. 4901 2233 5567",
     "drive.scan.useManual": "Use this ticket",
-    "drive.scan.notSupported": "Your browser can't scan barcodes. Upload a photo or type the number.",
+    "drive.scan.notSupported":
+      "Your browser can't scan barcodes. Upload a photo or type the number.",
     "drive.scan.noMatch": "Ticket not recognised. Enter the site manually or scan again.",
     "drive.scan.detected": "Ticket detected",
     "drive.scan.ticketRef": "Ticket reference",
@@ -219,7 +230,6 @@ const DICT = {
     "op.payout.fee": "Platform fee",
     "op.payout.net": "Net to operator",
     "op.payout.request": "Request payout",
-    
 
     "prov.title": "Provider Hub",
     "prov.sub": "Real-time inventory feed and orchestration API sandbox.",
@@ -249,7 +259,8 @@ const DICT = {
     "prov.revoked": "Key revoked.",
     "prov.lastUsed": "Last used",
     "prov.keyOnce": "Copy this key — it will not be shown again",
-    "prov.keyOnceDesc": "Store it in your partner's secrets. Only the prefix and last-used time remain visible here.",
+    "prov.keyOnceDesc":
+      "Store it in your partner's secrets. Only the prefix and last-used time remain visible here.",
     "prov.registered": "Registered providers",
     "prov.pName": "Name",
     "prov.pKind": "Kind",
@@ -274,7 +285,8 @@ const DICT = {
     "adm.provNone": "No providers yet.",
     "adm.provSites": "sites",
     "adm.commission.title": "Commission rates",
-    "adm.commission.sub": "Set platform fees per organization or provider. Site-level overrides coming soon.",
+    "adm.commission.sub":
+      "Set platform fees per organization or provider. Site-level overrides coming soon.",
     "adm.commission.bps": "Fee % (basis points)",
     "adm.commission.fixed": "Fixed fee (cents)",
     "adm.commission.save": "Save",
@@ -290,8 +302,12 @@ const DICT = {
     "enf.scan": "Scan",
     "enf.valid": "Valid session",
     "enf.at": "at",
+    "enf.until": "valid until",
     "enf.invalid": "No active session for this plate at",
     "enf.issue": "Issue notice",
+    "enf.issued": "Notice issued securely.",
+    "enf.contest": "Mark as contested",
+    "enf.waive": "Waive notice",
     "enf.reason": "Reason",
     "enf.reason.default": "No valid session",
     "enf.amount": "Amount (€)",
@@ -317,6 +333,8 @@ const DICT = {
     "adm.grant": "Grant",
     "adm.orgs": "Organizations",
     "adm.orgs.empty": "No organizations.",
+    "adm.orgName": "Organisation name",
+    "adm.orgCreated": "Organisation created.",
     "adm.granted": "Role granted",
     "adm.revoked": "Role revoked",
 
@@ -328,7 +346,8 @@ const DICT = {
     "gate.verifyErr": "Could not verify your permissions.",
 
     "cookie.title": "We value your privacy",
-    "cookie.body": "We use cookies to make ParkPunkt work, and — with your consent — to improve it and measure how it performs.",
+    "cookie.body":
+      "We use cookies to make ParkPunkt work, and — with your consent — to improve it and measure how it performs.",
     "cookie.learn": "Cookie policy",
     "cookie.necessary": "Strictly necessary",
     "cookie.necessary.sub": "Sign-in, security, language and consent state. Always on.",
@@ -408,32 +427,38 @@ const DICT = {
     "home.cta.driver": "Fahrer-App testen",
     "home.cta.signin": "Für Betreiber anmelden",
     "home.badge.anpr": "Straße & Schranke",
-    "home.badge.psd2": "PSD2-konform",
-    "home.badge.gdpr": "DSGVO by Design",
+    "home.badge.psd2": "PSD2-fähiger Zahlungsablauf",
+    "home.badge.gdpr": "DSGVO-Kontrollgrundlage",
 
     "home.stake.title": "Eine Plattform, jede Rolle",
     "home.stake.sub":
       "ParkPunkt vereint die Wertschöpfungskette des Parkens — vom Fahrer am Bordstein bis zum Betreiber, Kontrolleur und Mobilitätsanbieter.",
     "home.stake.driver.title": "Fahrer",
-    "home.stake.driver.body": "Parkplätze in der Nähe finden, mit einem Tipp starten, verlängern oder beenden.",
+    "home.stake.driver.body":
+      "Parkplätze in der Nähe finden, mit einem Tipp starten, verlängern oder beenden.",
     "home.stake.driver.cta": "Fahrer-App öffnen",
     "home.stake.operator.title": "Betreiber",
-    "home.stake.operator.body": "Standorte, Tarife und Auslastung in Echtzeit verwalten. Umsatz und Nutzung im Blick.",
+    "home.stake.operator.body":
+      "Standorte, Tarife und Auslastung in Echtzeit verwalten. Umsatz und Nutzung im Blick.",
     "home.stake.operator.cta": "Betreiber-Dashboard",
     "home.stake.enforce.title": "Kontrolle",
-    "home.stake.enforce.body": "ANPR-gestützte Prüfung — Kennzeichen scannen, Sitzung prüfen, Bescheid ausstellen.",
+    "home.stake.enforce.body":
+      "ANPR-gestützte Prüfung — Kennzeichen scannen, Sitzung prüfen, Bescheid ausstellen.",
     "home.stake.enforce.cta": "Kontroll-Tools",
     "home.stake.provider.title": "Anbieter",
-    "home.stake.provider.body": "Über die Orchestrations-API anfragen, buchen und im Netzwerk abrechnen.",
+    "home.stake.provider.body":
+      "Über die Orchestrations-API anfragen, buchen und im Netzwerk abrechnen.",
     "home.stake.provider.cta": "Anbieter-Hub",
 
     "home.how.title": "So funktioniert es",
     "home.how.sub":
       "Drei Schritte für den Fahrer. Alles andere — Preise, Berechtigungen, Abrechnung — übernimmt die Orchestrierung.",
     "home.how.find.title": "Finden",
-    "home.how.find.body": "Nach Adresse oder POI suchen. Live-Verfügbarkeit, Preise und Entfernung sehen.",
+    "home.how.find.body":
+      "Nach Adresse oder POI suchen. Live-Verfügbarkeit, Preise und Entfernung sehen.",
     "home.how.park.title": "Parken",
-    "home.how.park.body": "Straßenparkplätze und Parkplätze ohne Schranke direkt in der App bezahlen — kein Automat, keine stadt­eigene App nötig. Wo ANPR vorhanden ist, öffnet sich die Schranke automatisch.",
+    "home.how.park.body":
+      "Straßenparkplätze und Parkplätze ohne Schranke direkt in der App bezahlen — kein Automat, keine stadt­eigene App nötig. Wo ANPR vorhanden ist, öffnet sich die Schranke automatisch.",
     "home.how.pay.title": "Bezahlen",
     "home.how.pay.body": "Nur für genutzte Zeit zahlen. Belege landen automatisch im Konto.",
     "home.how.step": "Schritt",
@@ -500,17 +525,21 @@ const DICT = {
     "drive.sessionEnded": "Sitzung beendet",
     "drive.charged": "Berechnet",
     "drive.end": "Beenden",
+    "drive.paymentPending": "Zahlung wird verarbeitet",
     "drive.notFound": "Sitzung nicht gefunden.",
     "drive.goBack": "Zurück",
     "drive.backSearch": "Zurück zur Suche",
-    "drive.receipt": "Beleg an Ihr Konto gesendet.",
+    "drive.receipt": "Sitzung beendet. Ihr Beleg ist nach Abschluss der Zahlung verfügbar.",
     "drive.status.active": "AKTIV",
     "drive.status.ended": "BEENDET",
 
     "drive.arrived.cta": "Ich bin angekommen — jetzt bezahlen",
     "drive.arrived.title": "Parken hier bezahlen",
-    "drive.arrived.sub": "Wir leiten Ihre Zahlung an den lokalen Parkanbieter weiter — eine App genügt.",
+    "drive.arrived.sub":
+      "Wir leiten Ihre Zahlung an den lokalen Parkanbieter weiter — eine App genügt.",
     "drive.arrived.detecting": "Standort wird ermittelt…",
+    "drive.arrived.locationUnavailable":
+      "Ihr Standort konnte nicht bestätigt werden. Geben Sie stattdessen Straße oder Parkzonencode ein.",
     "drive.arrived.confirm": "Sie sind bei",
     "drive.arrived.code": "Parkzonen-Code",
     "drive.arrived.yes": "Ja, das stimmt",
@@ -528,14 +557,16 @@ const DICT = {
     "drive.scan.cta": "Automaten-Ticket scannen",
     "drive.scan.ctaSub": "Schrankenparkhaus mit ANPR-Ticket — Barcode scannen und bezahlen.",
     "drive.scan.title": "Parkticket scannen",
-    "drive.scan.sub": "Richten Sie die Kamera auf den Barcode Ihres Automatentickets. Wir begleichen die Ausfahrt beim Betreiber — kein Anstehen am Kassenautomaten.",
+    "drive.scan.sub":
+      "Richten Sie die Kamera auf den Barcode Ihres Automatentickets. Wir begleichen die Ausfahrt beim Betreiber — kein Anstehen am Kassenautomaten.",
     "drive.scan.start": "Kamera starten",
     "drive.scan.stop": "Kamera stoppen",
     "drive.scan.uploadPhoto": "Stattdessen Foto hochladen",
     "drive.scan.manual": "Oder Ticketnummer eingeben",
     "drive.scan.manualPlaceholder": "z. B. 4901 2233 5567",
     "drive.scan.useManual": "Dieses Ticket verwenden",
-    "drive.scan.notSupported": "Ihr Browser kann keine Barcodes scannen. Foto hochladen oder Nummer eingeben.",
+    "drive.scan.notSupported":
+      "Ihr Browser kann keine Barcodes scannen. Foto hochladen oder Nummer eingeben.",
     "drive.scan.noMatch": "Ticket nicht erkannt. Parkhaus manuell auswählen oder erneut scannen.",
     "drive.scan.detected": "Ticket erkannt",
     "drive.scan.ticketRef": "Ticket-Referenz",
@@ -595,7 +626,6 @@ const DICT = {
     "op.payout.fee": "Plattformgebühr",
     "op.payout.net": "Netto an Betreiber",
     "op.payout.request": "Auszahlung beantragen",
-    
 
     "prov.title": "Anbieter-Hub",
     "prov.sub": "Echtzeit-Inventarfeed und Sandbox für die Orchestrierungs-API.",
@@ -625,7 +655,8 @@ const DICT = {
     "prov.revoked": "Schlüssel widerrufen.",
     "prov.lastUsed": "Zuletzt verwendet",
     "prov.keyOnce": "Diesen Schlüssel kopieren — er wird nicht erneut angezeigt",
-    "prov.keyOnceDesc": "Im Secret-Store des Partners hinterlegen. Sichtbar bleiben hier nur Präfix und letzte Nutzung.",
+    "prov.keyOnceDesc":
+      "Im Secret-Store des Partners hinterlegen. Sichtbar bleiben hier nur Präfix und letzte Nutzung.",
     "prov.registered": "Registrierte Anbieter",
     "prov.pName": "Name",
     "prov.pKind": "Art",
@@ -650,7 +681,8 @@ const DICT = {
     "adm.provNone": "Noch keine Anbieter.",
     "adm.provSites": "Standorte",
     "adm.commission.title": "Kommissionssätze",
-    "adm.commission.sub": "Plattformgebühren pro Organisation oder Anbieter festlegen. Standort-Overrides folgen.",
+    "adm.commission.sub":
+      "Plattformgebühren pro Organisation oder Anbieter festlegen. Standort-Overrides folgen.",
     "adm.commission.bps": "Gebühr % (Basispunkte)",
     "adm.commission.fixed": "Festbetrag (Cent)",
     "adm.commission.save": "Speichern",
@@ -666,8 +698,12 @@ const DICT = {
     "enf.scan": "Scannen",
     "enf.valid": "Gültige Sitzung",
     "enf.at": "bei",
+    "enf.until": "gültig bis",
     "enf.invalid": "Keine aktive Sitzung für dieses Kennzeichen bei",
     "enf.issue": "Bescheid ausstellen",
+    "enf.issued": "Bescheid wurde sicher ausgestellt.",
+    "enf.contest": "Als angefochten markieren",
+    "enf.waive": "Bescheid erlassen",
     "enf.reason": "Grund",
     "enf.reason.default": "Keine gültige Sitzung",
     "enf.amount": "Betrag (€)",
@@ -693,18 +729,22 @@ const DICT = {
     "adm.grant": "Vergeben",
     "adm.orgs": "Organisationen",
     "adm.orgs.empty": "Keine Organisationen.",
+    "adm.orgName": "Name der Organisation",
+    "adm.orgCreated": "Organisation erstellt.",
     "adm.granted": "Rolle vergeben",
     "adm.revoked": "Rolle entzogen",
 
     "gate.denied": "Zugriff verweigert",
-    "gate.needs": "Dieses Dashboard erfordert die Rolle {roles}. Bitte einen Administrator um Zugriff.",
+    "gate.needs":
+      "Dieses Dashboard erfordert die Rolle {roles}. Bitte einen Administrator um Zugriff.",
     "gate.yourRoles": "Ihre Rollen:",
     "gate.none": "keine",
     "gate.backDriver": "Zurück zur Fahrer-App",
     "gate.verifyErr": "Berechtigungen konnten nicht überprüft werden.",
 
     "cookie.title": "Wir schätzen Ihre Privatsphäre",
-    "cookie.body": "Wir nutzen Cookies, damit ParkPunkt funktioniert – und mit Ihrer Zustimmung, um es zu verbessern und die Leistung zu messen.",
+    "cookie.body":
+      "Wir nutzen Cookies, damit ParkPunkt funktioniert – und mit Ihrer Zustimmung, um es zu verbessern und die Leistung zu messen.",
     "cookie.learn": "Cookie-Richtlinie",
     "cookie.necessary": "Unbedingt erforderlich",
     "cookie.necessary.sub": "Anmeldung, Sicherheit, Sprache und Zustimmung. Immer aktiv.",
@@ -757,7 +797,7 @@ const DICT = {
   },
 } as const;
 
-type Key = keyof typeof DICT["en"];
+type Key = keyof (typeof DICT)["en"];
 
 const I18nCtx = createContext<{ lang: Lang; setLang: (l: Lang) => void; t: (k: Key) => string }>({
   lang: "en",
@@ -768,10 +808,15 @@ const I18nCtx = createContext<{ lang: Lang; setLang: (l: Lang) => void; t: (k: K
 export function I18nProvider({ children }: { children: ReactNode }) {
   const [lang, setLangState] = useState<Lang>("en");
   useEffect(() => {
-    const saved = (typeof window !== "undefined" && (localStorage.getItem("pp.lang") as Lang | null)) || null;
+    const saved =
+      (typeof window !== "undefined" && (localStorage.getItem("pp.lang") as Lang | null)) || null;
     if (saved === "en" || saved === "de") setLangState(saved);
-    else if (typeof navigator !== "undefined" && navigator.language?.toLowerCase().startsWith("de")) setLangState("de");
+    else if (typeof navigator !== "undefined" && navigator.language?.toLowerCase().startsWith("de"))
+      setLangState("de");
   }, []);
+  useEffect(() => {
+    if (typeof document !== "undefined") document.documentElement.lang = lang;
+  }, [lang]);
   const setLang = (l: Lang) => {
     setLangState(l);
     if (typeof window !== "undefined") localStorage.setItem("pp.lang", l);
@@ -787,7 +832,9 @@ export function useI18n() {
 export function LangToggle({ className = "" }: { className?: string }) {
   const { lang, setLang } = useI18n();
   return (
-    <div className={`inline-flex overflow-hidden rounded-md border border-border text-xs ${className}`}>
+    <div
+      className={`inline-flex overflow-hidden rounded-md border border-border text-xs ${className}`}
+    >
       {(["en", "de"] as const).map((l) => (
         <button
           key={l}

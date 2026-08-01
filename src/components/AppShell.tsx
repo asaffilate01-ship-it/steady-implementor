@@ -6,7 +6,19 @@ import { useSession, useMyRoles, hasRole } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useQueryClient } from "@tanstack/react-query";
-import { LogOut, Car, Building2, Radio, Radar, ShieldCheck, Menu, X, Home, BookOpen, type LucideIcon } from "lucide-react";
+import {
+  LogOut,
+  Car,
+  Building2,
+  Radio,
+  Radar,
+  ShieldCheck,
+  Menu,
+  X,
+  Home,
+  BookOpen,
+  type LucideIcon,
+} from "lucide-react";
 import type { AppRole } from "@/lib/auth.functions";
 import { LangToggle, useI18n } from "@/lib/i18n";
 
@@ -31,7 +43,9 @@ export function AppShell({ children, anchors }: { children: ReactNode; anchors?:
   const qc = useQueryClient();
   const { t } = useI18n();
   const [mobileOpen, setMobileOpen] = useState(false);
-  useEffect(() => { setMobileOpen(false); }, [pathname]);
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [pathname]);
 
   async function signOut() {
     await qc.cancelQueries();
@@ -60,16 +74,16 @@ export function AppShell({ children, anchors }: { children: ReactNode; anchors?:
       <header className="fixed inset-x-0 top-0 z-40 px-4 pt-3 md:pt-4">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between rounded-2xl border border-border/60 bg-background/75 px-3 shadow-[0_8px_32px_-12px_color-mix(in_oklch,var(--primary)_18%,transparent),0_1px_0_0_rgba(255,255,255,0.5)_inset] backdrop-blur-xl supports-[backdrop-filter]:bg-background/65 md:h-22 md:rounded-3xl md:px-5">
           <Link to="/" className="group flex items-center" aria-label="ParkPunkt — home">
-            <img src={logoAsset.url} alt="ParkPunkt" className="h-10 w-auto transition-transform duration-300 group-hover:scale-105 md:h-16" />
+            <img
+              src={logoAsset.url}
+              alt="ParkPunkt"
+              className="h-10 w-auto transition-transform duration-300 group-hover:scale-105 md:h-16"
+            />
           </Link>
 
           <div className="hidden items-center gap-1 md:flex">
-            {showWorkspace && (
-              <CommandRail visibleNav={visibleNav} anchors={anchors} />
-            )}
-            {!showWorkspace && anchors && anchors.length > 0 && (
-              <AnchorRail anchors={anchors} />
-            )}
+            {showWorkspace && <CommandRail visibleNav={visibleNav} anchors={anchors} />}
+            {!showWorkspace && anchors && anchors.length > 0 && <AnchorRail anchors={anchors} />}
           </div>
 
           <div className="hidden items-center gap-1 md:flex">
@@ -77,7 +91,7 @@ export function AppShell({ children, anchors }: { children: ReactNode; anchors?:
               to="/blog"
               className={cn(
                 "group inline-flex items-center gap-1.5 rounded-full px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary/60 hover:text-foreground",
-                pathname.startsWith("/blog") && "text-foreground"
+                pathname.startsWith("/blog") && "text-foreground",
               )}
             >
               <BookOpen className="h-3.5 w-3.5 transition-transform group-hover:-rotate-6" />
@@ -92,17 +106,31 @@ export function AppShell({ children, anchors }: { children: ReactNode; anchors?:
                     {(user.email ?? "?").slice(0, 1)}
                     <span className="absolute -bottom-0 -right-0 h-2 w-2 rounded-full bg-accent ring-2 ring-background" />
                   </span>
-                  <span className="max-w-[140px] truncate text-xs font-medium text-foreground/80">{user.email}</span>
+                  <span className="max-w-[140px] truncate text-xs font-medium text-foreground/80">
+                    {user.email}
+                  </span>
                 </div>
-                <Button variant="ghost" size="icon" onClick={signOut} className="rounded-full text-muted-foreground hover:bg-destructive/10 hover:text-destructive" aria-label={t("nav.signout")}>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={signOut}
+                  className="rounded-full text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                  aria-label={t("nav.signout")}
+                >
                   <LogOut className="h-4 w-4" />
                 </Button>
               </div>
             ) : (
-              <Button asChild size="sm" className="group ml-1 rounded-full bg-gradient-to-b from-primary to-primary/90 shadow-[var(--shadow-soft)] transition-all hover:shadow-[0_10px_30px_-8px_color-mix(in_oklch,var(--primary)_50%,transparent)]">
+              <Button
+                asChild
+                size="sm"
+                className="group ml-1 rounded-full bg-gradient-to-b from-primary to-primary/90 shadow-[var(--shadow-soft)] transition-all hover:shadow-[0_10px_30px_-8px_color-mix(in_oklch,var(--primary)_50%,transparent)]"
+              >
                 <Link to="/auth">
                   {t("nav.signin")}
-                  <span className="ml-1 inline-block transition-transform group-hover:translate-x-0.5">→</span>
+                  <span className="ml-1 inline-block transition-transform group-hover:translate-x-0.5">
+                    →
+                  </span>
                 </Link>
               </Button>
             )}
@@ -118,7 +146,9 @@ export function AppShell({ children, anchors }: { children: ReactNode; anchors?:
               onClick={() => setMobileOpen((v) => !v)}
               className={cn(
                 "rounded-full transition-colors",
-                mobileOpen ? "bg-primary text-primary-foreground hover:bg-primary/90" : "text-foreground"
+                mobileOpen
+                  ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                  : "text-foreground",
               )}
             >
               {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -137,7 +167,9 @@ export function AppShell({ children, anchors }: { children: ReactNode; anchors?:
         />
       )}
 
-      <main id="main" className="pt-20 md:pt-28">{children}</main>
+      <main id="main" className="pt-20 md:pt-28">
+        {children}
+      </main>
     </div>
   );
 }
@@ -185,10 +217,17 @@ function CommandRail({ visibleNav, anchors }: { visibleNav: NavItem[]; anchors?:
             data-active={active}
             className={cn(
               "group relative z-10 inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3 py-2 text-sm font-medium tracking-tight transition-colors duration-200",
-              active ? "text-primary-foreground" : "text-muted-foreground hover:text-foreground"
+              active ? "text-primary-foreground" : "text-muted-foreground hover:text-foreground",
             )}
           >
-            <Icon className={cn("h-3.5 w-3.5 shrink-0 transition-transform duration-300", active ? "text-accent drop-shadow-[0_0_6px_color-mix(in_oklch,var(--accent)_60%,transparent)]" : "group-hover:scale-110 group-hover:rotate-[-6deg]")} />
+            <Icon
+              className={cn(
+                "h-3.5 w-3.5 shrink-0 transition-transform duration-300",
+                active
+                  ? "text-accent drop-shadow-[0_0_6px_color-mix(in_oklch,var(--accent)_60%,transparent)]"
+                  : "group-hover:scale-110 group-hover:rotate-[-6deg]",
+              )}
+            />
             <span>{t(n.labelKey as never)}</span>
           </Link>
         );
@@ -220,7 +259,9 @@ function AnchorRail({ anchors }: { anchors: AnchorLink[] }) {
         to="/"
         className={cn(
           "inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-3.5 py-2 text-sm font-medium transition-colors",
-          pathname === "/" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-secondary/70 hover:text-foreground"
+          pathname === "/"
+            ? "bg-primary text-primary-foreground"
+            : "text-muted-foreground hover:bg-secondary/70 hover:text-foreground",
         )}
       >
         <Home className="h-3.5 w-3.5 shrink-0" />
@@ -254,19 +295,68 @@ function MobileOverlay({
 }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const { t } = useI18n();
+  const overlayRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const previousFocus = document.activeElement as HTMLElement | null;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const focusable = () =>
+      Array.from(
+        overlayRef.current?.querySelectorAll<HTMLElement>(
+          'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])',
+        ) ?? [],
+      );
+    focusable()[0]?.focus();
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") onClose();
+      if (event.key !== "Tab") return;
+      const items = focusable();
+      if (!items.length) return;
+      const first = items[0];
+      const last = items[items.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+      document.body.style.overflow = previousOverflow;
+      previousFocus?.focus();
+    };
+  }, [onClose]);
 
   const mainItems = [
     { to: "/", label: t("nav.home"), icon: Home, exact: true },
     { to: "/drive", label: t("nav.driver"), icon: Car },
     { to: "/blog", label: t("nav.journal"), icon: BookOpen },
-    ...visibleNav.filter((n) => n.to !== "/drive").map((n) => ({ to: n.to, label: t(n.labelKey as never), icon: n.icon })),
+    ...visibleNav
+      .filter((n) => n.to !== "/drive")
+      .map((n) => ({ to: n.to, label: t(n.labelKey as never), icon: n.icon })),
   ];
 
   return (
-    <div className="fixed inset-0 z-50 bg-background/95 backdrop-blur-xl md:hidden">
+    <div
+      ref={overlayRef}
+      role="dialog"
+      aria-modal="true"
+      aria-label={t("nav.menu")}
+      className="fixed inset-0 z-50 bg-background/95 backdrop-blur-xl md:hidden"
+    >
       <div className="flex h-16 items-center justify-between px-4">
         <span className="text-sm font-semibold tracking-tight">ParkPunkt</span>
-        <Button variant="ghost" size="icon" onClick={onClose} className="rounded-full">
+        <Button
+          aria-label={t("nav.close")}
+          variant="ghost"
+          size="icon"
+          onClick={onClose}
+          className="rounded-full"
+        >
           <X className="h-5 w-5" />
         </Button>
       </div>
@@ -283,11 +373,16 @@ function MobileOverlay({
                 "group flex items-center gap-4 whitespace-nowrap rounded-2xl px-4 py-4 text-lg font-semibold transition-all",
                 active
                   ? "bg-gradient-to-r from-primary to-primary/85 text-primary-foreground shadow-lg"
-                  : "text-foreground hover:bg-secondary/70"
+                  : "text-foreground hover:bg-secondary/70",
               )}
               style={{ animation: `slideIn 0.35s ease-out ${idx * 0.05}s both` }}
             >
-              <span className={cn("flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-transform group-hover:scale-110", active ? "bg-white/15" : "bg-secondary")}>
+              <span
+                className={cn(
+                  "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-transform group-hover:scale-110",
+                  active ? "bg-white/15" : "bg-secondary",
+                )}
+              >
                 <Icon className="h-5 w-5" />
               </span>
               {item.label}
@@ -297,14 +392,18 @@ function MobileOverlay({
 
         {anchors && anchors.length > 0 && (
           <div className="mt-4 border-t border-border/60 pt-4">
-            <p className="mb-2 px-4 text-xs font-medium uppercase tracking-wide text-muted-foreground">{t("nav.onpage")}</p>
+            <p className="mb-2 px-4 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+              {t("nav.onpage")}
+            </p>
             {anchors.map((a, idx) => (
               <a
                 key={a.href}
                 href={a.href}
                 onClick={onClose}
                 className="block rounded-xl px-4 py-3 text-base text-muted-foreground transition-colors hover:bg-secondary/70 hover:text-foreground"
-                style={{ animation: `slideIn 0.35s ease-out ${(mainItems.length + idx) * 0.05}s both` }}
+                style={{
+                  animation: `slideIn 0.35s ease-out ${(mainItems.length + idx) * 0.05}s both`,
+                }}
               >
                 {t(a.labelKey as never)}
               </a>
@@ -327,7 +426,9 @@ function MobileOverlay({
             </div>
           ) : (
             <Button asChild size="lg" className="w-full rounded-xl">
-              <Link to="/auth" onClick={onClose}>{t("nav.signin")} →</Link>
+              <Link to="/auth" onClick={onClose}>
+                {t("nav.signin")} →
+              </Link>
             </Button>
           )}
         </div>

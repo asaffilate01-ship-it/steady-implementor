@@ -22,7 +22,11 @@ export function RoleGate({ allow, children }: { allow: AppRole[]; children: Reac
   if (error) {
     return (
       <div className="mx-auto max-w-md py-20">
-        <Card><CardContent className="p-6 text-center text-sm text-destructive">{t("gate.verifyErr")}</CardContent></Card>
+        <Card>
+          <CardContent className="p-6 text-center text-sm text-destructive">
+            {t("gate.verifyErr")}
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -33,16 +37,22 @@ export function RoleGate({ allow, children }: { allow: AppRole[]; children: Reac
       <div className="mx-auto max-w-md py-20">
         <Card>
           <CardContent className="space-y-4 p-6 text-center">
-            <div className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-destructive/10 text-destructive"><ShieldAlert className="h-6 w-6" /></div>
+            <div className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-destructive/10 text-destructive">
+              <ShieldAlert className="h-6 w-6" />
+            </div>
             <div>
               <div className="text-lg font-semibold">{t("gate.denied")}</div>
               <p className="mt-1 text-sm text-muted-foreground">
                 {t("gate.needs").replace("{roles}", allow.join(" / "))}
               </p>
-              <p className="mt-2 text-xs text-muted-foreground">{t("gate.yourRoles")} {data?.roles.length ? data.roles.join(", ") : t("gate.none")}</p>
+              <p className="mt-2 text-xs text-muted-foreground">
+                {t("gate.yourRoles")} {data?.roles.length ? data.roles.join(", ") : t("gate.none")}
+              </p>
             </div>
             <div className="flex justify-center gap-2">
-              <Button asChild variant="secondary"><Link to="/">{t("gate.backDriver")}</Link></Button>
+              <Button asChild variant="secondary">
+                <Link to="/">{t("gate.backDriver")}</Link>
+              </Button>
             </div>
           </CardContent>
         </Card>

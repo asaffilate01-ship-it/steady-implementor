@@ -16,7 +16,9 @@ export function SiteFooter() {
           </Link>
           <p className="mt-3 max-w-sm text-sm text-muted-foreground">{t("home.subtitle")}</p>
           <div className="mt-5">
-            <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{t("foot.social")}</div>
+            <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              {t("foot.social")}
+            </div>
             <SocialRow className="mt-2" />
           </div>
         </div>
@@ -47,7 +49,9 @@ export function SiteFooter() {
 
       <div className="border-t border-border/60">
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-3 px-4 py-5 text-xs text-muted-foreground md:flex-row">
-          <div>© {year} ParkPunkt · {t("foot.tag")}</div>
+          <div>
+            © {year} ParkPunkt · {t("foot.tag")}
+          </div>
           <div>{t("foot.rights")}</div>
         </div>
       </div>
@@ -58,7 +62,9 @@ export function SiteFooter() {
 function FootCol({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div>
-      <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{title}</div>
+      <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+        {title}
+      </div>
       <ul className="mt-3 space-y-2 text-sm">{children}</ul>
     </div>
   );

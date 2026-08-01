@@ -1,10 +1,4 @@
 -- ParkPunkt production completion
--- Adds durable payment processing, notice appeals, notifications, provider
--- health, settlement lineage, and tenant-scoped audit trails.
-
--- ---------------------------------------------------------------------------
--- Payment processing and reconciliation
--- ---------------------------------------------------------------------------
 ALTER TABLE public.payments
   ADD COLUMN IF NOT EXISTS provider text,
   ADD COLUMN IF NOT EXISTS provider_payment_id text,
@@ -39,7 +33,6 @@ CREATE UNIQUE INDEX IF NOT EXISTS payments_provider_payment_unique
 CREATE INDEX IF NOT EXISTS payments_reconciliation_idx
   ON public.payments(status, payout_status, paid_at DESC);
 
--- Legacy records created before webhook settlement are made reconcilable once.
 UPDATE public.payments
 SET paid_at = COALESCE(paid_at, updated_at, created_at), payout_status = 'eligible'
 WHERE status = 'paid' AND payout_status = 'pending';
@@ -101,9 +94,6 @@ CREATE POLICY "Operators read own settlement items" ON public.settlement_items
     )
   );
 
--- ---------------------------------------------------------------------------
--- Notice evidence and appeals
--- ---------------------------------------------------------------------------
 ALTER TABLE public.notices
   ADD COLUMN IF NOT EXISTS driver_id uuid REFERENCES auth.users(id) ON DELETE SET NULL,
   ADD COLUMN IF NOT EXISTS evidence jsonb NOT NULL DEFAULT '{}'::jsonb,
@@ -162,9 +152,6 @@ DROP POLICY IF EXISTS "Drivers read assigned notices" ON public.notices;
 CREATE POLICY "Drivers read assigned notices" ON public.notices
   FOR SELECT TO authenticated USING (driver_id = auth.uid());
 
--- ---------------------------------------------------------------------------
--- In-product notifications and immutable operational audit
--- ---------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS public.notifications (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -209,9 +196,6 @@ CREATE INDEX IF NOT EXISTS audit_events_entity_idx
 CREATE INDEX IF NOT EXISTS audit_events_org_idx
   ON public.audit_events(org_id, created_at DESC) WHERE org_id IS NOT NULL;
 
--- ---------------------------------------------------------------------------
--- Provider freshness and failure visibility
--- ---------------------------------------------------------------------------
 ALTER TABLE public.providers
   ADD COLUMN IF NOT EXISTS last_sync_started_at timestamptz,
   ADD COLUMN IF NOT EXISTS last_sync_completed_at timestamptz,
@@ -226,9 +210,6 @@ ALTER TABLE public.providers
   ADD CONSTRAINT providers_last_sync_status_check
   CHECK (last_sync_status IN ('never','running','healthy','degraded','failed'));
 
--- ---------------------------------------------------------------------------
--- Narrow client RPCs
--- ---------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION public.mark_notification_read(_notification_id uuid)
 RETURNS public.notifications
 LANGUAGE plpgsql
@@ -446,8 +427,6 @@ GRANT EXECUTE ON FUNCTION public.resolve_notice_appeal(uuid,text,text) TO authen
 GRANT EXECUTE ON FUNCTION public.create_notice_payment(uuid) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.issue_parking_notice_v2(uuid,text,text,integer,jsonb) TO authenticated;
 
--- Underlying tables remain read-only to browsers. All mutations above are
--- validated inside SECURITY DEFINER functions or performed by the service role.
 REVOKE INSERT, UPDATE, DELETE ON public.notices FROM authenticated;
 REVOKE INSERT, UPDATE, DELETE ON public.notice_appeals FROM authenticated;
 REVOKE INSERT, UPDATE, DELETE ON public.notifications FROM authenticated;
@@ -459,8 +438,6 @@ CREATE POLICY "Admins read payouts" ON public.payouts
   FOR SELECT TO authenticated USING (public.has_role(auth.uid(), 'admin'));
 REVOKE INSERT, UPDATE, DELETE ON public.payouts FROM authenticated;
 
--- Settlement batches are built transactionally: a payment can belong to only
--- one settlement item, and becomes locked for payout processing immediately.
 CREATE UNIQUE INDEX IF NOT EXISTS payouts_org_period_unique
   ON public.payouts(org_id, period_start, period_end)
   WHERE org_id IS NOT NULL AND provider_id IS NULL;
@@ -583,8 +560,6 @@ REVOKE ALL ON FUNCTION public.mark_payout_paid(uuid,text)
   FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.mark_payout_paid(uuid,text) TO service_role;
 
--- Atomic API rate-limit buckets prevent concurrent requests from racing the
--- previous count-then-insert implementation.
 CREATE TABLE IF NOT EXISTS public.api_rate_limit_buckets (
   api_key_id uuid NOT NULL REFERENCES public.api_keys(id) ON DELETE CASCADE,
   bucket_start timestamptz NOT NULL,
@@ -627,8 +602,6 @@ REVOKE ALL ON FUNCTION public.consume_api_rate_limit(uuid,integer,integer)
   FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.consume_api_rate_limit(uuid,integer,integer) TO service_role;
 
--- Transactional notification outbox. The core app records one notification;
--- a trusted dispatcher hands it to the configured email/SMS/push gateway.
 CREATE TABLE IF NOT EXISTS public.notification_deliveries (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   notification_id uuid NOT NULL UNIQUE REFERENCES public.notifications(id) ON DELETE CASCADE,
@@ -673,8 +646,6 @@ CREATE TRIGGER trg_queue_notification_delivery
   AFTER INSERT ON public.notifications
   FOR EACH ROW EXECUTE FUNCTION public.queue_notification_delivery();
 
--- Backfill the outbox for notifications created earlier in this migration or
--- before deployment.
 INSERT INTO public.notification_deliveries(notification_id)
 SELECT n.id FROM public.notifications n
 ON CONFLICT (notification_id) DO NOTHING;
