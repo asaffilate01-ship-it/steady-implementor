@@ -4,10 +4,8 @@ export const Route = createFileRoute("/api/public/cron/dispatch-notifications")(
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const auth = request.headers.get("authorization") ?? "";
-        const token = auth.toLowerCase().startsWith("bearer ") ? auth.slice(7).trim() : "";
-        const cronSecret = process.env.PARKPUNKT_CRON_SECRET;
-        if (!cronSecret || cronSecret.length < 32 || token !== cronSecret) {
+        const { isAuthorizedCronRequest } = await import("@/lib/cron-auth.server");
+        if (!isAuthorizedCronRequest(request)) {
           return json({ error: "Unauthorized" }, 401);
         }
         const gatewayUrl = process.env.NOTIFICATION_DELIVERY_WEBHOOK_URL;
