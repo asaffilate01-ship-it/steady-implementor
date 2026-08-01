@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AppShell } from "@/components/AppShell";
+import { DriverProductHub } from "@/components/DriverProductHub";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -380,6 +381,7 @@ function SearchScreen({
         </CardContent>
       </Card>
       <HistoryPanel />
+      <DriverProductHub />
     </div>
   );
 }
