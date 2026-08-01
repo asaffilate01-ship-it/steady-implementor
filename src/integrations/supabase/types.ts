@@ -696,6 +696,147 @@ export type Database = {
           platform_fee_cents: number
         }[]
       }
+      cancel_parking_reservation: {
+        Args: { _reservation_id: string }
+        Returns: {
+          created_at: string
+          currency: string
+          driver_id: string
+          ends_at: string
+          id: string
+          plate: string
+          price_cents: number
+          site_id: string
+          starts_at: string
+          status: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "reservations"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      check_parking_session: {
+        Args: { _plate: string; _site_id: string }
+        Returns: Json
+      }
+      create_operator_site: {
+        Args: {
+          _address: string
+          _amenities?: string[]
+          _capacity: number
+          _lat: number
+          _lng: number
+          _name: string
+          _operator_name: string
+          _price_cents_per_hour: number
+          _type?: Database["public"]["Enums"]["site_type"]
+        }
+        Returns: {
+          address: string
+          amenities: string[]
+          capacity: number
+          created_at: string
+          id: string
+          lat: number
+          lng: number
+          name: string
+          occupied: number
+          operator_name: string | null
+          org_id: string | null
+          platform_fee_bps: number | null
+          platform_fixed_fee_cents: number | null
+          price_cents_per_hour: number
+          type: Database["public"]["Enums"]["site_type"]
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "sites"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      create_parking_reservation: {
+        Args: {
+          _minutes: number
+          _plate: string
+          _site_id: string
+          _starts_at: string
+        }
+        Returns: {
+          created_at: string
+          currency: string
+          driver_id: string
+          ends_at: string
+          id: string
+          plate: string
+          price_cents: number
+          site_id: string
+          starts_at: string
+          status: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "reservations"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      end_parking_session: { Args: { _session_id: string }; Returns: Json }
+      extend_parking_session: {
+        Args: { _minutes: number; _session_id: string }
+        Returns: {
+          amount_cents: number
+          created_at: string
+          ends_at: string
+          id: string
+          payment_method: string | null
+          plate: string
+          price_cents_per_hour: number
+          site_id: string
+          started_at: string
+          status: Database["public"]["Enums"]["session_status"]
+          updated_at: string
+          user_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "sessions"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      get_operator_sites: {
+        Args: never
+        Returns: {
+          address: string
+          amenities: string[]
+          capacity: number
+          created_at: string
+          id: string
+          lat: number
+          lng: number
+          name: string
+          occupied: number
+          operator_name: string | null
+          org_id: string | null
+          platform_fee_bps: number | null
+          platform_fixed_fee_cents: number | null
+          price_cents_per_hour: number
+          type: Database["public"]["Enums"]["site_type"]
+          updated_at: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "sites"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -703,8 +844,111 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_operator_org_member: { Args: { _org_id: string }; Returns: boolean }
       is_org_member: { Args: { _org_id: string }; Returns: boolean }
+      issue_parking_notice: {
+        Args: {
+          _amount_cents: number
+          _plate: string
+          _reason: string
+          _site_id: string
+        }
+        Returns: {
+          amount_cents: number
+          created_at: string
+          id: string
+          issued_by: string | null
+          plate: string
+          reason: string
+          site_id: string
+          status: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "notices"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       session_amount_cents: { Args: { _session_id: string }; Returns: number }
+      start_parking_session: {
+        Args: {
+          _minutes: number
+          _payment_method?: string
+          _plate: string
+          _site_id: string
+        }
+        Returns: {
+          amount_cents: number
+          created_at: string
+          ends_at: string
+          id: string
+          payment_method: string | null
+          plate: string
+          price_cents_per_hour: number
+          site_id: string
+          started_at: string
+          status: Database["public"]["Enums"]["session_status"]
+          updated_at: string
+          user_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "sessions"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      update_operator_site: {
+        Args: {
+          _occupied?: number
+          _price_cents_per_hour?: number
+          _site_id: string
+        }
+        Returns: {
+          address: string
+          amenities: string[]
+          capacity: number
+          created_at: string
+          id: string
+          lat: number
+          lng: number
+          name: string
+          occupied: number
+          operator_name: string | null
+          org_id: string | null
+          platform_fee_bps: number | null
+          platform_fixed_fee_cents: number | null
+          price_cents_per_hour: number
+          type: Database["public"]["Enums"]["site_type"]
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "sites"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      update_parking_notice_status: {
+        Args: { _notice_id: string; _status: string }
+        Returns: {
+          amount_cents: number
+          created_at: string
+          id: string
+          issued_by: string | null
+          plate: string
+          reason: string
+          site_id: string
+          status: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "notices"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
     }
     Enums: {
       app_role: "admin" | "operator" | "provider" | "enforcement"

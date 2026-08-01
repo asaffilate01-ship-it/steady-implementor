@@ -4,6 +4,7 @@ import logoAsset from "@/assets/parkpunkt-logo.png.asset.json";
 import { LangToggle, useI18n } from "@/lib/i18n";
 import { SiteFooter } from "@/components/SiteFooter";
 import { ArrowLeft } from "lucide-react";
+import { legalConfigComplete } from "@/lib/legal-config";
 
 export function LegalLayout({
   title,
@@ -31,8 +32,18 @@ export function LegalLayout({
         </div>
       </header>
       <main className="mx-auto max-w-3xl px-4 py-12">
+        {!legalConfigComplete && (
+          <div className="mb-6 rounded-lg border border-yellow-500/40 bg-yellow-500/10 p-4 text-sm text-yellow-900 dark:text-yellow-100">
+            Pre-launch legal draft: configure the registered operator and contact details before
+            publishing this service.
+          </div>
+        )}
         <h1 className="text-3xl font-semibold tracking-tight md:text-4xl">{title}</h1>
-        {updated && <p className="mt-2 text-xs uppercase tracking-wide text-muted-foreground">Last updated: {updated}</p>}
+        {updated && (
+          <p className="mt-2 text-xs uppercase tracking-wide text-muted-foreground">
+            Last updated: {updated}
+          </p>
+        )}
         <div className="prose prose-neutral mt-8 max-w-none text-foreground/90 [&_a]:text-accent [&_h2]:mt-10 [&_h2]:text-xl [&_h2]:font-semibold [&_h2]:tracking-tight [&_h3]:mt-6 [&_h3]:font-semibold [&_p]:mt-4 [&_p]:leading-relaxed [&_ul]:mt-3 [&_ul]:list-disc [&_ul]:space-y-1 [&_ul]:pl-6">
           {children}
         </div>

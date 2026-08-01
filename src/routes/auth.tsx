@@ -14,13 +14,22 @@ import { useServerFn } from "@tanstack/react-start";
 import { Bug, Shield, Building2, Radio, Radar, Car } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 
-const searchSchema = z.object({ redirect: z.string().optional() });
+const searchSchema = z.object({
+  redirect: z
+    .string()
+    .max(500)
+    .refine((value) => value.startsWith("/") && !value.startsWith("//"), "Invalid redirect")
+    .optional(),
+});
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
       { title: "Sign in — ParkPunkt" },
-      { name: "description", content: "Sign in to access ParkPunkt operator, provider, enforcement or admin dashboards." },
+      {
+        name: "description",
+        content: "Sign in to access ParkPunkt operator, provider, enforcement or admin dashboards.",
+      },
       { name: "robots", content: "noindex" },
     ],
   }),
@@ -29,6 +38,7 @@ export const Route = createFileRoute("/auth")({
 });
 
 function AuthPage() {
+  const showDevAuth = import.meta.env.DEV && import.meta.env.VITE_ENABLE_DEMO_AUTH === "true";
   const navigate = useNavigate();
   const { redirect } = useSearch({ from: "/auth" });
   const [mode, setMode] = useState<"signin" | "signup">("signin");
@@ -53,13 +63,20 @@ function AuthPage() {
     setBusy(true);
     try {
       if (mode === "signup") {
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email,
           password,
-          options: { emailRedirectTo: window.location.origin, data: { display_name: displayName || email } },
+          options: {
+            emailRedirectTo: window.location.origin,
+            data: { display_name: displayName || email },
+          },
         });
         if (error) throw error;
         toast.success(t("auth.accountCreated"));
+        if (!data.session) {
+          setMode("signin");
+          return;
+        }
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
@@ -74,7 +91,9 @@ function AuthPage() {
 
   async function onGoogle() {
     setBusy(true);
-    const result = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin });
+    const result = await lovable.auth.signInWithOAuth("google", {
+      redirect_uri: window.location.origin,
+    });
     if (result.error) {
       toast.error(result.error.message ?? t("auth.googleFailed"));
       setBusy(false);
@@ -88,7 +107,10 @@ function AuthPage() {
     setDevBusy(role);
     try {
       const creds = await ensureDev({ data: { role } });
-      const { error } = await supabase.auth.signInWithPassword({ email: creds.email, password: creds.password });
+      const { error } = await supabase.auth.signInWithPassword({
+        email: creds.email,
+        password: creds.password,
+      });
       if (error) throw error;
       toast.success(`${t("auth.signedInAs")} ${creds.name}`);
       const dest = role === "driver" ? "/drive" : role === "admin" ? "/admin" : `/${role}`;
@@ -103,81 +125,131 @@ function AuthPage() {
   return (
     <div className="min-h-screen bg-background">
       <div className="mx-auto flex min-h-screen max-w-md flex-col items-center justify-center px-4 py-10">
-        <Link to="/" className="mb-6"><img src={logoAsset.url} alt="ParkPunkt" className="h-[5.5rem] w-auto" /></Link>
+        <Link to="/" className="mb-6">
+          <img src={logoAsset.url} alt="ParkPunkt" className="h-[5.5rem] w-auto" />
+        </Link>
         <Card className="w-full">
           <CardHeader>
             <CardTitle>{mode === "signin" ? t("auth.signin") : t("auth.signup")}</CardTitle>
             <CardDescription>{t("auth.desc")}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <Button type="button" variant="outline" className="w-full" onClick={onGoogle} disabled={busy}>
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full"
+              onClick={onGoogle}
+              disabled={busy}
+            >
               {t("auth.google")}
             </Button>
-            <div className="flex items-center gap-2 text-xs text-muted-foreground"><div className="h-px flex-1 bg-border" /><span>{t("auth.or")}</span><div className="h-px flex-1 bg-border" /></div>
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <div className="h-px flex-1 bg-border" />
+              <span>{t("auth.or")}</span>
+              <div className="h-px flex-1 bg-border" />
+            </div>
             <form onSubmit={onSubmit} className="space-y-3">
               {mode === "signup" && (
-                <div className="space-y-1"><Label>{t("auth.name")}</Label><Input value={displayName} onChange={(e) => setDisplayName(e.target.value)} placeholder={t("auth.name.placeholder")} /></div>
+                <div className="space-y-1">
+                  <Label>{t("auth.name")}</Label>
+                  <Input
+                    value={displayName}
+                    onChange={(e) => setDisplayName(e.target.value)}
+                    placeholder={t("auth.name.placeholder")}
+                  />
+                </div>
               )}
-              <div className="space-y-1"><Label>{t("auth.email")}</Label><Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email" /></div>
-              <div className="space-y-1"><Label>{t("auth.password")}</Label><Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={8} autoComplete={mode === "signin" ? "current-password" : "new-password"} /></div>
-              <Button type="submit" className="w-full" disabled={busy}>{mode === "signin" ? t("auth.signin") : t("auth.signup")}</Button>
+              <div className="space-y-1">
+                <Label>{t("auth.email")}</Label>
+                <Input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  autoComplete="email"
+                />
+              </div>
+              <div className="space-y-1">
+                <Label>{t("auth.password")}</Label>
+                <Input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  minLength={8}
+                  autoComplete={mode === "signin" ? "current-password" : "new-password"}
+                />
+              </div>
+              <Button type="submit" className="w-full" disabled={busy}>
+                {mode === "signin" ? t("auth.signin") : t("auth.signup")}
+              </Button>
             </form>
             <div className="text-center text-sm">
               {mode === "signin" ? (
-                <button className="text-primary underline" onClick={() => setMode("signup")}>{t("auth.needAccount")}</button>
+                <button className="text-primary underline" onClick={() => setMode("signup")}>
+                  {t("auth.needAccount")}
+                </button>
               ) : (
-                <button className="text-primary underline" onClick={() => setMode("signin")}>{t("auth.haveAccount")}</button>
+                <button className="text-primary underline" onClick={() => setMode("signin")}>
+                  {t("auth.haveAccount")}
+                </button>
               )}
             </div>
             <div className="text-center text-xs text-muted-foreground">
-              {t("auth.driverHint1")} <Link to="/" className="underline">{t("auth.driverHint2")}</Link>.
+              {t("auth.driverHint1")}{" "}
+              <Link to="/" className="underline">
+                {t("auth.driverHint2")}
+              </Link>
+              .
             </div>
           </CardContent>
         </Card>
 
-        {/* Dev login panel */}
-        <div className="mt-4 w-full">
-          <button
-            onClick={() => setDevOpen((v) => !v)}
-            className="flex w-full items-center gap-2 rounded-md border border-dashed border-border bg-secondary/40 px-3 py-2 text-left text-xs text-muted-foreground hover:border-accent hover:text-foreground"
-          >
-            <Bug className="h-4 w-4 text-accent" />
-            <span className="font-medium">{t("dev.title")}</span>
-            <span className="ml-auto">{devOpen ? t("dev.hide") : t("dev.show")}</span>
-          </button>
-          {devOpen && (
-            <Card className="mt-2 border-dashed">
-              <CardContent className="space-y-2 p-3 text-sm">
-                <p className="text-xs text-muted-foreground">
-                  {t("dev.sub")} <code className="rounded bg-secondary px-1">devpass1234</code>
-                </p>
-                <div className="grid grid-cols-2 gap-2">
-                  {(
-                    [
-                      { r: "admin", labelKey: "nav.admin", Icon: Shield },
-                      { r: "operator", labelKey: "nav.operator", Icon: Building2 },
-                      { r: "provider", labelKey: "nav.provider", Icon: Radio },
-                      { r: "enforcement", labelKey: "nav.enforcement", Icon: Radar },
-                      { r: "driver", labelKey: "nav.driver", Icon: Car },
-                    ] as const
-                  ).map(({ r, labelKey, Icon }) => (
-                    <Button
-                      key={r}
-                      variant="outline"
-                      size="sm"
-                      className="justify-start"
-                      disabled={devBusy !== null}
-                      onClick={() => devSignIn(r)}
-                    >
-                      <Icon className="mr-2 h-4 w-4" />
-                      {devBusy === r ? t("dev.creating") : t(labelKey as never)}
-                    </Button>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
-        </div>
+        {/* Explicitly opt-in local development login panel. Never rendered in production. */}
+        {showDevAuth && (
+          <div className="mt-4 w-full">
+            <button
+              onClick={() => setDevOpen((v) => !v)}
+              className="flex w-full items-center gap-2 rounded-md border border-dashed border-border bg-secondary/40 px-3 py-2 text-left text-xs text-muted-foreground hover:border-accent hover:text-foreground"
+            >
+              <Bug className="h-4 w-4 text-accent" />
+              <span className="font-medium">{t("dev.title")}</span>
+              <span className="ml-auto">{devOpen ? t("dev.hide") : t("dev.show")}</span>
+            </button>
+            {devOpen && (
+              <Card className="mt-2 border-dashed">
+                <CardContent className="space-y-2 p-3 text-sm">
+                  <p className="text-xs text-muted-foreground">
+                    {t("dev.sub")} <code className="rounded bg-secondary px-1">devpass1234</code>
+                  </p>
+                  <div className="grid grid-cols-2 gap-2">
+                    {(
+                      [
+                        { r: "admin", labelKey: "nav.admin", Icon: Shield },
+                        { r: "operator", labelKey: "nav.operator", Icon: Building2 },
+                        { r: "provider", labelKey: "nav.provider", Icon: Radio },
+                        { r: "enforcement", labelKey: "nav.enforcement", Icon: Radar },
+                        { r: "driver", labelKey: "nav.driver", Icon: Car },
+                      ] as const
+                    ).map(({ r, labelKey, Icon }) => (
+                      <Button
+                        key={r}
+                        variant="outline"
+                        size="sm"
+                        className="justify-start"
+                        disabled={devBusy !== null}
+                        onClick={() => devSignIn(r)}
+                      >
+                        <Icon className="mr-2 h-4 w-4" />
+                        {devBusy === r ? t("dev.creating") : t(labelKey as never)}
+                      </Button>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

@@ -1,10 +1,21 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 
 export type Provider = Database["public"]["Tables"]["providers"]["Row"];
-export type ProviderInsert = Database["public"]["Tables"]["providers"]["Insert"];
 export type ApiKey = Database["public"]["Tables"]["api_keys"]["Row"];
+export type SafeApiKey = Pick<
+  ApiKey,
+  | "id"
+  | "provider_id"
+  | "owner_user_id"
+  | "name"
+  | "key_prefix"
+  | "scopes"
+  | "last_used_at"
+  | "revoked_at"
+  | "created_at"
+>;
 export type ApiRequestLog = Database["public"]["Tables"]["api_request_log"]["Row"];
 export type SiteProviderMapping = Database["public"]["Tables"]["site_provider_mapping"]["Row"];
 
@@ -26,35 +37,15 @@ export function useProviders() {
   });
 }
 
-export function useUpsertProvider() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: async (p: ProviderInsert & { id?: string }) => {
-      const { error } = await supabase.from("providers").upsert(p);
-      if (error) throw error;
-    },
-    onSuccess: () => qc.invalidateQueries({ queryKey: PKEYS.providers }),
-  });
-}
-
-export function useDeleteProvider() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase.from("providers").delete().eq("id", id);
-      if (error) throw error;
-    },
-    onSuccess: () => qc.invalidateQueries({ queryKey: PKEYS.providers }),
-  });
-}
-
 export function useMyApiKeys() {
   return useQuery({
     queryKey: PKEYS.apiKeys,
-    queryFn: async (): Promise<ApiKey[]> => {
+    queryFn: async (): Promise<SafeApiKey[]> => {
       const { data, error } = await supabase
         .from("api_keys")
-        .select("*")
+        .select(
+          "id, provider_id, owner_user_id, name, key_prefix, scopes, last_used_at, revoked_at, created_at",
+        )
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data ?? [];

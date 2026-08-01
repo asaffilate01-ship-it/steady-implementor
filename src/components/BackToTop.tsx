@@ -41,7 +41,13 @@ export function BackToTop() {
       type="button"
     >
       <svg width={size} height={size} className="absolute inset-0 -rotate-90" aria-hidden>
-        <circle cx={size / 2} cy={size / 2} r={r} strokeWidth={stroke} className="fill-none stroke-border" />
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={r}
+          strokeWidth={stroke}
+          className="fill-none stroke-border"
+        />
         <circle
           cx={size / 2}
           cy={size / 2}

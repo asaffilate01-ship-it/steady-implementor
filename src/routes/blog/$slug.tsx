@@ -35,14 +35,16 @@ export const Route = createFileRoute("/blog/$slug")({
   },
   component: PostPage,
   notFoundComponent: () => (
-    <div className="grid min-h-screen place-items-center text-muted-foreground">Article not found.</div>
+    <div className="grid min-h-screen place-items-center text-muted-foreground">
+      Article not found.
+    </div>
   ),
 });
 
 function PostPage() {
   const post = Route.useLoaderData();
   const { t, lang } = useI18n();
-  const url = typeof window !== "undefined" ? window.location.href : `https://parkpunkt.example/blog/${post.slug}`;
+  const url = typeof window !== "undefined" ? window.location.href : `/blog/${post.slug}`;
   const others = POSTS.filter((p) => p.slug !== post.slug).slice(0, 2);
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -60,18 +62,37 @@ function PostPage() {
         </div>
       </header>
       <article className="mx-auto max-w-3xl px-4 py-12">
-        <span className="rounded-full bg-secondary/70 px-2.5 py-0.5 text-[10px] uppercase tracking-widest text-muted-foreground">{post.tag}</span>
-        <h1 className="mt-3 text-3xl font-semibold tracking-tight md:text-5xl">{post.title[lang]}</h1>
+        <span className="rounded-full bg-secondary/70 px-2.5 py-0.5 text-[10px] uppercase tracking-widest text-muted-foreground">
+          {post.tag}
+        </span>
+        <h1 className="mt-3 text-3xl font-semibold tracking-tight md:text-5xl">
+          {post.title[lang]}
+        </h1>
         <div className="mt-4 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
-          <span>{t("blog.by")} {post.author}</span>
+          <span>
+            {t("blog.by")} {post.author}
+          </span>
           <span>·</span>
-          <span>{new Date(post.date).toLocaleDateString(lang === "de" ? "de-DE" : "en-GB", { dateStyle: "long" })}</span>
+          <span>
+            {new Date(post.date).toLocaleDateString(lang === "de" ? "de-DE" : "en-GB", {
+              dateStyle: "long",
+            })}
+          </span>
           <span>·</span>
-          <span className="inline-flex items-center gap-1"><Clock className="h-3 w-3" />{post.minutes} {t("blog.min")}</span>
+          <span className="inline-flex items-center gap-1">
+            <Clock className="h-3 w-3" />
+            {post.minutes} {t("blog.min")}
+          </span>
         </div>
-        <img src={post.cover} alt="" className="mt-8 aspect-[16/9] w-full rounded-2xl border border-border object-cover" />
+        <img
+          src={post.cover}
+          alt=""
+          className="mt-8 aspect-[16/9] w-full rounded-2xl border border-border object-cover"
+        />
         <div className="prose prose-neutral mt-8 max-w-none text-foreground/90 [&_p]:mt-5 [&_p]:leading-relaxed">
-          {post.body[lang].map((para: string, i: number) => <p key={i}>{para}</p>)}
+          {post.body[lang].map((para: string, i: number) => (
+            <p key={i}>{para}</p>
+          ))}
         </div>
         <div className="mt-10 flex flex-wrap items-center justify-between gap-3 border-t border-border/60 pt-6">
           <span className="text-sm text-muted-foreground">{t("blog.share")}</span>
@@ -89,9 +110,15 @@ function PostPage() {
                   params={{ slug: p.slug }}
                   className="group flex gap-3 overflow-hidden rounded-2xl border border-border bg-card p-3 transition-colors hover:border-accent/50"
                 >
-                  <img src={p.cover} alt="" className="h-20 w-24 shrink-0 rounded-lg object-cover" />
+                  <img
+                    src={p.cover}
+                    alt=""
+                    className="h-20 w-24 shrink-0 rounded-lg object-cover"
+                  />
                   <div className="min-w-0">
-                    <div className="text-[10px] uppercase tracking-widest text-muted-foreground">{p.tag}</div>
+                    <div className="text-[10px] uppercase tracking-widest text-muted-foreground">
+                      {p.tag}
+                    </div>
                     <div className="mt-1 line-clamp-2 text-sm font-semibold">{p.title[lang]}</div>
                   </div>
                 </Link>

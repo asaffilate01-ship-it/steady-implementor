@@ -11,12 +11,19 @@ export type CookiePrefs = {
   decidedAt: string | null;
 };
 
-const DEFAULT: CookiePrefs = { necessary: true, analytics: false, marketing: false, decidedAt: null };
+const DEFAULT: CookiePrefs = {
+  necessary: true,
+  analytics: false,
+  marketing: false,
+  decidedAt: null,
+};
 const KEY = "pp.cookies.v1";
 
 function readCookie(name: string): string | null {
   if (typeof document === "undefined") return null;
-  const m = document.cookie.match(new RegExp("(?:^|; )" + name.replace(/[.$?*|{}()[\]\\/+^]/g, "\\$&") + "=([^;]*)"));
+  const m = document.cookie.match(
+    new RegExp("(?:^|; )" + name.replace(/[.$?*|{}()[\]\\/+^]/g, "\\$&") + "=([^;]*)"),
+  );
   return m ? decodeURIComponent(m[1]) : null;
 }
 function writeCookie(name: string, value: string, days = 180) {
@@ -38,7 +45,15 @@ const Ctx = createContext<{
   acceptAll: () => void;
   rejectAll: () => void;
   save: (p: Partial<CookiePrefs>) => void;
-}>({ prefs: DEFAULT, decided: false, open: false, setOpen: () => {}, acceptAll: () => {}, rejectAll: () => {}, save: () => {} });
+}>({
+  prefs: DEFAULT,
+  decided: false,
+  open: false,
+  setOpen: () => {},
+  acceptAll: () => {},
+  rejectAll: () => {},
+  save: () => {},
+});
 
 export function CookieProvider({ children }: { children: ReactNode }) {
   const [prefs, setPrefs] = useState<CookiePrefs>(DEFAULT);
@@ -124,7 +139,11 @@ function CookieBanner() {
           <div className="min-w-0 flex-1">
             <div className="flex items-start justify-between gap-2">
               <h3 className="text-sm font-semibold">{t("cookie.title")}</h3>
-              <button aria-label="Close" onClick={() => setOpen(false)} className="rounded-md p-1 text-muted-foreground hover:bg-secondary">
+              <button
+                aria-label="Close"
+                onClick={() => setOpen(false)}
+                className="rounded-md p-1 text-muted-foreground hover:bg-secondary"
+              >
                 <X className="h-4 w-4" />
               </button>
             </div>
@@ -136,7 +155,12 @@ function CookieBanner() {
             </p>
             {detail && (
               <div className="mt-3 space-y-2 rounded-xl border border-border/70 bg-secondary/40 p-3 text-sm">
-                <Row label={t("cookie.necessary")} sub={t("cookie.necessary.sub")} checked disabled />
+                <Row
+                  label={t("cookie.necessary")}
+                  sub={t("cookie.necessary.sub")}
+                  checked
+                  disabled
+                />
                 <Row
                   label={t("cookie.analytics")}
                   sub={t("cookie.analytics.sub")}
@@ -159,11 +183,21 @@ function CookieBanner() {
                 {t("cookie.rejectAll")}
               </Button>
               {detail ? (
-                <Button size="sm" variant="ghost" onClick={() => save({ analytics, marketing })} className="rounded-full">
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => save({ analytics, marketing })}
+                  className="rounded-full"
+                >
                   {t("cookie.save")}
                 </Button>
               ) : (
-                <Button size="sm" variant="ghost" onClick={() => setDetail(true)} className="rounded-full">
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => setDetail(true)}
+                  className="rounded-full"
+                >
                   {t("cookie.customize")}
                 </Button>
               )}
@@ -209,7 +243,11 @@ export function ManageCookiesButton({ className = "" }: { className?: string }) 
   const { setOpen } = useCookies();
   const { t } = useI18n();
   return (
-    <button onClick={() => setOpen(true)} className={`hover:text-foreground ${className}`} type="button">
+    <button
+      onClick={() => setOpen(true)}
+      className={`hover:text-foreground ${className}`}
+      type="button"
+    >
       {t("cookie.manage")}
     </button>
   );

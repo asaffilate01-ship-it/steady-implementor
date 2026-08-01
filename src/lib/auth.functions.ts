@@ -4,6 +4,17 @@ import { z } from "zod";
 
 export type AppRole = "admin" | "operator" | "provider" | "enforcement";
 
+async function assertAdmin(context: {
+  supabase: import("@supabase/supabase-js").SupabaseClient;
+  userId: string;
+}) {
+  const { data, error } = await context.supabase.rpc("has_role", {
+    _user_id: context.userId,
+    _role: "admin",
+  });
+  if (error || !data) throw new Error("Forbidden");
+}
+
 /** Roles for the caller. Used to gate dashboards on the client. */
 export const getMyRolesFn = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -27,7 +38,10 @@ export const listUsersWithRolesFn = createServerFn({ method: "GET" })
     if (!isAdmin) throw new Error("Forbidden");
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: usersData, error: usersErr } = await supabaseAdmin.auth.admin.listUsers({ page: 1, perPage: 200 });
+    const { data: usersData, error: usersErr } = await supabaseAdmin.auth.admin.listUsers({
+      page: 1,
+      perPage: 200,
+    });
     if (usersErr) throw new Error(usersErr.message);
 
     const ids = usersData.users.map((u) => u.id);
@@ -42,7 +56,9 @@ export const listUsersWithRolesFn = createServerFn({ method: "GET" })
       email: u.email ?? "",
       created_at: u.created_at,
       profile: profiles?.find((p) => p.id === u.id) ?? null,
-      roles: (roles ?? []).filter((r) => r.user_id === u.id).map((r) => ({ role: r.role as AppRole, org_id: r.org_id })),
+      roles: (roles ?? [])
+        .filter((r) => r.user_id === u.id)
+        .map((r) => ({ role: r.role as AppRole, org_id: r.org_id })),
       orgs: orgs ?? [],
     }));
   });
@@ -55,13 +71,29 @@ const grantSchema = z.object({
 
 export const grantRoleFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) => grantSchema.parse(input))
+  .validator((input: unknown) => grantSchema.parse(input))
   .handler(async ({ data, context }) => {
-    // RLS enforces admin — this call runs as the caller, no service role needed.
-    const { error } = await context.supabase
+    await assertAdmin(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const requiresOrg = data.role === "operator" || data.role === "provider";
+    if (requiresOrg && !data.org_id)
+      throw new Error(`${data.role} access requires an organisation`);
+    if (data.org_id) {
+      const { data: org, error: orgError } = await supabaseAdmin
+        .from("orgs")
+        .select("kind")
+        .eq("id", data.org_id)
+        .single();
+      if (orgError || !org) throw new Error("Organisation not found");
+      if (data.role === "operator" && org.kind !== "operator")
+        throw new Error("Operator role requires an operator organisation");
+      if (data.role === "provider" && org.kind !== "provider")
+        throw new Error("Provider role requires a provider organisation");
+    }
+    const { error } = await supabaseAdmin
       .from("user_roles")
       .upsert(
-        { user_id: data.target_user_id, role: data.role, org_id: data.org_id ?? null },
+        { user_id: data.target_user_id, role: data.role, org_id: requiresOrg ? data.org_id : null },
         { onConflict: "user_id,role" },
       );
     if (error) throw new Error(error.message);
@@ -70,11 +102,26 @@ export const grantRoleFn = createServerFn({ method: "POST" })
 
 export const revokeRoleFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) =>
-    z.object({ target_user_id: z.string().uuid(), role: z.enum(["admin", "operator", "provider", "enforcement"]) }).parse(input),
+  .validator((input: unknown) =>
+    z
+      .object({
+        target_user_id: z.string().uuid(),
+        role: z.enum(["admin", "operator", "provider", "enforcement"]),
+      })
+      .parse(input),
   )
   .handler(async ({ data, context }) => {
-    const { error } = await context.supabase
+    await assertAdmin(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    if (data.role === "admin") {
+      const { count, error: countError } = await supabaseAdmin
+        .from("user_roles")
+        .select("id", { count: "exact", head: true })
+        .eq("role", "admin");
+      if (countError) throw new Error(countError.message);
+      if ((count ?? 0) <= 1) throw new Error("The final administrator cannot be removed");
+    }
+    const { error } = await supabaseAdmin
       .from("user_roles")
       .delete()
       .eq("user_id", data.target_user_id)

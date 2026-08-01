@@ -19,8 +19,11 @@ const PROFILE: Record<z.infer<typeof roleSchema>, { email: string; name: string 
  * Uses the admin client so it works before anyone has an account.
  */
 export const ensureDevUserFn = createServerFn({ method: "POST" })
-  .inputValidator((input: unknown) => z.object({ role: roleSchema }).parse(input))
+  .validator((input: unknown) => z.object({ role: roleSchema }).parse(input))
   .handler(async ({ data }) => {
+    const demoEnabled =
+      process.env.NODE_ENV !== "production" && process.env.PARKPUNKT_ENABLE_DEMO_AUTH === "true";
+    if (!demoEnabled) throw new Error("Demo authentication is disabled");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const p = PROFILE[data.role];
 
@@ -40,22 +43,40 @@ export const ensureDevUserFn = createServerFn({ method: "POST" })
       user = created.data.user!;
     } else {
       // Ensure password is fresh so the client sign-in never fails.
-      await supabaseAdmin.auth.admin.updateUserById(user.id, {
+      const updated = await supabaseAdmin.auth.admin.updateUserById(user.id, {
         password: DEV_PASSWORD,
         email_confirm: true,
       });
+      if (updated.error) throw new Error(updated.error.message);
     }
 
     // Ensure profile row exists (trigger normally handles it).
-    await supabaseAdmin
+    const { error: profileError } = await supabaseAdmin
       .from("profiles")
       .upsert({ id: user.id, display_name: p.name }, { onConflict: "id" });
+    if (profileError) throw new Error(profileError.message);
 
     // Assign role (driver = no user_roles entry — everyone can drive).
     if (data.role !== "driver") {
-      await supabaseAdmin
+      let orgId: string | null = null;
+      if (data.role === "operator" || data.role === "provider") {
+        const { data: org, error: orgError } = await supabaseAdmin
+          .from("orgs")
+          .select("id")
+          .eq("kind", data.role)
+          .order("created_at")
+          .limit(1)
+          .maybeSingle();
+        if (orgError || !org) throw new Error(`No ${data.role} organisation is configured`);
+        orgId = org.id;
+      }
+      const { error: roleError } = await supabaseAdmin
         .from("user_roles")
-        .upsert({ user_id: user.id, role: data.role }, { onConflict: "user_id,role" });
+        .upsert(
+          { user_id: user.id, role: data.role, org_id: orgId },
+          { onConflict: "user_id,role" },
+        );
+      if (roleError) throw new Error(roleError.message);
     }
 
     return { email: p.email, password: DEV_PASSWORD, name: p.name };
