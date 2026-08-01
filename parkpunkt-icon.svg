@@ -1,0 +1,21 @@
+{
+  "name": "ParkPunkt",
+  "short_name": "ParkPunkt",
+  "description": "Find, book and pay for parking from one secure app.",
+  "start_url": "/drive",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f7f9fc",
+  "theme_color": "#16345c",
+  "lang": "en",
+  "categories": ["navigation", "travel", "utilities"],
+  "icons": [
+    {
+      "src": "/parkpunkt-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
+
