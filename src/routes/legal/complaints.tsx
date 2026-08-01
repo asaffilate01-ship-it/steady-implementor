@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { LegalLayout } from "@/components/LegalLayout";
+import { legalConfig } from "@/lib/legal-config";
 
 export const Route = createFileRoute("/legal/complaints")({
   head: () => ({
@@ -22,7 +23,7 @@ function ComplaintsPage() {
       <h2>How to file</h2>
       <ol className="mt-3 list-decimal space-y-1 pl-6">
         <li>In the driver app, open the session and tap <em>Report an issue</em>.</li>
-        <li>Or email complaints@parkpunkt.example with your session ID and a short description.</li>
+        <li>Or email {legalConfig.complaintsEmail} with your session ID and a short description.</li>
         <li>For enforcement notices, use the dispute link on the notice itself.</li>
       </ol>
       <h2>Our commitment</h2>
@@ -39,8 +40,12 @@ function ComplaintsPage() {
         <li>For payment disputes, your card issuer under PSD2.</li>
         <li>For data-protection issues, your regional supervisory authority.</li>
       </ul>
-      <h2>Online Dispute Resolution</h2>
-      <p>The European Commission provides an ODR platform at <a href="https://ec.europa.eu/consumers/odr" target="_blank" rel="noreferrer">ec.europa.eu/consumers/odr</a>. We are not obliged and generally not willing to participate in a dispute resolution procedure before a consumer arbitration board.</p>
+      <h2>Consumer dispute resolution</h2>
+      <p>{legalConfig.adrStatement}</p>
+      <p>
+        The European Commission's ODR platform was discontinued on 20 July 2025, so complaints
+        should be raised with us directly or with the bodies listed above.
+      </p>
     </LegalLayout>
   );
 }
