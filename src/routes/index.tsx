@@ -101,9 +101,18 @@ function Hero({ signedIn }: { signedIn: boolean }) {
             </Button>
           </div>
           <div className="mt-8 flex flex-wrap gap-6 text-xs text-muted-foreground">
-            <span className="inline-flex items-center gap-1.5"><CheckCircle2 className="h-4 w-4 text-accent" />{t("home.badge.anpr")}</span>
-            <span className="inline-flex items-center gap-1.5"><CheckCircle2 className="h-4 w-4 text-accent" />{t("home.badge.psd2")}</span>
-            <span className="inline-flex items-center gap-1.5"><CheckCircle2 className="h-4 w-4 text-accent" />{t("home.badge.gdpr")}</span>
+            <span className="inline-flex items-center gap-1.5">
+              <CheckCircle2 className="h-4 w-4 text-accent" />
+              {t("home.badge.anpr")}
+            </span>
+            <span className="inline-flex items-center gap-1.5">
+              <CheckCircle2 className="h-4 w-4 text-accent" />
+              {t("home.badge.psd2")}
+            </span>
+            <span className="inline-flex items-center gap-1.5">
+              <CheckCircle2 className="h-4 w-4 text-accent" />
+              {t("home.badge.gdpr")}
+            </span>
           </div>
         </div>
         <HeroVisual />
@@ -116,7 +125,10 @@ function HeroVisual() {
   const { t } = useI18n();
   return (
     <div className="relative flex items-center justify-center">
-      <div className="absolute -inset-8 -z-10 rounded-[3rem] opacity-40 blur-3xl" style={{ background: "var(--gradient-hero)" }} />
+      <div
+        className="absolute -inset-8 -z-10 rounded-[3rem] opacity-40 blur-3xl"
+        style={{ background: "var(--gradient-hero)" }}
+      />
       <div className="relative w-full overflow-hidden rounded-3xl border border-border bg-card shadow-[var(--shadow-elegant)]">
         <img
           src={heroAsset.url}
@@ -152,32 +164,71 @@ function HeroVisual() {
 function Stakeholders() {
   const { t } = useI18n();
   const items = [
-    { icon: Car, key: "driver", href: "/drive", tint: "from-[oklch(0.72_0.17_148)] to-[oklch(0.55_0.14_160)]" },
-    { icon: Building2, key: "operator", href: "/operator", tint: "from-[oklch(0.62_0.17_255)] to-[oklch(0.42_0.14_260)]" },
-    { icon: Radar, key: "enforce", href: "/enforcement", tint: "from-[oklch(0.72_0.17_35)] to-[oklch(0.52_0.16_25)]" },
-    { icon: BarChart3, key: "provider", href: "/provider", tint: "from-[oklch(0.72_0.15_300)] to-[oklch(0.48_0.16_290)]" },
+    {
+      icon: Car,
+      key: "driver",
+      href: "/drive",
+      tint: "from-[oklch(0.72_0.17_148)] to-[oklch(0.55_0.14_160)]",
+    },
+    {
+      icon: Building2,
+      key: "operator",
+      href: "/operator",
+      tint: "from-[oklch(0.62_0.17_255)] to-[oklch(0.42_0.14_260)]",
+    },
+    {
+      icon: Radar,
+      key: "enforce",
+      href: "/enforcement",
+      tint: "from-[oklch(0.72_0.17_35)] to-[oklch(0.52_0.16_25)]",
+    },
+    {
+      icon: BarChart3,
+      key: "provider",
+      href: "/provider",
+      tint: "from-[oklch(0.72_0.15_300)] to-[oklch(0.48_0.16_290)]",
+    },
   ] as const;
   return (
     <section id="stakeholders" className="border-t border-border/60 bg-secondary/40 py-20">
       <div className="mx-auto max-w-6xl px-4">
         <div className="max-w-2xl">
-          <h2 className="text-3xl font-semibold tracking-tight md:text-4xl">{t("home.stake.title")}</h2>
+          <h2 className="text-3xl font-semibold tracking-tight md:text-4xl">
+            {t("home.stake.title")}
+          </h2>
           <p className="mt-3 text-muted-foreground">{t("home.stake.sub")}</p>
         </div>
         <div className="mt-10 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           {items.map((s, i) => (
-            <div key={s.key} className="group relative flex flex-col overflow-hidden rounded-2xl border border-border bg-card p-6 transition-all duration-300 hover:-translate-y-1.5 hover:border-accent/60 hover:shadow-[var(--shadow-elegant)]">
-              <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full opacity-0 blur-3xl transition-opacity duration-500 group-hover:opacity-60" style={{ background: "var(--gradient-brand)" }} />
+            <div
+              key={s.key}
+              className="group relative flex flex-col overflow-hidden rounded-2xl border border-border bg-card p-6 transition-all duration-300 hover:-translate-y-1.5 hover:border-accent/60 hover:shadow-[var(--shadow-elegant)]"
+            >
+              <div
+                className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full opacity-0 blur-3xl transition-opacity duration-500 group-hover:opacity-60"
+                style={{ background: "var(--gradient-brand)" }}
+              />
               <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-accent/60 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
               <div className="relative">
-                <div className={`grid h-14 w-14 place-items-center rounded-2xl bg-gradient-to-br ${s.tint} text-white shadow-lg shadow-primary/25 ring-1 ring-white/20 transition-transform duration-300 group-hover:scale-105 group-hover:-rotate-3`}>
+                <div
+                  className={`grid h-14 w-14 place-items-center rounded-2xl bg-gradient-to-br ${s.tint} text-white shadow-lg shadow-primary/25 ring-1 ring-white/20 transition-transform duration-300 group-hover:scale-105 group-hover:-rotate-3`}
+                >
                   <s.icon className="h-7 w-7 drop-shadow" />
                 </div>
-                <span className="absolute -right-1 -top-2 rounded-full bg-background/80 px-2 py-0.5 font-mono text-[10px] tracking-widest text-muted-foreground ring-1 ring-border">0{i + 1}</span>
+                <span className="absolute -right-1 -top-2 rounded-full bg-background/80 px-2 py-0.5 font-mono text-[10px] tracking-widest text-muted-foreground ring-1 ring-border">
+                  0{i + 1}
+                </span>
               </div>
-              <h3 className="mt-5 text-lg font-semibold tracking-tight">{t(`home.stake.${s.key}.title` as never)}</h3>
-              <p className="mt-2 flex-1 text-sm leading-relaxed text-muted-foreground">{t(`home.stake.${s.key}.body` as never)}</p>
-              <Link to={s.href} className="mt-5 inline-flex items-center gap-1.5 text-sm font-medium text-accent transition-all group-hover:gap-2.5">
+              <h3 className="mt-5 text-lg font-semibold tracking-tight">
+                {t(`home.stake.${s.key}.title` as never)}
+              </h3>
+              <p className="mt-2 flex-1 text-sm leading-relaxed text-muted-foreground">
+                {t(`home.stake.${s.key}.body` as never)}
+              </p>
+              <Link
+                to={s.href}
+                className="mt-5 inline-flex items-center gap-1.5 text-sm font-medium text-accent transition-all group-hover:gap-2.5"
+              >
                 {t(`home.stake.${s.key}.cta` as never)} <ArrowRight className="h-4 w-4" />
               </Link>
             </div>
@@ -199,21 +250,37 @@ function HowItWorks() {
     <section id="how" className="py-20">
       <div className="mx-auto max-w-6xl px-4">
         <div className="max-w-2xl">
-          <h2 className="text-3xl font-semibold tracking-tight md:text-4xl">{t("home.how.title")}</h2>
+          <h2 className="text-3xl font-semibold tracking-tight md:text-4xl">
+            {t("home.how.title")}
+          </h2>
           <p className="mt-3 text-muted-foreground">{t("home.how.sub")}</p>
         </div>
         <div className="mt-10 grid gap-4 md:grid-cols-3">
           {steps.map((s, i) => (
-            <div key={s.key} className="group relative overflow-hidden rounded-2xl border border-border bg-gradient-to-b from-card to-secondary/40 p-6 transition-all hover:-translate-y-1 hover:shadow-[var(--shadow-soft)]">
+            <div
+              key={s.key}
+              className="group relative overflow-hidden rounded-2xl border border-border bg-gradient-to-b from-card to-secondary/40 p-6 transition-all hover:-translate-y-1 hover:shadow-[var(--shadow-soft)]"
+            >
               <div className="flex items-start justify-between">
-                <span className="text-xs uppercase tracking-wide text-muted-foreground">{t("home.how.step")} {i + 1}</span>
+                <span className="text-xs uppercase tracking-wide text-muted-foreground">
+                  {t("home.how.step")} {i + 1}
+                </span>
                 <div className="text-3xl font-semibold text-primary/15 tabular-nums">0{i + 1}</div>
               </div>
               <div className="my-3 flex justify-center">
-                <img src={s.img} alt="" className="h-32 w-32 object-contain drop-shadow-2xl transition-transform group-hover:scale-110" loading="lazy" width={512} height={512} />
+                <img
+                  src={s.img}
+                  alt=""
+                  className="h-32 w-32 object-contain drop-shadow-2xl transition-transform group-hover:scale-110"
+                  loading="lazy"
+                  width={512}
+                  height={512}
+                />
               </div>
               <h3 className="text-lg font-semibold">{t(`home.how.${s.key}.title` as never)}</h3>
-              <p className="mt-1 text-sm text-muted-foreground">{t(`home.how.${s.key}.body` as never)}</p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {t(`home.how.${s.key}.body` as never)}
+              </p>
             </div>
           ))}
         </div>
@@ -223,12 +290,42 @@ function HowItWorks() {
 }
 
 const FEATURES = [
-  { icon: Radar, title: "On-street & barrier coverage", body: "Works for kerbside bays, barrier-less lots, and ANPR-gated garages — one flow for drivers, one dashboard for operators.", tint: "from-[oklch(0.72_0.17_148)] to-[oklch(0.5_0.14_160)]" },
-  { icon: CreditCard, title: "Payment orchestration", body: "External wallets or marketplace settlement — pick the route per operator.", tint: "from-[oklch(0.68_0.16_220)] to-[oklch(0.42_0.14_260)]" },
-  { icon: ShieldCheck, title: "GDPR by design", body: "Role-based access, RLS, and full audit trails for every session and grant.", tint: "from-[oklch(0.72_0.15_170)] to-[oklch(0.48_0.13_195)]" },
-  { icon: BarChart3, title: "Operator analytics", body: "Live occupancy, tariff performance, and GMV across every site.", tint: "from-[oklch(0.72_0.15_300)] to-[oklch(0.48_0.16_290)]" },
-  { icon: Building2, title: "Multi-tenant orgs", body: "Operators and providers stay isolated with per-org data and permissions.", tint: "from-[oklch(0.7_0.14_50)] to-[oklch(0.5_0.14_35)]" },
-  { icon: Zap, title: "Provider API", body: "Standard REST orchestration for quote, book, extend and end operations.", tint: "from-[oklch(0.78_0.16_90)] to-[oklch(0.55_0.14_70)]" },
+  {
+    icon: Radar,
+    title: "On-street & barrier coverage",
+    body: "Works for kerbside bays, barrier-less lots, and ANPR-gated garages — one flow for drivers, one dashboard for operators.",
+    tint: "from-[oklch(0.72_0.17_148)] to-[oklch(0.5_0.14_160)]",
+  },
+  {
+    icon: CreditCard,
+    title: "Payment orchestration",
+    body: "External wallets or marketplace settlement — pick the route per operator.",
+    tint: "from-[oklch(0.68_0.16_220)] to-[oklch(0.42_0.14_260)]",
+  },
+  {
+    icon: ShieldCheck,
+    title: "GDPR by design",
+    body: "Role-based access, RLS, and full audit trails for every session and grant.",
+    tint: "from-[oklch(0.72_0.15_170)] to-[oklch(0.48_0.13_195)]",
+  },
+  {
+    icon: BarChart3,
+    title: "Operator analytics",
+    body: "Live occupancy, tariff performance, and GMV across every site.",
+    tint: "from-[oklch(0.72_0.15_300)] to-[oklch(0.48_0.16_290)]",
+  },
+  {
+    icon: Building2,
+    title: "Multi-tenant orgs",
+    body: "Operators and providers stay isolated with per-org data and permissions.",
+    tint: "from-[oklch(0.7_0.14_50)] to-[oklch(0.5_0.14_35)]",
+  },
+  {
+    icon: Zap,
+    title: "Provider API",
+    body: "Standard REST orchestration for quote, book, extend and end operations.",
+    tint: "from-[oklch(0.78_0.16_90)] to-[oklch(0.55_0.14_70)]",
+  },
 ];
 
 function Features() {
@@ -237,15 +334,24 @@ function Features() {
     <section id="features" className="border-t border-border/60 bg-secondary/40 py-20">
       <div className="mx-auto max-w-6xl px-4">
         <div className="max-w-2xl">
-          <h2 className="text-3xl font-semibold tracking-tight md:text-4xl">{t("home.feat.title")}</h2>
+          <h2 className="text-3xl font-semibold tracking-tight md:text-4xl">
+            {t("home.feat.title")}
+          </h2>
           <p className="mt-3 text-muted-foreground">{t("home.feat.sub")}</p>
         </div>
         <div className="mt-10 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {FEATURES.map((f) => (
-            <div key={f.title} className="group relative overflow-hidden rounded-2xl border border-border bg-card p-6 transition-all duration-300 hover:-translate-y-1 hover:border-primary/50 hover:shadow-[var(--shadow-elegant)]">
-              <div className={`pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-gradient-to-br ${f.tint} opacity-0 blur-3xl transition-opacity duration-500 group-hover:opacity-30`} />
+            <div
+              key={f.title}
+              className="group relative overflow-hidden rounded-2xl border border-border bg-card p-6 transition-all duration-300 hover:-translate-y-1 hover:border-primary/50 hover:shadow-[var(--shadow-elegant)]"
+            >
+              <div
+                className={`pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-gradient-to-br ${f.tint} opacity-0 blur-3xl transition-opacity duration-500 group-hover:opacity-30`}
+              />
               <div className="relative flex items-start gap-4">
-                <div className={`relative grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-gradient-to-br ${f.tint} text-white shadow-lg ring-1 ring-white/20 transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6`}>
+                <div
+                  className={`relative grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-gradient-to-br ${f.tint} text-white shadow-lg ring-1 ring-white/20 transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6`}
+                >
                   <f.icon className="h-6 w-6 drop-shadow" />
                   <span className="pointer-events-none absolute inset-0 rounded-2xl bg-gradient-to-t from-transparent to-white/25" />
                 </div>
@@ -267,16 +373,31 @@ function CTA({ signedIn }: { signedIn: boolean }) {
   return (
     <section className="py-20">
       <div className="mx-auto max-w-5xl px-4">
-        <div className="relative overflow-hidden rounded-3xl border border-border p-10 text-center text-white shadow-[var(--shadow-elegant)] md:p-14" style={{ background: "var(--gradient-hero)" }}>
-          <div className="pointer-events-none absolute inset-0 opacity-30" style={{ background: "radial-gradient(60% 50% at 50% 0%, white, transparent)" }} />
-          <h2 className="relative text-3xl font-semibold tracking-tight md:text-4xl">{t("home.cta.final.title")}</h2>
+        <div
+          className="relative overflow-hidden rounded-3xl border border-border p-10 text-center text-white shadow-[var(--shadow-elegant)] md:p-14"
+          style={{ background: "var(--gradient-hero)" }}
+        >
+          <div
+            className="pointer-events-none absolute inset-0 opacity-30"
+            style={{ background: "radial-gradient(60% 50% at 50% 0%, white, transparent)" }}
+          />
+          <h2 className="relative text-3xl font-semibold tracking-tight md:text-4xl">
+            {t("home.cta.final.title")}
+          </h2>
           <p className="relative mt-3 text-white/85">{t("home.cta.final.sub")}</p>
           <div className="relative mt-8 flex flex-wrap justify-center gap-3">
             <Button asChild size="lg" variant="secondary">
               <Link to="/drive">{t("home.cta.final.open")}</Link>
             </Button>
-            <Button asChild size="lg" variant="outline" className="border-white/40 bg-white/10 text-white hover:bg-white/20 hover:text-white">
-              <Link to={signedIn ? "/operator" : "/auth"}>{signedIn ? t("home.cta.final.go") : t("nav.signin")}</Link>
+            <Button
+              asChild
+              size="lg"
+              variant="outline"
+              className="border-white/40 bg-white/10 text-white hover:bg-white/20 hover:text-white"
+            >
+              <Link to={signedIn ? "/operator" : "/auth"}>
+                {signedIn ? t("home.cta.final.go") : t("nav.signin")}
+              </Link>
             </Button>
           </div>
         </div>
@@ -376,7 +497,10 @@ function StakeholderFeatures() {
   const cfg = STAKEHOLDER_FEATURES[active];
   const Icon = cfg.icon;
   const items = cfg[lang];
-  const titleKey: Record<StakeKey, "feat.driver.title" | "feat.operator.title" | "feat.enforce.title" | "feat.provider.title"> = {
+  const titleKey: Record<
+    StakeKey,
+    "feat.driver.title" | "feat.operator.title" | "feat.enforce.title" | "feat.provider.title"
+  > = {
     driver: "feat.driver.title",
     operator: "feat.operator.title",
     enforce: "feat.enforce.title",
@@ -387,7 +511,9 @@ function StakeholderFeatures() {
       <div className="mx-auto max-w-6xl px-4">
         <div className="flex flex-wrap items-end justify-between gap-6">
           <div className="max-w-2xl">
-            <h2 className="text-3xl font-semibold tracking-tight md:text-4xl">{t(titleKey[active])}</h2>
+            <h2 className="text-3xl font-semibold tracking-tight md:text-4xl">
+              {t(titleKey[active])}
+            </h2>
             <p className="mt-3 text-sm text-muted-foreground">{t("feat.showFor")}:</p>
           </div>
           <div className="flex flex-wrap gap-1 rounded-full border border-border/70 bg-secondary/40 p-1">
@@ -413,15 +539,24 @@ function StakeholderFeatures() {
         </div>
 
         <div className="mt-10 grid gap-6 md:grid-cols-[220px_1fr]">
-          <div className={`relative overflow-hidden rounded-3xl bg-gradient-to-br ${cfg.tint} p-8 text-white shadow-[var(--shadow-elegant)] ring-1 ring-white/15`}>
+          <div
+            className={`relative overflow-hidden rounded-3xl bg-gradient-to-br ${cfg.tint} p-8 text-white shadow-[var(--shadow-elegant)] ring-1 ring-white/15`}
+          >
             <div className="pointer-events-none absolute -right-8 -top-8 h-40 w-40 rounded-full bg-white/15 blur-3xl" />
             <Icon className="relative h-10 w-10 drop-shadow" />
-            <div className="relative mt-6 text-2xl font-semibold tracking-tight">{t(`home.stake.${active}.title` as never)}</div>
-            <div className="relative mt-1 text-sm text-white/80">{t(`home.stake.${active}.body` as never)}</div>
+            <div className="relative mt-6 text-2xl font-semibold tracking-tight">
+              {t(`home.stake.${active}.title` as never)}
+            </div>
+            <div className="relative mt-1 text-sm text-white/80">
+              {t(`home.stake.${active}.body` as never)}
+            </div>
           </div>
           <ul className="grid gap-3 sm:grid-cols-2">
             {items.map((it) => (
-              <li key={it} className="group flex items-start gap-3 rounded-2xl border border-border bg-card p-4 transition-all hover:-translate-y-0.5 hover:border-accent/60 hover:shadow-[var(--shadow-soft)]">
+              <li
+                key={it}
+                className="group flex items-start gap-3 rounded-2xl border border-border bg-card p-4 transition-all hover:-translate-y-0.5 hover:border-accent/60 hover:shadow-[var(--shadow-soft)]"
+              >
                 <span className="mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full bg-accent/15 text-accent">
                   <CheckCircle2 className="h-3.5 w-3.5" />
                 </span>

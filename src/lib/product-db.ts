@@ -145,7 +145,11 @@ export function useToggleFavourite() {
       const user_id = await currentUserId();
       const { error } = favourite
         ? await supabase.from("favourite_sites").insert({ user_id, site_id: siteId })
-        : await supabase.from("favourite_sites").delete().eq("user_id", user_id).eq("site_id", siteId);
+        : await supabase
+            .from("favourite_sites")
+            .delete()
+            .eq("user_id", user_id)
+            .eq("site_id", siteId);
       if (error) throw error;
     },
     onSuccess: () => void qc.invalidateQueries({ queryKey: PRODUCT_KEYS.favourites }),
@@ -168,9 +172,7 @@ export function useTariffPlans() {
 export function useSaveTariffPlan() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (
-      input: Partial<TariffPlan> & { site_id: string; id?: string },
-    ) => {
+    mutationFn: async (input: Partial<TariffPlan> & { site_id: string; id?: string }) => {
       const { id, ...rest } = input;
       const { error } = id
         ? await supabase.from("tariff_plans").update(rest).eq("id", id)
@@ -197,7 +199,11 @@ export function useBusinessAccounts() {
 export function useCreateBusinessAccount() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (input: { name: string; billing_email?: string; monthly_limit_cents?: number }) => {
+    mutationFn: async (input: {
+      name: string;
+      billing_email?: string;
+      monthly_limit_cents?: number;
+    }) => {
       const owner_user_id = await currentUserId();
       const { data, error } = await supabase
         .from("business_accounts")

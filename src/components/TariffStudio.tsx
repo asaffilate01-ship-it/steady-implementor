@@ -55,7 +55,10 @@ export function TariffStudio({ sites }: { sites: SiteOption[] }) {
     { key: "free_minutes", label: L("Free minutes", "Freiminuten") },
     { key: "minimum_charge_cents", label: L("Minimum charge (cents)", "Mindestbetrag (Cent)") },
     { key: "service_fee_cents", label: L("Service fee (cents)", "Servicegebühr (Cent)") },
-    { key: "reservation_fee_cents", label: L("Reservation fee (cents)", "Reservierungsgebühr (Cent)") },
+    {
+      key: "reservation_fee_cents",
+      label: L("Reservation fee (cents)", "Reservierungsgebühr (Cent)"),
+    },
     { key: "daily_cap_cents", label: L("Daily cap (cents)", "Tagesdeckel (Cent)") },
     { key: "max_stay_minutes", label: L("Max stay (minutes)", "Max. Parkdauer (Minuten)") },
   ];

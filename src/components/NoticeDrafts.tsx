@@ -40,7 +40,11 @@ export function NoticeDrafts({
         <div className="grid gap-3 sm:grid-cols-3">
           <div className="space-y-1.5">
             <Label>{L("Plate", "Kennzeichen")}</Label>
-            <Input value={plate} onChange={(e) => setPlate(e.target.value)} placeholder="B-PP 1234" />
+            <Input
+              value={plate}
+              onChange={(e) => setPlate(e.target.value)}
+              placeholder="B-PP 1234"
+            />
           </div>
           <div className="space-y-1.5">
             <Label>{L("Reason", "Grund")}</Label>
