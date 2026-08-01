@@ -61,6 +61,32 @@ export type Database = {
           },
         ]
       }
+      api_rate_limit_buckets: {
+        Row: {
+          api_key_id: string
+          bucket_start: string
+          request_count: number
+        }
+        Insert: {
+          api_key_id: string
+          bucket_start: string
+          request_count?: number
+        }
+        Update: {
+          api_key_id?: string
+          bucket_start?: string
+          request_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "api_rate_limit_buckets_api_key_id_fkey"
+            columns: ["api_key_id"]
+            isOneToOne: false
+            referencedRelation: "api_keys"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       api_request_log: {
         Row: {
           api_key_id: string | null
@@ -96,36 +122,139 @@ export type Database = {
           },
         ]
       }
+      audit_events: {
+        Row: {
+          action: string
+          actor_user_id: string | null
+          created_at: string
+          entity_id: string | null
+          entity_type: string
+          id: string
+          metadata: Json
+          org_id: string | null
+        }
+        Insert: {
+          action: string
+          actor_user_id?: string | null
+          created_at?: string
+          entity_id?: string | null
+          entity_type: string
+          id?: string
+          metadata?: Json
+          org_id?: string | null
+        }
+        Update: {
+          action?: string
+          actor_user_id?: string | null
+          created_at?: string
+          entity_id?: string | null
+          entity_type?: string
+          id?: string
+          metadata?: Json
+          org_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "audit_events_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "orgs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notice_appeals: {
+        Row: {
+          created_at: string
+          details: string
+          driver_id: string
+          id: string
+          notice_id: string
+          reason: string
+          resolved_at: string | null
+          response: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          details: string
+          driver_id: string
+          id?: string
+          notice_id: string
+          reason: string
+          resolved_at?: string | null
+          response?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          details?: string
+          driver_id?: string
+          id?: string
+          notice_id?: string
+          reason?: string
+          resolved_at?: string | null
+          response?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notice_appeals_notice_id_fkey"
+            columns: ["notice_id"]
+            isOneToOne: true
+            referencedRelation: "notices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notices: {
         Row: {
           amount_cents: number
+          appeal_deadline: string | null
           created_at: string
+          driver_id: string | null
+          evidence: Json
           id: string
           issued_by: string | null
+          paid_at: string | null
           plate: string
           reason: string
           site_id: string
           status: string
+          updated_at: string
         }
         Insert: {
           amount_cents?: number
+          appeal_deadline?: string | null
           created_at?: string
+          driver_id?: string | null
+          evidence?: Json
           id?: string
           issued_by?: string | null
+          paid_at?: string | null
           plate: string
           reason: string
           site_id: string
           status?: string
+          updated_at?: string
         }
         Update: {
           amount_cents?: number
+          appeal_deadline?: string | null
           created_at?: string
+          driver_id?: string | null
+          evidence?: Json
           id?: string
           issued_by?: string | null
+          paid_at?: string | null
           plate?: string
           reason?: string
           site_id?: string
           status?: string
+          updated_at?: string
         }
         Relationships: [
           {
@@ -136,6 +265,92 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      notification_deliveries: {
+        Row: {
+          attempts: number
+          created_at: string
+          id: string
+          last_attempt_at: string | null
+          last_error: string | null
+          next_attempt_at: string
+          notification_id: string
+          provider_ref: string | null
+          sent_at: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          attempts?: number
+          created_at?: string
+          id?: string
+          last_attempt_at?: string | null
+          last_error?: string | null
+          next_attempt_at?: string
+          notification_id: string
+          provider_ref?: string | null
+          sent_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          attempts?: number
+          created_at?: string
+          id?: string
+          last_attempt_at?: string | null
+          last_error?: string | null
+          next_attempt_at?: string
+          notification_id?: string
+          provider_ref?: string | null
+          sent_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_deliveries_notification_id_fkey"
+            columns: ["notification_id"]
+            isOneToOne: true
+            referencedRelation: "notifications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notifications: {
+        Row: {
+          action_url: string | null
+          body: string
+          created_at: string
+          id: string
+          metadata: Json
+          read_at: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          action_url?: string | null
+          body: string
+          created_at?: string
+          id?: string
+          metadata?: Json
+          read_at?: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          action_url?: string | null
+          body?: string
+          created_at?: string
+          id?: string
+          metadata?: Json
+          read_at?: string | null
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       orgs: {
         Row: {
@@ -164,6 +379,42 @@ export type Database = {
         }
         Relationships: []
       }
+      payment_webhook_events: {
+        Row: {
+          error_message: string | null
+          event_id: string
+          event_type: string
+          id: string
+          payload: Json
+          processed_at: string | null
+          provider: string
+          received_at: string
+          status: string
+        }
+        Insert: {
+          error_message?: string | null
+          event_id: string
+          event_type: string
+          id?: string
+          payload: Json
+          processed_at?: string | null
+          provider: string
+          received_at?: string
+          status?: string
+        }
+        Update: {
+          error_message?: string | null
+          event_id?: string
+          event_type?: string
+          id?: string
+          payload?: Json
+          processed_at?: string | null
+          provider?: string
+          received_at?: string
+          status?: string
+        }
+        Relationships: []
+      }
       payments: {
         Row: {
           amount_cents: number
@@ -172,12 +423,20 @@ export type Database = {
           description: string | null
           driver_id: string
           external_ref: string | null
+          failure_code: string | null
+          failure_message: string | null
           id: string
+          metadata: Json
           method: string
           notice_id: string | null
           operator_net_cents: number
+          paid_at: string | null
           payout_status: string
           platform_fee_cents: number
+          provider: string | null
+          provider_charge_id: string | null
+          provider_payment_id: string | null
+          refunded_cents: number
           reservation_id: string | null
           session_id: string | null
           site_id: string | null
@@ -191,12 +450,20 @@ export type Database = {
           description?: string | null
           driver_id: string
           external_ref?: string | null
+          failure_code?: string | null
+          failure_message?: string | null
           id?: string
+          metadata?: Json
           method?: string
           notice_id?: string | null
           operator_net_cents?: number
+          paid_at?: string | null
           payout_status?: string
           platform_fee_cents?: number
+          provider?: string | null
+          provider_charge_id?: string | null
+          provider_payment_id?: string | null
+          refunded_cents?: number
           reservation_id?: string | null
           session_id?: string | null
           site_id?: string | null
@@ -210,12 +477,20 @@ export type Database = {
           description?: string | null
           driver_id?: string
           external_ref?: string | null
+          failure_code?: string | null
+          failure_message?: string | null
           id?: string
+          metadata?: Json
           method?: string
           notice_id?: string | null
           operator_net_cents?: number
+          paid_at?: string | null
           payout_status?: string
           platform_fee_cents?: number
+          provider?: string | null
+          provider_charge_id?: string | null
+          provider_payment_id?: string | null
+          refunded_cents?: number
           reservation_id?: string | null
           session_id?: string | null
           site_id?: string | null
@@ -395,6 +670,12 @@ export type Database = {
           created_at: string
           id: string
           kind: Database["public"]["Enums"]["provider_kind"]
+          last_sync_completed_at: string | null
+          last_sync_created: number
+          last_sync_error: string | null
+          last_sync_started_at: string | null
+          last_sync_status: string
+          last_sync_updated: number
           name: string
           notes: string | null
           platform_fee_bps: number
@@ -411,6 +692,12 @@ export type Database = {
           created_at?: string
           id?: string
           kind?: Database["public"]["Enums"]["provider_kind"]
+          last_sync_completed_at?: string | null
+          last_sync_created?: number
+          last_sync_error?: string | null
+          last_sync_started_at?: string | null
+          last_sync_status?: string
+          last_sync_updated?: number
           name: string
           notes?: string | null
           platform_fee_bps?: number
@@ -427,6 +714,12 @@ export type Database = {
           created_at?: string
           id?: string
           kind?: Database["public"]["Enums"]["provider_kind"]
+          last_sync_completed_at?: string | null
+          last_sync_created?: number
+          last_sync_error?: string | null
+          last_sync_started_at?: string | null
+          last_sync_status?: string
+          last_sync_updated?: number
           name?: string
           notes?: string | null
           platform_fee_bps?: number
@@ -536,6 +829,51 @@ export type Database = {
             columns: ["site_id"]
             isOneToOne: false
             referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      settlement_items: {
+        Row: {
+          created_at: string
+          gross_cents: number
+          id: string
+          net_cents: number
+          payment_id: string
+          payout_id: string
+          platform_fee_cents: number
+        }
+        Insert: {
+          created_at?: string
+          gross_cents: number
+          id?: string
+          net_cents: number
+          payment_id: string
+          payout_id: string
+          platform_fee_cents: number
+        }
+        Update: {
+          created_at?: string
+          gross_cents?: number
+          id?: string
+          net_cents?: number
+          payment_id?: string
+          payout_id?: string
+          platform_fee_cents?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "settlement_items_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: true
+            referencedRelation: "payments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "settlement_items_payout_id_fkey"
+            columns: ["payout_id"]
+            isOneToOne: false
+            referencedRelation: "payouts"
             referencedColumns: ["id"]
           },
         ]
@@ -722,6 +1060,93 @@ export type Database = {
         Args: { _plate: string; _site_id: string }
         Returns: Json
       }
+      claim_notification_deliveries: {
+        Args: { _limit?: number }
+        Returns: {
+          attempts: number
+          created_at: string
+          id: string
+          last_attempt_at: string | null
+          last_error: string | null
+          next_attempt_at: string
+          notification_id: string
+          provider_ref: string | null
+          sent_at: string | null
+          status: string
+          updated_at: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "notification_deliveries"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      consume_api_rate_limit: {
+        Args: {
+          _api_key_id: string
+          _request_limit: number
+          _window_seconds?: number
+        }
+        Returns: boolean
+      }
+      create_notice_appeal: {
+        Args: { _details: string; _notice_id: string; _reason: string }
+        Returns: {
+          created_at: string
+          details: string
+          driver_id: string
+          id: string
+          notice_id: string
+          reason: string
+          resolved_at: string | null
+          response: string | null
+          status: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "notice_appeals"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      create_notice_payment: {
+        Args: { _notice_id: string }
+        Returns: {
+          amount_cents: number
+          created_at: string
+          currency: string
+          description: string | null
+          driver_id: string
+          external_ref: string | null
+          failure_code: string | null
+          failure_message: string | null
+          id: string
+          metadata: Json
+          method: string
+          notice_id: string | null
+          operator_net_cents: number
+          paid_at: string | null
+          payout_status: string
+          platform_fee_cents: number
+          provider: string | null
+          provider_charge_id: string | null
+          provider_payment_id: string | null
+          refunded_cents: number
+          reservation_id: string | null
+          session_id: string | null
+          site_id: string | null
+          status: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "payments"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       create_operator_site: {
         Args: {
           _address: string
@@ -784,6 +1209,30 @@ export type Database = {
           to: "reservations"
           isOneToOne: true
           isSetofReturn: false
+        }
+      }
+      create_settlement_batch: {
+        Args: { _period_end: string; _period_start: string }
+        Returns: {
+          created_at: string
+          id: string
+          org_id: string | null
+          paid_at: string | null
+          payout_ref: string | null
+          period_end: string
+          period_start: string
+          provider_id: string | null
+          status: string
+          total_gross_cents: number
+          total_net_cents: number
+          total_platform_fee_cents: number
+          updated_at: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "payouts"
+          isOneToOne: false
+          isSetofReturn: true
         }
       }
       end_parking_session: { Args: { _session_id: string }; Returns: Json }
@@ -855,17 +1304,117 @@ export type Database = {
         }
         Returns: {
           amount_cents: number
+          appeal_deadline: string | null
           created_at: string
+          driver_id: string | null
+          evidence: Json
           id: string
           issued_by: string | null
+          paid_at: string | null
           plate: string
           reason: string
           site_id: string
           status: string
+          updated_at: string
         }
         SetofOptions: {
           from: "*"
           to: "notices"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      issue_parking_notice_v2: {
+        Args: {
+          _amount_cents: number
+          _evidence?: Json
+          _plate: string
+          _reason: string
+          _site_id: string
+        }
+        Returns: {
+          amount_cents: number
+          appeal_deadline: string | null
+          created_at: string
+          driver_id: string | null
+          evidence: Json
+          id: string
+          issued_by: string | null
+          paid_at: string | null
+          plate: string
+          reason: string
+          site_id: string
+          status: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "notices"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      mark_notification_read: {
+        Args: { _notification_id: string }
+        Returns: {
+          action_url: string | null
+          body: string
+          created_at: string
+          id: string
+          metadata: Json
+          read_at: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "notifications"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      mark_payout_paid: {
+        Args: { _payout_id: string; _payout_ref: string }
+        Returns: {
+          created_at: string
+          id: string
+          org_id: string | null
+          paid_at: string | null
+          payout_ref: string | null
+          period_end: string
+          period_start: string
+          provider_id: string | null
+          status: string
+          total_gross_cents: number
+          total_net_cents: number
+          total_platform_fee_cents: number
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "payouts"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      resolve_notice_appeal: {
+        Args: { _appeal_id: string; _decision: string; _response: string }
+        Returns: {
+          created_at: string
+          details: string
+          driver_id: string
+          id: string
+          notice_id: string
+          reason: string
+          resolved_at: string | null
+          response: string | null
+          status: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "notice_appeals"
           isOneToOne: true
           isSetofReturn: false
         }
@@ -934,13 +1483,18 @@ export type Database = {
         Args: { _notice_id: string; _status: string }
         Returns: {
           amount_cents: number
+          appeal_deadline: string | null
           created_at: string
+          driver_id: string | null
+          evidence: Json
           id: string
           issued_by: string | null
+          paid_at: string | null
           plate: string
           reason: string
           site_id: string
           status: string
+          updated_at: string
         }
         SetofOptions: {
           from: "*"
