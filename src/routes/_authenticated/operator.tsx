@@ -39,6 +39,7 @@ import {
   PiggyBank,
 } from "lucide-react";
 import { RoleGate } from "@/components/RoleGate";
+import { TariffStudio } from "@/components/TariffStudio";
 import { useI18n } from "@/lib/i18n";
 import { toast } from "sonner";
 
@@ -231,6 +232,8 @@ function OperatorDashboard() {
           </CardContent>
         </Card>
       </div>
+
+      <TariffStudio sites={sites} />
 
       <Card>
         <CardHeader>

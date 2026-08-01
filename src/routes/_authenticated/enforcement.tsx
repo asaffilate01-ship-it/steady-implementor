@@ -42,6 +42,7 @@ import {
   Scale,
 } from "lucide-react";
 import { RoleGate } from "@/components/RoleGate";
+import { NoticeDrafts } from "@/components/NoticeDrafts";
 import { useI18n } from "@/lib/i18n";
 import { useServerFn } from "@tanstack/react-start";
 import { checkParkingSessionFn } from "@/lib/parking.functions";
@@ -264,6 +265,8 @@ function EnforcementApp() {
           </CardContent>
         </Card>
       </div>
+
+      <NoticeDrafts siteId={siteId || null} />
 
       <Card>
         <CardHeader>

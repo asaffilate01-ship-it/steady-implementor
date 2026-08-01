@@ -14,6 +14,73 @@ export type Database = {
   }
   public: {
     Tables: {
+      access_passes: {
+        Row: {
+          code: string
+          created_at: string
+          expires_at: string
+          id: string
+          kind: string
+          plate: string | null
+          reservation_id: string | null
+          session_id: string | null
+          site_id: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          expires_at: string
+          id?: string
+          kind: string
+          plate?: string | null
+          reservation_id?: string | null
+          session_id?: string | null
+          site_id: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          kind?: string
+          plate?: string | null
+          reservation_id?: string | null
+          session_id?: string | null
+          site_id?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "access_passes_reservation_id_fkey"
+            columns: ["reservation_id"]
+            isOneToOne: false
+            referencedRelation: "reservations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "access_passes_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "access_passes_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       api_keys: {
         Row: {
           created_at: string
@@ -163,6 +230,192 @@ export type Database = {
           },
         ]
       }
+      business_accounts: {
+        Row: {
+          billing_email: string | null
+          created_at: string
+          id: string
+          monthly_limit_cents: number
+          name: string
+          owner_user_id: string
+          updated_at: string
+          vat_id: string | null
+        }
+        Insert: {
+          billing_email?: string | null
+          created_at?: string
+          id?: string
+          monthly_limit_cents?: number
+          name: string
+          owner_user_id: string
+          updated_at?: string
+          vat_id?: string | null
+        }
+        Update: {
+          billing_email?: string | null
+          created_at?: string
+          id?: string
+          monthly_limit_cents?: number
+          name?: string
+          owner_user_id?: string
+          updated_at?: string
+          vat_id?: string | null
+        }
+        Relationships: []
+      }
+      business_members: {
+        Row: {
+          account_id: string
+          created_at: string
+          id: string
+          role: string
+          spend_limit_cents: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          account_id: string
+          created_at?: string
+          id?: string
+          role?: string
+          spend_limit_cents?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          account_id?: string
+          created_at?: string
+          id?: string
+          role?: string
+          spend_limit_cents?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "business_members_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "business_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cost_centres: {
+        Row: {
+          account_id: string
+          budget_cents: number
+          code: string
+          created_at: string
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          account_id: string
+          budget_cents?: number
+          code: string
+          created_at?: string
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          account_id?: string
+          budget_cents?: number
+          code?: string
+          created_at?: string
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cost_centres_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "business_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      driver_preferences: {
+        Row: {
+          created_at: string
+          default_duration_minutes: number
+          expiry_reminder_minutes: number
+          high_contrast: boolean
+          language: string
+          large_type: boolean
+          notify_email: boolean
+          notify_push: boolean
+          reduced_motion: boolean
+          step_free_only: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          default_duration_minutes?: number
+          expiry_reminder_minutes?: number
+          high_contrast?: boolean
+          language?: string
+          large_type?: boolean
+          notify_email?: boolean
+          notify_push?: boolean
+          reduced_motion?: boolean
+          step_free_only?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          default_duration_minutes?: number
+          expiry_reminder_minutes?: number
+          high_contrast?: boolean
+          language?: string
+          large_type?: boolean
+          notify_email?: boolean
+          notify_push?: boolean
+          reduced_motion?: boolean
+          step_free_only?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      favourite_sites: {
+        Row: {
+          created_at: string
+          id: string
+          note: string | null
+          site_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          note?: string | null
+          site_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          note?: string | null
+          site_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "favourite_sites_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notice_appeals: {
         Row: {
           created_at: string
@@ -206,6 +459,66 @@ export type Database = {
             columns: ["notice_id"]
             isOneToOne: true
             referencedRelation: "notices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notice_drafts: {
+        Row: {
+          amount_cents: number | null
+          captured_at: string
+          created_at: string
+          evidence: Json
+          id: string
+          notice_id: string | null
+          officer_id: string
+          plate: string | null
+          reason: string | null
+          site_id: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          amount_cents?: number | null
+          captured_at?: string
+          created_at?: string
+          evidence?: Json
+          id?: string
+          notice_id?: string | null
+          officer_id: string
+          plate?: string | null
+          reason?: string | null
+          site_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          amount_cents?: number | null
+          captured_at?: string
+          created_at?: string
+          evidence?: Json
+          id?: string
+          notice_id?: string | null
+          officer_id?: string
+          plate?: string | null
+          reason?: string | null
+          site_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notice_drafts_notice_id_fkey"
+            columns: ["notice_id"]
+            isOneToOne: false
+            referencedRelation: "notices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notice_drafts_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
             referencedColumns: ["id"]
           },
         ]
@@ -920,6 +1233,47 @@ export type Database = {
           },
         ]
       }
+      site_reports: {
+        Row: {
+          category: string
+          created_at: string
+          details: string
+          id: string
+          reporter_id: string | null
+          site_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          details: string
+          id?: string
+          reporter_id?: string | null
+          site_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          details?: string
+          id?: string
+          reporter_id?: string | null
+          site_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "site_reports_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sites: {
         Row: {
           address: string
@@ -985,6 +1339,130 @@ export type Database = {
           },
         ]
       }
+      support_cases: {
+        Row: {
+          category: string
+          created_at: string
+          id: string
+          reference_id: string | null
+          reference_type: string | null
+          status: string
+          subject: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          id?: string
+          reference_id?: string | null
+          reference_type?: string | null
+          status?: string
+          subject: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          id?: string
+          reference_id?: string | null
+          reference_type?: string | null
+          status?: string
+          subject?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      support_messages: {
+        Row: {
+          author_id: string | null
+          body: string
+          case_id: string
+          created_at: string
+          id: string
+        }
+        Insert: {
+          author_id?: string | null
+          body: string
+          case_id: string
+          created_at?: string
+          id?: string
+        }
+        Update: {
+          author_id?: string | null
+          body?: string
+          case_id?: string
+          created_at?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "support_messages_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "support_cases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tariff_plans: {
+        Row: {
+          active: boolean
+          created_at: string
+          currency: string
+          daily_cap_cents: number | null
+          free_minutes: number
+          id: string
+          max_stay_minutes: number | null
+          minimum_charge_cents: number
+          name: string
+          reservation_fee_cents: number
+          service_fee_cents: number
+          site_id: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          currency?: string
+          daily_cap_cents?: number | null
+          free_minutes?: number
+          id?: string
+          max_stay_minutes?: number | null
+          minimum_charge_cents?: number
+          name?: string
+          reservation_fee_cents?: number
+          service_fee_cents?: number
+          site_id: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          currency?: string
+          daily_cap_cents?: number | null
+          free_minutes?: number
+          id?: string
+          max_stay_minutes?: number | null
+          minimum_charge_cents?: number
+          name?: string
+          reservation_fee_cents?: number
+          service_fee_cents?: number
+          site_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tariff_plans_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -1013,6 +1491,66 @@ export type Database = {
             columns: ["org_id"]
             isOneToOne: false
             referencedRelation: "orgs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vehicles: {
+        Row: {
+          accessibility_permit: boolean
+          business_account_id: string | null
+          cost_centre_id: string | null
+          country: string
+          created_at: string
+          id: string
+          is_default: boolean
+          is_electric: boolean
+          label: string | null
+          plate: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          accessibility_permit?: boolean
+          business_account_id?: string | null
+          cost_centre_id?: string | null
+          country?: string
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          is_electric?: boolean
+          label?: string | null
+          plate: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          accessibility_permit?: boolean
+          business_account_id?: string | null
+          cost_centre_id?: string | null
+          country?: string
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          is_electric?: boolean
+          label?: string | null
+          plate?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vehicles_business_account_id_fkey"
+            columns: ["business_account_id"]
+            isOneToOne: false
+            referencedRelation: "business_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vehicles_cost_centre_id_fkey"
+            columns: ["cost_centre_id"]
+            isOneToOne: false
+            referencedRelation: "cost_centres"
             referencedColumns: ["id"]
           },
         ]
@@ -1293,6 +1831,8 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_business_manager: { Args: { _account_id: string }; Returns: boolean }
+      is_business_member: { Args: { _account_id: string }; Returns: boolean }
       is_operator_org_member: { Args: { _org_id: string }; Returns: boolean }
       is_org_member: { Args: { _org_id: string }; Returns: boolean }
       issue_parking_notice: {
