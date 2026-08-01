@@ -583,7 +583,7 @@ function HistoryPanel() {
 
       <Dialog
         open={!!appealNoticeId}
-        onOpenChange={(open) => {
+        onOpenChange={(open: boolean) => {
           if (!open) setAppealNoticeId(null);
         }}
       >
@@ -652,7 +652,7 @@ function HistoryPanel() {
       <PaymentCheckoutDialog
         payment={selectedPayment}
         open={!!selectedPayment}
-        onOpenChange={(open) => {
+        onOpenChange={(open: boolean) => {
           if (!open) setSelectedPayment(null);
         }}
         onComplete={() => {

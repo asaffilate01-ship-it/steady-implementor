@@ -72,8 +72,8 @@ export const updateOperatorSiteFn = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { data: site, error } = await context.supabase.rpc("update_operator_site", {
       _site_id: data.id,
-      _price_cents_per_hour: data.price_cents_per_hour ?? null,
-      _occupied: data.occupied ?? null,
+      _price_cents_per_hour: data.price_cents_per_hour ?? undefined,
+      _occupied: data.occupied ?? undefined,
     });
     rpcError(error);
     return site as Site;
@@ -94,7 +94,7 @@ export const startParkingSessionFn = createServerFn({ method: "POST" })
       _site_id: data.site_id,
       _minutes: data.minutes,
       _plate: data.plate,
-      _payment_method: data.payment_method ?? null,
+      _payment_method: data.payment_method ?? undefined,
     });
     rpcError(error);
     return session as Session;
