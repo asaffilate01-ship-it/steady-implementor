@@ -200,8 +200,8 @@ async function calculateFeeSplit(
       .rpc("calculate_platform_fee", {
         _site_id: site_id,
         _amount_cents: amount_cents,
-        _org_id: undefined,
-        _provider_id: undefined,
+        _org_id: null as unknown as string,
+        _provider_id: null as unknown as string,
       })
       .single();
     if (
