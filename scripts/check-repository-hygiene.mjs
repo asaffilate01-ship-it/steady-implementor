@@ -24,6 +24,29 @@ for (const path of forbiddenTrackedPaths) {
   failures.push(`${path}: sensitive configuration or key file must not be tracked`);
 }
 
+const requiredCriticalPaths = ["src/styles.css", "src/routeTree.gen.ts"];
+for (const path of requiredCriticalPaths) {
+  if (!trackedFiles.includes(path)) failures.push(`${path}: required application file is missing`);
+}
+
+const misplacedCriticalPaths = new Map([
+  ["styles.css", "src/styles.css"],
+  ["routeTree.gen.ts", "src/routeTree.gen.ts"],
+]);
+for (const [path, expectedPath] of misplacedCriticalPaths) {
+  if (trackedFiles.includes(path)) {
+    failures.push(`${path}: misplaced duplicate must be removed; use ${expectedPath}`);
+  }
+}
+
+const rootRoutePath = "src/routes/__root.tsx";
+if (
+  trackedFiles.includes(rootRoutePath) &&
+  !readFileSync(rootRoutePath, "utf8").includes("../styles.css?url")
+) {
+  failures.push(`${rootRoutePath}: application stylesheet import must resolve to src/styles.css`);
+}
+
 const secretSignatures = [
   ["private key", /-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----/],
   ["Stripe secret key", /\b(?:sk|rk)_(?:live|test)_[A-Za-z0-9]{16,}\b/],
@@ -68,6 +91,6 @@ if (failures.length) {
   process.exitCode = 1;
 } else {
   console.log(
-    `Repository hygiene passed: ${trackedFiles.length} tracked files, ${pinnedActions} pinned workflow actions, no tracked environment files or secret signatures.`,
+    `Repository hygiene passed: ${trackedFiles.length} tracked files, ${pinnedActions} pinned workflow actions, critical paths verified, and no tracked environment files or secret signatures.`,
   );
 }

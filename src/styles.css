@@ -74,7 +74,8 @@
   --primary-foreground: oklch(0.99 0.005 240);
   --primary-glow: oklch(0.45 0.12 254);
   /* ParkPunkt green */
-  --accent: oklch(0.58 0.16 148);
+  /* 4.7:1 against white for WCAG AA normal text */
+  --accent: oklch(0.54 0.16 148);
   --accent-foreground: oklch(0.99 0.005 240);
   --accent-glow: oklch(0.68 0.17 148);
   --secondary: oklch(0.965 0.01 240);
