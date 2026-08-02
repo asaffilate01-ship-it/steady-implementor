@@ -8,6 +8,7 @@ This runbook is the release owner’s acceptance record. Do not mark an item com
 - Confirm `.env` and other local credential files are not tracked; `npm run check:repo` must pass.
 - Run `npm ci`, `npm run check`, `npm run security:audit` and Chromium E2E from a clean checkout.
 - Run the GitHub **Production release readiness** workflow using the protected `production` environment.
+- Download and retain the workflow's release-evidence artifact containing the approved commit SHA, sanitized configuration result and CycloneDX production SBOM.
 - Record the approved commit SHA and rollback commit.
 - If the default branch still begins at orphan commit `df1caa1`, follow `docs/GIT_HISTORY_RECOVERY.md` without force-pushing.
 
@@ -50,10 +51,10 @@ This runbook is the release owner’s acceptance record. Do not mark an item com
 
 - Configure canonical DNS, TLS, `PUBLIC_APP_URL`, security headers and both protected probes.
 - Verify logs, alerts, dashboards, incident owner, escalation contacts and status communications.
-- Complete a production smoke test on desktop and mobile with accessibility checks.
+- Complete a production smoke test on desktop and mobile. The automated axe gate must be green, followed by keyboard, screen-reader, large-text and contrast checks.
 - Keep `VITE_FEATURE_SMART_MAP=false` and `VITE_FEATURE_TICKET_SCANNER=false` until their contracted integrations are implemented and separately accepted.
 - Set `OBSERVABILITY_CONFIGURED=true` and `SCHEDULER_CONFIGURED=true` only after live verification.
 
 ## Release decision
 
-The release owner records: production SHA, migration version, workflow URL, smoke-test evidence, rollback owner, approval time and any explicitly accepted residual risk. A failed readiness item blocks public launch.
+The release owner records: production SHA, migration version, workflow URL, retained release-evidence artifact, smoke-test evidence, rollback owner, approval time and any explicitly accepted residual risk. A failed readiness item blocks public launch.

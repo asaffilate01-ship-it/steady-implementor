@@ -1,3 +1,6 @@
+import { mkdirSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
+
 const env = process.env;
 
 const value = (key) => env[key]?.trim() ?? "";
@@ -87,6 +90,24 @@ const checks = [
 
 for (const [label, passed] of checks) {
   console.log(`${passed ? "PASS" : "FAIL"} ${label}`);
+}
+
+const evidenceDirectory = value("RELEASE_EVIDENCE_DIR");
+if (evidenceDirectory) {
+  mkdirSync(evidenceDirectory, { recursive: true });
+  writeFileSync(
+    join(evidenceDirectory, "release-config.json"),
+    `${JSON.stringify(
+      {
+        schemaVersion: 1,
+        generatedAt: new Date().toISOString(),
+        commitSha: value("GITHUB_SHA") || "local-verification",
+        checks: checks.map(([label, passed]) => ({ label, passed })),
+      },
+      null,
+      2,
+    )}\n`,
+  );
 }
 
 const failed = checks.filter(([, passed]) => !passed);

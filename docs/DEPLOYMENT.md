@@ -9,7 +9,7 @@ Apply the numbered ParkPunkt update packages in ascending order. For each packag
 3. Preserve the folder structure and replace matching files.
 4. Delete every path listed in `DELETE_FROM_REPOSITORY.txt`.
 5. Commit the package before applying the next one.
-6. Run `npm ci` and `npm run check` after the final package.
+6. Run `npm ci`, `npm run check`, `npm run security:audit:all` and `npm run test:e2e` after the final package.
 
 ## Supabase
 
@@ -30,7 +30,7 @@ Apply new SQL migrations in filename order to staging before production. Keep da
 
 Do not promote a release unless type checking, linting, unit tests, production build, browser smoke tests, migration review, role-isolation tests and a sandbox payment journey pass.
 
-Configure the GitHub `production` environment and run the **Production release readiness** workflow. It validates production-shaped configuration without printing secret values and then runs the complete code, dependency and Chromium gates. Branch protection should require CI, CodeQL and dependency review before merge.
+Configure the GitHub `production` environment and run the **Production release readiness** workflow. It validates production-shaped configuration without printing secret values, runs the complete code, dependency, desktop/mobile Chromium and automated accessibility gates, then retains a sanitized evidence artifact and CycloneDX production SBOM for 90 days. Branch protection should require CI, CodeQL and dependency review before merge.
 
 Use `/api/public/health` for platform liveness. It performs no dependency calls. Configure the deployment platform's deeper readiness probe against `/api/public/readiness` with `Authorization: Bearer <PARKPUNKT_READINESS_SECRET>`; never expose that token to browser code.
 

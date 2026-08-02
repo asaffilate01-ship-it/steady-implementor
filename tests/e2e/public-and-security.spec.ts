@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import AxeBuilder from "@axe-core/playwright";
 
 test("public legal and authentication pages remain usable", async ({ page }) => {
   await page.goto("/legal/privacy");
@@ -51,4 +52,20 @@ test("the mobile authentication layout has no horizontal overflow", async ({ pag
   );
   expect(overflow).toBe(false);
   await expect(page.getByRole("link", { name: "ParkPunkt" })).toBeVisible();
+});
+
+test("public launch pages have no serious automated accessibility violations", async ({ page }) => {
+  for (const path of ["/", "/auth", "/legal/privacy"]) {
+    await page.goto(path);
+    await expect(page.locator("body")).toBeVisible();
+
+    const result = await new AxeBuilder({ page })
+      .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
+      .analyze();
+
+    const blockingViolations = result.violations.filter(
+      (violation) => violation.impact === "serious" || violation.impact === "critical",
+    );
+    expect(blockingViolations, `${path} accessibility violations`).toEqual([]);
+  }
 });
