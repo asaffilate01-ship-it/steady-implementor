@@ -32,8 +32,23 @@ const enabledProviders = value("PARKPUNKT_ENABLED_PROVIDER_SLUGS")
   .map((item) => item.trim())
   .filter(Boolean);
 
+const releaseName = value("RELEASE_NAME");
+const rollbackSha = value("ROLLBACK_SHA");
+const currentSha = value("GITHUB_SHA");
+
 const checks = [
   ["Production environment", value("APP_ENV") === "production"],
+  ["Named release", releaseName.length >= 3 && !/placeholder|example/i.test(releaseName)],
+  [
+    "Rollback commit reference",
+    /^[0-9a-f]{7,40}$/i.test(rollbackSha) &&
+      (!currentSha || !currentSha.toLowerCase().startsWith(rollbackSha.toLowerCase())),
+  ],
+  [
+    "Release approval reference",
+    value("APPROVAL_REFERENCE").length >= 3 &&
+      !/placeholder|example/i.test(value("APPROVAL_REFERENCE")),
+  ],
   ["Canonical HTTPS origin", httpsUrl("PUBLIC_APP_URL")],
   [
     "Supabase server credentials",

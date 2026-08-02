@@ -1,7 +1,22 @@
 name: Production release readiness
 
+run-name: Production readiness — ${{ inputs.release_name }} @ ${{ github.ref_name }}
+
 on:
   workflow_dispatch:
+    inputs:
+      release_name:
+        description: Human-readable release or change identifier
+        required: true
+        type: string
+      rollback_sha:
+        description: Previously verified commit to restore if promotion fails
+        required: true
+        type: string
+      approval_reference:
+        description: Change ticket or recorded release-approval reference
+        required: true
+        type: string
 
 concurrency:
   group: production-release-readiness
@@ -17,6 +32,9 @@ jobs:
     environment: production
     env:
       APP_ENV: production
+      RELEASE_NAME: ${{ inputs.release_name }}
+      ROLLBACK_SHA: ${{ inputs.rollback_sha }}
+      APPROVAL_REFERENCE: ${{ inputs.approval_reference }}
       PUBLIC_APP_URL: ${{ vars.PUBLIC_APP_URL }}
       VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
       VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
@@ -50,32 +68,102 @@ jobs:
       VITE_FEATURE_SMART_MAP: "false"
       VITE_FEATURE_TICKET_SCANNER: "false"
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - id: checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version-file: .nvmrc
           cache: npm
-      - run: npm ci
-      - name: Verify production configuration
+      - id: release_config
+        name: Verify production configuration
+        continue-on-error: true
         run: npm run check:release-config
         env:
           RELEASE_EVIDENCE_DIR: release-evidence
-      - name: Verify code, tests, build and bundle budget
+      - id: dependencies
+        name: Install locked dependencies
+        continue-on-error: true
+        run: npm ci
+      - id: source_verification
+        name: Verify code, tests, build and bundle budget
+        if: always() && steps.dependencies.outcome == 'success'
+        continue-on-error: true
         run: npm run check
-      - name: Audit production and development dependencies
+      - id: dependency_audit
+        name: Audit production and development dependencies
+        if: always() && steps.dependencies.outcome == 'success'
+        continue-on-error: true
         run: npm run security:audit && npm run security:audit:all
-      - name: Install Chromium
+      - id: browser_runtime
+        name: Install Chromium
+        if: always() && steps.dependencies.outcome == 'success'
+        continue-on-error: true
         run: npx playwright install --with-deps chromium
-      - name: Run desktop and mobile browser release smoke tests
+      - id: browser_smoke
+        name: Run desktop and mobile browser release smoke tests
+        if: always() && steps.browser_runtime.outcome == 'success'
+        continue-on-error: true
         run: npm run test:e2e
-      - name: Create release evidence and production SBOM
+      - id: evidence
+        name: Create release evidence and production SBOM
+        if: always() && steps.checkout.outcome == 'success'
+        env:
+          RELEASE_EVIDENCE_DIR: release-evidence
+          RELEASE_SCOPE: production-web
+          EVIDENCE_DEPENDENCY_INSTALL: ${{ steps.dependencies.outcome }}
+          EVIDENCE_PRODUCTION_CONFIGURATION: ${{ steps.release_config.outcome }}
+          EVIDENCE_SOURCE_VERIFICATION: ${{ steps.source_verification.outcome }}
+          EVIDENCE_DEPENDENCY_AUDIT: ${{ steps.dependency_audit.outcome }}
+          EVIDENCE_BROWSER_RUNTIME: ${{ steps.browser_runtime.outcome }}
+          EVIDENCE_BROWSER_SMOKE: ${{ steps.browser_smoke.outcome }}
         run: |
-          npm run release:evidence
-          npm sbom --omit=dev --sbom-format=cyclonedx > release-evidence/sbom.cdx.json
-      - name: Upload immutable release evidence
+          mkdir -p release-evidence
+          sbom_outcome=success
+          if ! npm sbom --omit=dev --sbom-format=cyclonedx > release-evidence/sbom.cdx.json; then
+            sbom_outcome=failure
+            rm -f release-evidence/sbom.cdx.json
+          fi
+          echo "sbom=$sbom_outcome" >> "$GITHUB_OUTPUT"
+          EVIDENCE_SOFTWARE_BILL_OF_MATERIALS="$sbom_outcome" npm run release:evidence
+      - id: upload_evidence
+        name: Upload immutable release evidence
+        if: always() && steps.checkout.outcome == 'success'
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: parkpunkt-release-evidence-${{ github.sha }}
           path: release-evidence
           if-no-files-found: error
           retention-days: 90
+      - name: Enforce every production release gate
+        if: always()
+        env:
+          RELEASE_CONFIG_OUTCOME: ${{ steps.release_config.outcome }}
+          DEPENDENCY_OUTCOME: ${{ steps.dependencies.outcome }}
+          SOURCE_OUTCOME: ${{ steps.source_verification.outcome }}
+          AUDIT_OUTCOME: ${{ steps.dependency_audit.outcome }}
+          BROWSER_RUNTIME_OUTCOME: ${{ steps.browser_runtime.outcome }}
+          BROWSER_SMOKE_OUTCOME: ${{ steps.browser_smoke.outcome }}
+          SBOM_OUTCOME: ${{ steps.evidence.outputs.sbom }}
+          EVIDENCE_OUTCOME: ${{ steps.evidence.outcome }}
+          UPLOAD_OUTCOME: ${{ steps.upload_evidence.outcome }}
+        run: |
+          failed=0
+          for outcome in \
+            "$RELEASE_CONFIG_OUTCOME" \
+            "$DEPENDENCY_OUTCOME" \
+            "$SOURCE_OUTCOME" \
+            "$AUDIT_OUTCOME" \
+            "$BROWSER_RUNTIME_OUTCOME" \
+            "$BROWSER_SMOKE_OUTCOME" \
+            "$SBOM_OUTCOME" \
+            "$EVIDENCE_OUTCOME" \
+            "$UPLOAD_OUTCOME"; do
+            if [ "$outcome" != "success" ]; then
+              failed=1
+            fi
+          done
+          if [ "$failed" -ne 0 ]; then
+            echo "Production readiness is blocked. Download the evidence artifact for the failed gate summary."
+            exit 1
+          fi
+          echo "Every automated production release gate passed."

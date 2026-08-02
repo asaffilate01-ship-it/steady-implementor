@@ -30,7 +30,9 @@ Apply new SQL migrations in filename order to staging before production. Keep da
 
 Do not promote a release unless type checking, linting, unit tests, production build, browser smoke tests, migration review, role-isolation tests and a sandbox payment journey pass.
 
-Configure the GitHub `production` environment and run the **Production release readiness** workflow. It validates production-shaped configuration without printing secret values, runs the complete code, dependency, desktop/mobile Chromium and automated accessibility gates, then retains a sanitized evidence artifact and CycloneDX production SBOM for 90 days. Branch protection should require CI, CodeQL and dependency review before merge.
+Successful CI runs on `main` and manual CI runs retain a release-candidate evidence artifact for 30 days. It contains the exact commit, recorded CI outcomes, production dependency SBOM and SHA-256 file manifest. Candidate evidence is useful for release selection but does not prove that production configuration or external operations are ready.
+
+Configure the GitHub `production` environment and run the **Production release readiness** workflow. Provide a release name, a previously verified rollback SHA and the recorded approval or change reference. The workflow validates production-shaped configuration without printing secret values, runs the complete code, dependency, desktop/mobile Chromium and automated accessibility gates, and retains a sanitized evidence artifact for 90 days. Failed attempts also upload their available evidence before the workflow remains red, so release blockers are reviewable rather than disappearing at the first failed step. Branch protection should require CI, CodeQL and dependency review before merge.
 
 Use `/api/public/health` for platform liveness. It performs no dependency calls. Configure the deployment platform's deeper readiness probe against `/api/public/readiness` with `Authorization: Bearer <PARKPUNKT_READINESS_SECRET>`; never expose that token to browser code.
 
