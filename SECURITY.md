@@ -10,14 +10,14 @@ The team should acknowledge a complete report within three business days, provid
 
 ## Supported versions
 
-Only the latest deployed `main` release receives security updates. Secrets belong in the deployment secret store, never Git. Rotate a credential immediately if it appears in a commit, log, screenshot or support record.
+Only the latest deployed `main` release receives security updates. Secrets belong in the deployment secret store, never Git. Rotate a credential immediately if it appears in a commit, log, screenshot or support record. `npm run check:repo` blocks tracked environment files, private-key files, common live-secret signatures and unpinned third-party workflow actions.
 
 ## Baseline controls
 
 - Supabase row-level security plus authenticated server functions for privileged mutations.
 - Signed, idempotent Stripe webhooks and server-only service credentials.
 - CSRF protection for server functions, strict browser response headers, request correlation IDs and structured logs.
-- Pinned CI actions, lockfile installs, dependency review, critical production audits and CodeQL scanning.
+- Pinned CI actions, lockfile installs, dependency review, high-severity production audits and CodeQL scanning.
 - Separate secrets for scheduled workers and protected readiness probes.
 
 See `docs/THREAT_MODEL.md` for system boundaries and `docs/INCIDENT_RESPONSE.md` for operational handling.
