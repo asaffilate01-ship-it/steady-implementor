@@ -1,6 +1,6 @@
 /* ParkPunkt service worker — conservative offline shell for static assets only. */
-const CACHE = "parkpunkt-static-v1";
-const PRECACHE = ["/favicon.ico", "/parkpunkt-icon.svg", "/manifest.webmanifest"];
+const CACHE = "parkpunkt-static-v2";
+const PRECACHE = ["/favicon.ico", "/parkpunkt-icon.svg", "/manifest.webmanifest", "/offline.html"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
@@ -29,6 +29,11 @@ self.addEventListener("fetch", (event) => {
   if (url.origin !== self.location.origin) return;
   // Never cache API, auth or server-function traffic.
   if (url.pathname.startsWith("/api/") || url.pathname.startsWith("/_serverFn/")) return;
+
+  if (request.mode === "navigate") {
+    event.respondWith(fetch(request).catch(() => caches.match("/offline.html")));
+    return;
+  }
   if (!PRECACHE.includes(url.pathname) && !url.pathname.startsWith("/assets/")) return;
 
   event.respondWith(

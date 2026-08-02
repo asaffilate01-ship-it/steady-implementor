@@ -5,6 +5,7 @@ export type Lang = "en" | "de";
 const DICT = {
   en: {
     "nav.driver": "Driver App",
+    "nav.fleet": "Business Fleet",
     "nav.operator": "Operator",
     "nav.provider": "Provider Hub",
     "nav.enforcement": "Enforcement",
@@ -142,6 +143,9 @@ const DICT = {
     "drive.priceBreakdown": "Price breakdown",
     "drive.parkingTime": "Parking time",
     "drive.serviceFee": "ParkPunkt service fee",
+    "drive.freeMinutes": "Free parking allowance",
+    "drive.dailyCapApplied": "Daily price cap applied",
+    "drive.maxStayExceeded": "Choose a shorter duration to stay within this location's maximum.",
     "drive.noHiddenFees":
       "The displayed total includes all ParkPunkt charges. Payment is collected after the session ends.",
     "drive.start": "Start parking session",
@@ -419,6 +423,7 @@ const DICT = {
   },
   de: {
     "nav.driver": "Fahrer-App",
+    "nav.fleet": "Business-Flotte",
     "nav.operator": "Betreiber",
     "nav.provider": "Anbieter-Hub",
     "nav.enforcement": "Kontrolle",
@@ -556,6 +561,10 @@ const DICT = {
     "drive.priceBreakdown": "Preisübersicht",
     "drive.parkingTime": "Parkzeit",
     "drive.serviceFee": "ParkPunkt-Servicegebühr",
+    "drive.freeMinutes": "Kostenfreie Parkzeit",
+    "drive.dailyCapApplied": "Tageshöchstpreis angewendet",
+    "drive.maxStayExceeded":
+      "Wählen Sie eine kürzere Dauer innerhalb der maximalen Parkzeit dieses Standorts.",
     "drive.noHiddenFees":
       "Der angezeigte Gesamtbetrag enthält alle ParkPunkt-Gebühren. Die Zahlung erfolgt nach Ende der Sitzung.",
     "drive.start": "Parksitzung starten",

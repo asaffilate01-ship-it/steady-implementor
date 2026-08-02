@@ -21,6 +21,13 @@ dist-ssr
 .env.*
 !.env.example
 
+# Native local configuration and generated build output
+native/ios/Config.xcconfig
+native/ios/*.xcodeproj/
+native/android/local.properties
+native/android/.gradle/
+native/android/**/build/
+
 # Wrangler / Cloudflare
 .wrangler/
 .dev.vars

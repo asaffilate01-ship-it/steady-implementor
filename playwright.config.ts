@@ -31,6 +31,7 @@ export default defineConfig({
       SUPABASE_PUBLISHABLE_KEY: "test-publishable-key",
       SUPABASE_SERVICE_ROLE_KEY: "test-service-role-key",
       PARKPUNKT_CRON_SECRET: "test-cron-secret-at-least-32-characters",
+      PARKPUNKT_READINESS_SECRET: "test-readiness-secret-at-least-32-characters",
       PARKPUNKT_ENABLE_DEMO_AUTH: "false",
       VITE_ENABLE_DEMO_AUTH: "false",
       PARKPUNKT_ALLOW_FIXTURE_INVENTORY: "false",

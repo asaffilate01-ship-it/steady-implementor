@@ -1,7 +1,14 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import { normalizeEuropeanPlate } from "@/lib/product-domain";
+import {
+  createBusinessAccountFn,
+  createSupportCaseFn,
+  saveBusinessCostCentreFn,
+  saveTariffPlanFn,
+} from "@/lib/product.functions";
 
 export type Vehicle = Database["public"]["Tables"]["vehicles"]["Row"];
 export type DriverPreference = Database["public"]["Tables"]["driver_preferences"]["Row"];
@@ -22,6 +29,7 @@ export const PRODUCT_KEYS = {
   favourites: ["favourite-sites"] as const,
   tariffs: ["tariff-plans"] as const,
   business: ["business-accounts"] as const,
+  businessMembers: ["business-members"] as const,
   costCentres: ["cost-centres"] as const,
   accessPasses: ["access-passes"] as const,
   supportCases: ["support-cases"] as const,
@@ -171,13 +179,22 @@ export function useTariffPlans() {
 
 export function useSaveTariffPlan() {
   const qc = useQueryClient();
+  const saveTariff = useServerFn(saveTariffPlanFn);
   return useMutation({
     mutationFn: async (input: Partial<TariffPlan> & { site_id: string; id?: string }) => {
-      const { id, ...rest } = input;
-      const { error } = id
-        ? await supabase.from("tariff_plans").update(rest).eq("id", id)
-        : await supabase.from("tariff_plans").insert({ ...rest, site_id: input.site_id });
-      if (error) throw error;
+      return saveTariff({
+        data: {
+          id: input.id,
+          site_id: input.site_id,
+          name: input.name ?? "Standard",
+          free_minutes: input.free_minutes ?? 0,
+          minimum_charge_cents: input.minimum_charge_cents ?? 0,
+          service_fee_cents: input.service_fee_cents ?? 0,
+          reservation_fee_cents: input.reservation_fee_cents ?? 0,
+          daily_cap_cents: input.daily_cap_cents ?? null,
+          max_stay_minutes: input.max_stay_minutes ?? null,
+        },
+      });
     },
     onSuccess: () => void qc.invalidateQueries({ queryKey: PRODUCT_KEYS.tariffs }),
   });
@@ -198,25 +215,39 @@ export function useBusinessAccounts() {
 
 export function useCreateBusinessAccount() {
   const qc = useQueryClient();
+  const createBusiness = useServerFn(createBusinessAccountFn);
   return useMutation({
     mutationFn: async (input: {
       name: string;
       billing_email?: string;
       monthly_limit_cents?: number;
     }) => {
-      const owner_user_id = await currentUserId();
-      const { data, error } = await supabase
-        .from("business_accounts")
-        .insert({ ...input, owner_user_id })
-        .select("id")
-        .single();
-      if (error) throw error;
-      await supabase
-        .from("business_members")
-        .insert({ account_id: data.id, user_id: owner_user_id, role: "owner" });
-      return data.id;
+      const account = await createBusiness({
+        data: {
+          name: input.name,
+          billing_email: input.billing_email,
+          monthly_limit_cents: input.monthly_limit_cents ?? 0,
+        },
+      });
+      return account.id;
     },
-    onSuccess: () => void qc.invalidateQueries({ queryKey: PRODUCT_KEYS.business }),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: PRODUCT_KEYS.business });
+      void qc.invalidateQueries({ queryKey: PRODUCT_KEYS.businessMembers });
+    },
+  });
+}
+
+export function useBusinessMembers(accountId?: string) {
+  return useQuery({
+    queryKey: [...PRODUCT_KEYS.businessMembers, accountId ?? "all"],
+    queryFn: async (): Promise<BusinessMember[]> => {
+      let query = supabase.from("business_members").select("*").order("created_at");
+      if (accountId) query = query.eq("account_id", accountId);
+      const { data, error } = await query;
+      if (error) throw error;
+      return data ?? [];
+    },
   });
 }
 
@@ -233,6 +264,7 @@ export function useCostCentres() {
 
 export function useSaveCostCentre() {
   const qc = useQueryClient();
+  const saveCostCentre = useServerFn(saveBusinessCostCentreFn);
   return useMutation({
     mutationFn: async (input: {
       account_id: string;
@@ -240,8 +272,14 @@ export function useSaveCostCentre() {
       name: string;
       budget_cents?: number;
     }) => {
-      const { error } = await supabase.from("cost_centres").insert(input);
-      if (error) throw error;
+      return saveCostCentre({
+        data: {
+          account_id: input.account_id,
+          code: input.code,
+          name: input.name,
+          budget_cents: input.budget_cents ?? 0,
+        },
+      });
     },
     onSuccess: () => void qc.invalidateQueries({ queryKey: PRODUCT_KEYS.costCentres }),
   });
@@ -282,19 +320,17 @@ export function useSupportCases() {
 
 export function useCreateSupportCase() {
   const qc = useQueryClient();
+  const createSupportCase = useServerFn(createSupportCaseFn);
   return useMutation({
     mutationFn: async (input: { subject: string; category: string; body: string }) => {
-      const user_id = await currentUserId();
-      const { data, error } = await supabase
-        .from("support_cases")
-        .insert({ user_id, subject: input.subject, category: input.category })
-        .select("id")
-        .single();
-      if (error) throw error;
-      const { error: msgError } = await supabase
-        .from("support_messages")
-        .insert({ case_id: data.id, author_id: user_id, body: input.body });
-      if (msgError) throw msgError;
+      return createSupportCase({
+        data: {
+          subject: input.subject,
+          category: input.category as
+            "payment" | "session" | "notice" | "account" | "site" | "other",
+          body: input.body,
+        },
+      });
     },
     onSuccess: () => void qc.invalidateQueries({ queryKey: PRODUCT_KEYS.supportCases }),
   });

@@ -44,9 +44,11 @@ Provision the first administrator through a controlled service-role or Supabase 
 - `SUPABASE_*`: server runtime configuration; the service-role key is server-only.
 - `STRIPE_*`: Payment Element, server API and signed webhook configuration.
 - `PARKPUNKT_CRON_SECRET`: scheduler authentication for provider and notification workers.
+- `PARKPUNKT_READINESS_SECRET`: separate authentication for the protected dependency probe.
 - `NOTIFICATION_DELIVERY_*`: trusted email/SMS/push gateway adapter.
 - `VITE_LEGAL_*`: registered company, privacy and complaints details.
 - `PARKPUNKT_ENABLE_DEMO_AUTH`, `VITE_ENABLE_DEMO_AUTH` and `PARKPUNKT_ALLOW_FIXTURE_INVENTORY`: keep `false` in production.
+- `VITE_FEATURE_*`: non-secret progressive rollout switches documented in [`docs/FEATURE_FLAGS.md`](docs/FEATURE_FLAGS.md).
 
 See [`.env.example`](.env.example) for the complete template.
 
@@ -88,3 +90,5 @@ The repository cannot create commercial contracts or production credentials. Bef
 The current repository is an installable web PWA. Separate native iOS and Android applications require their own signed app projects and store-release processes.
 
 Further information is available in [`docs/PRODUCT_RELEASE.md`](docs/PRODUCT_RELEASE.md) and [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md).
+
+Partner API consumers can use [`openapi/parkpunkt-v1.yaml`](openapi/parkpunkt-v1.yaml). Compile-oriented native starter projects and their production limitations are documented in [`native/README.md`](native/README.md) and [`docs/NATIVE_READINESS.md`](docs/NATIVE_READINESS.md).

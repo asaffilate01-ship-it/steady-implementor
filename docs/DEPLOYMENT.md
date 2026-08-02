@@ -22,8 +22,11 @@ Apply new SQL migrations in filename order to staging before production. Keep da
 - Stripe publishable, secret and webhook keys
 - Provider/ANPR/barrier credentials
 - Cron and notification delivery secrets
+- A separate readiness-probe bearer secret
 - Registered legal and privacy contact details
 
 ## Release gate
 
 Do not promote a release unless type checking, linting, unit tests, production build, browser smoke tests, migration review, role-isolation tests and a sandbox payment journey pass.
+
+Use `/api/public/health` for platform liveness. It performs no dependency calls. Configure the deployment platform's deeper readiness probe against `/api/public/readiness` with `Authorization: Bearer <PARKPUNKT_READINESS_SECRET>`; never expose that token to browser code.
