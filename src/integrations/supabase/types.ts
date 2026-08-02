@@ -1105,6 +1105,8 @@ export type Database = {
           site_id: string
           started_at: string
           status: Database["public"]["Enums"]["session_status"]
+          tariff_plan_id: string | null
+          tariff_snapshot: Json
           updated_at: string
           user_id: string
         }
@@ -1119,6 +1121,8 @@ export type Database = {
           site_id: string
           started_at?: string
           status?: Database["public"]["Enums"]["session_status"]
+          tariff_plan_id?: string | null
+          tariff_snapshot?: Json
           updated_at?: string
           user_id: string
         }
@@ -1133,6 +1137,8 @@ export type Database = {
           site_id?: string
           started_at?: string
           status?: Database["public"]["Enums"]["session_status"]
+          tariff_plan_id?: string | null
+          tariff_snapshot?: Json
           updated_at?: string
           user_id?: string
         }
@@ -1142,6 +1148,13 @@ export type Database = {
             columns: ["site_id"]
             isOneToOne: false
             referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sessions_tariff_plan_id_fkey"
+            columns: ["tariff_plan_id"]
+            isOneToOne: false
+            referencedRelation: "tariff_plans"
             referencedColumns: ["id"]
           },
         ]
@@ -1572,6 +1585,20 @@ export type Database = {
           platform_fee_cents: number
         }[]
       }
+      calculate_tariff_quote: {
+        Args: {
+          _daily_cap_cents?: number
+          _free_minutes?: number
+          _max_stay_minutes?: number
+          _minimum_charge_cents?: number
+          _minutes: number
+          _rate_cents_per_hour: number
+          _reservation?: boolean
+          _reservation_fee_cents?: number
+          _service_fee_cents?: number
+        }
+        Returns: Json
+      }
       cancel_parking_reservation: {
         Args: { _reservation_id: string }
         Returns: {
@@ -1627,6 +1654,29 @@ export type Database = {
           _window_seconds?: number
         }
         Returns: boolean
+      }
+      create_business_account_secure: {
+        Args: {
+          _billing_email?: string
+          _monthly_limit_cents?: number
+          _name: string
+        }
+        Returns: {
+          billing_email: string | null
+          created_at: string
+          id: string
+          monthly_limit_cents: number
+          name: string
+          owner_user_id: string
+          updated_at: string
+          vat_id: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "business_accounts"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
       create_notice_appeal: {
         Args: { _details: string; _notice_id: string; _reason: string }
@@ -1773,6 +1823,32 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      create_support_case_secure: {
+        Args: {
+          _body: string
+          _category: string
+          _reference_id?: string
+          _reference_type?: string
+          _subject: string
+        }
+        Returns: {
+          category: string
+          created_at: string
+          id: string
+          reference_id: string | null
+          reference_type: string | null
+          status: string
+          subject: string
+          updated_at: string
+          user_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "support_cases"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       end_parking_session: { Args: { _session_id: string }; Returns: Json }
       extend_parking_session: {
         Args: { _minutes: number; _session_id: string }
@@ -1787,6 +1863,8 @@ export type Database = {
           site_id: string
           started_at: string
           status: Database["public"]["Enums"]["session_status"]
+          tariff_plan_id: string | null
+          tariff_snapshot: Json
           updated_at: string
           user_id: string
         }
@@ -1938,6 +2016,10 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      quote_parking_tariff: {
+        Args: { _minutes: number; _reservation?: boolean; _site_id: string }
+        Returns: Json
+      }
       resolve_notice_appeal: {
         Args: { _appeal_id: string; _decision: string; _response: string }
         Returns: {
@@ -1955,6 +2037,63 @@ export type Database = {
         SetofOptions: {
           from: "*"
           to: "notice_appeals"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      save_business_cost_centre_secure: {
+        Args: {
+          _account_id: string
+          _budget_cents?: number
+          _code: string
+          _name: string
+        }
+        Returns: {
+          account_id: string
+          budget_cents: number
+          code: string
+          created_at: string
+          id: string
+          name: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "cost_centres"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      save_tariff_plan_secure: {
+        Args: {
+          _daily_cap_cents: number
+          _free_minutes: number
+          _id: string
+          _max_stay_minutes: number
+          _minimum_charge_cents: number
+          _name: string
+          _reservation_fee_cents: number
+          _service_fee_cents: number
+          _site_id: string
+        }
+        Returns: {
+          active: boolean
+          created_at: string
+          currency: string
+          daily_cap_cents: number | null
+          free_minutes: number
+          id: string
+          max_stay_minutes: number | null
+          minimum_charge_cents: number
+          name: string
+          reservation_fee_cents: number
+          service_fee_cents: number
+          site_id: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "tariff_plans"
           isOneToOne: true
           isSetofReturn: false
         }
@@ -1978,6 +2117,8 @@ export type Database = {
           site_id: string
           started_at: string
           status: Database["public"]["Enums"]["session_status"]
+          tariff_plan_id: string | null
+          tariff_snapshot: Json
           updated_at: string
           user_id: string
         }
