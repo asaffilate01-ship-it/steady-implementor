@@ -135,7 +135,8 @@ export const Route = createFileRoute("/api/public/v1/orchestrate/quote")({
           .from("sites")
           .select(
             "id, name, address, lat, lng, capacity, occupied, price_cents_per_hour, type, operator_name",
-          );
+          )
+          .eq("is_public", true);
         if (error) {
           await logRequest(
             keyRow.id,
@@ -215,31 +216,29 @@ async function calculateFeeSplit(
   site_id: string,
   amount_cents: number,
 ): Promise<{ platform_fee_cents: number; operator_net_cents: number }> {
-  try {
-    const { data } = await admin
-      .rpc("calculate_platform_fee", {
-        _site_id: site_id,
-        _amount_cents: amount_cents,
-        _org_id: null as unknown as string,
-        _provider_id: null as unknown as string,
-      })
-      .single();
-    if (
-      data &&
-      typeof data.platform_fee_cents === "number" &&
-      typeof data.operator_net_cents === "number"
-    ) {
-      return {
-        platform_fee_cents: data.platform_fee_cents,
-        operator_net_cents: data.operator_net_cents,
-      };
-    }
-  } catch {
-    /* fall through */
+  const { data, error } = await admin
+    .rpc("calculate_platform_fee", {
+      _site_id: site_id,
+      _amount_cents: amount_cents,
+      _org_id: null as unknown as string,
+      _provider_id: null as unknown as string,
+    })
+    .single();
+  if (error) throw new Error(`Fee configuration unavailable: ${error.message}`);
+  if (
+    !data ||
+    typeof data.platform_fee_cents !== "number" ||
+    typeof data.operator_net_cents !== "number" ||
+    data.platform_fee_cents < 0 ||
+    data.operator_net_cents < 0 ||
+    data.platform_fee_cents + data.operator_net_cents !== amount_cents
+  ) {
+    throw new Error("Fee configuration returned an invalid settlement split");
   }
-  // Fallback: default 5% platform fee
-  const fee = Math.round(amount_cents * 0.05);
-  return { platform_fee_cents: fee, operator_net_cents: amount_cents - fee };
+  return {
+    platform_fee_cents: data.platform_fee_cents,
+    operator_net_cents: data.operator_net_cents,
+  };
 }
 
 async function calculateTariffQuote(

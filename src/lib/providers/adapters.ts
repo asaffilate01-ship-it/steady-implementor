@@ -28,10 +28,43 @@ function fixtureOrThrow(fixture: UpstreamSite[], message: string): UpstreamSite[
   throw new Error(message);
 }
 
+function configuredFeedUrl(key: "BERLIN_PARKING_FEED_URL" | "HAMBURG_PARKING_FEED_URL") {
+  const raw = process.env[key]?.trim();
+  if (!raw) throw new Error(`${key} is not configured`);
+  let url: URL;
+  try {
+    url = new URL(raw);
+  } catch {
+    throw new Error(`${key} is not a valid URL`);
+  }
+  if (url.protocol !== "https:") throw new Error(`${key} must use HTTPS`);
+  return url.toString();
+}
+
+async function canonicalFeed(
+  key: "BERLIN_PARKING_FEED_URL" | "HAMBURG_PARKING_FEED_URL",
+  fixture: UpstreamSite[],
+) {
+  try {
+    const response = await fetch(configuredFeedUrl(key), {
+      headers: { accept: "application/json" },
+      signal: AbortSignal.timeout(8000),
+    });
+    if (!response.ok) return fixtureOrThrow(fixture, `${key} returned HTTP ${response.status}`);
+    const contentLength = Number(response.headers.get("content-length") ?? 0);
+    if (contentLength > 5_000_000) throw new Error(`${key} exceeded the 5 MB response limit`);
+    const raw = (await response.json()) as { sites?: UpstreamSite[] };
+    return Array.isArray(raw.sites) && raw.sites.length
+      ? raw.sites
+      : fixtureOrThrow(fixture, `${key} returned no canonical parking inventory`);
+  } catch (error) {
+    return fixtureOrThrow(fixture, `${key} unavailable: ${(error as Error).message}`);
+  }
+}
+
 // --- Berlin DATEX II (public feed, no key) ------------------------------------
-// Berlin publishes on-street and off-street parking as a DATEX II feed via the
-// Mobilithek portal. Feed URLs rotate; this adapter uses a stable mirror when
-// available. Fixtures are permitted only when explicitly enabled outside production.
+// Production uses a contracted/verified normalizer configured by URL. Raw DATEX II
+// endpoints rotate and are not assumed to match ParkPunkt's canonical JSON contract.
 const BERLIN_FIXTURE: UpstreamSite[] = [
   {
     external_id: "berlin-mitte-alexa",
@@ -73,19 +106,7 @@ const BERLIN_FIXTURE: UpstreamSite[] = [
 export const datexBerlin: ProviderAdapter = {
   slug: "datex-berlin",
   async listSites() {
-    try {
-      // Attempt live public endpoint; fall back to fixture on any failure.
-      const res = await fetch("https://data.mobilithek.info/parking/berlin/latest.json", {
-        signal: AbortSignal.timeout(6000),
-      });
-      if (!res.ok) return fixtureOrThrow(BERLIN_FIXTURE, `Berlin feed returned HTTP ${res.status}`);
-      const raw = (await res.json()) as { sites?: UpstreamSite[] };
-      return Array.isArray(raw.sites) && raw.sites.length
-        ? raw.sites
-        : fixtureOrThrow(BERLIN_FIXTURE, "Berlin feed returned no parking inventory");
-    } catch (error) {
-      return fixtureOrThrow(BERLIN_FIXTURE, `Berlin feed unavailable: ${(error as Error).message}`);
-    }
+    return canonicalFeed("BERLIN_PARKING_FEED_URL", BERLIN_FIXTURE);
   },
 };
 
@@ -131,45 +152,7 @@ const HAMBURG_FIXTURE: UpstreamSite[] = [
 export const opendataHamburg: ProviderAdapter = {
   slug: "opendata-hamburg",
   async listSites() {
-    try {
-      const res = await fetch(
-        "https://api.hamburg.de/datasets/v1/parkhaeuser/collections/parkhaeuser/items?f=json&limit=50",
-        { signal: AbortSignal.timeout(6000) },
-      );
-      if (!res.ok)
-        return fixtureOrThrow(HAMBURG_FIXTURE, `Hamburg feed returned HTTP ${res.status}`);
-      const raw = (await res.json()) as {
-        features?: Array<{
-          id: string;
-          properties: Record<string, unknown>;
-          geometry?: { coordinates?: [number, number] };
-        }>;
-      };
-      const feats = raw.features ?? [];
-      if (!feats.length)
-        return fixtureOrThrow(HAMBURG_FIXTURE, "Hamburg feed returned no parking inventory");
-      return feats.slice(0, 50).map((f) => {
-        const p = f.properties as Record<string, unknown>;
-        const coords = f.geometry?.coordinates ?? [9.99, 53.55];
-        return {
-          external_id: `hh-${f.id}`,
-          name: String(p.name ?? p.bezeichnung ?? `Site ${f.id}`),
-          address: (p.adresse as string) ?? null,
-          lat: coords[1],
-          lng: coords[0],
-          capacity: Number(p.stellplaetze ?? p.capacity ?? 100),
-          occupied: Number(p.belegt ?? 0),
-          price_cents_per_hour: 300,
-          type: "garage",
-          operator_name: String(p.betreiber ?? "Hamburg Parken"),
-        } satisfies UpstreamSite;
-      });
-    } catch (error) {
-      return fixtureOrThrow(
-        HAMBURG_FIXTURE,
-        `Hamburg feed unavailable: ${(error as Error).message}`,
-      );
-    }
+    return canonicalFeed("HAMBURG_PARKING_FEED_URL", HAMBURG_FIXTURE);
   },
 };
 

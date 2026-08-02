@@ -104,6 +104,13 @@ const DICT = {
     "drive.dest": "Destination",
     "drive.dest.placeholder": "Address, POI, or district",
     "drive.search": "Search",
+    "drive.dest.pilotOnly":
+      "Choose a supported pilot destination or use your current location. Other text is never silently redirected.",
+    "drive.location.use": "Use my location",
+    "drive.location.current": "Current location",
+    "drive.location.failed":
+      "We could not access your location. Check browser permissions and try again.",
+    "drive.location.unsupported": "Location is not supported by this browser.",
     "drive.plate": "Plate",
     "drive.activeSessions": "Active sessions",
     "drive.upcoming": "Upcoming reservations",
@@ -522,6 +529,13 @@ const DICT = {
     "drive.dest": "Ziel",
     "drive.dest.placeholder": "Adresse, POI oder Bezirk",
     "drive.search": "Suchen",
+    "drive.dest.pilotOnly":
+      "Wählen Sie ein unterstütztes Pilotziel oder nutzen Sie Ihren aktuellen Standort. Andere Eingaben werden nicht stillschweigend umgeleitet.",
+    "drive.location.use": "Meinen Standort verwenden",
+    "drive.location.current": "Aktueller Standort",
+    "drive.location.failed":
+      "Ihr Standort konnte nicht abgerufen werden. Prüfen Sie die Browserberechtigung und versuchen Sie es erneut.",
+    "drive.location.unsupported": "Dieser Browser unterstützt die Standortabfrage nicht.",
     "drive.plate": "Kennzeichen",
     "drive.activeSessions": "Aktive Sitzungen",
     "drive.upcoming": "Anstehende Reservierungen",

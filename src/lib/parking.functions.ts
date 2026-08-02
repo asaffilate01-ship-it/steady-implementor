@@ -79,6 +79,20 @@ export const updateOperatorSiteFn = createServerFn({ method: "POST" })
     return site as Site;
   });
 
+export const setSitePublicationFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((input: unknown) =>
+    z.object({ site_id: z.string().uuid(), is_public: z.boolean() }).parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const { data: site, error } = await context.supabase.rpc("set_site_publication", {
+      _site_id: data.site_id,
+      _is_public: data.is_public,
+    });
+    rpcError(error);
+    return site as Site;
+  });
+
 const startSessionSchema = z.object({
   site_id: z.string().uuid(),
   minutes: z.number().int().min(5).max(1440),
@@ -175,7 +189,10 @@ const noticeSchema = z.object({
     .object({
       observed_at: z.string().datetime(),
       officer_note: z.string().trim().max(2000).optional(),
-      photo_urls: z.array(z.string().url()).max(8).default([]),
+      photo_paths: z
+        .array(z.string().regex(/^[0-9a-f-]{36}\/[0-9a-f-]{36}\.(?:jpg|jpeg|png|webp)$/i))
+        .max(8)
+        .default([]),
     })
     .optional(),
 });
@@ -210,7 +227,7 @@ export const issueParkingNoticeFn = createServerFn({ method: "POST" })
       _plate: data.plate,
       _reason: data.reason,
       _amount_cents: data.amount_cents,
-      _evidence: data.evidence ?? { observed_at: new Date().toISOString(), photo_urls: [] },
+      _evidence: data.evidence ?? { observed_at: new Date().toISOString(), photo_paths: [] },
     });
     rpcError(error);
     return notice as Notice;

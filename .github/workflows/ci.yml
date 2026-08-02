@@ -23,19 +23,10 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
-      - name: Typecheck
-        run: npm run typecheck
-      - name: Lint
-        run: npm run lint
-      - name: Unit tests
-        run: npm run test
+      - name: Typecheck, lint, unit tests, build and bundle budget
+        run: npm run check
       - name: Production dependency audit
         run: npm audit --omit=dev --audit-level=critical
-      - name: Build
-        run: npm run build
-        env:
-          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
-          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
 
   browser-smoke:
     runs-on: ubuntu-latest

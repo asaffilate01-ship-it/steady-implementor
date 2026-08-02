@@ -15,6 +15,7 @@ import {
   listOperatorSitesFn,
   markNotificationReadFn,
   resolveNoticeAppealFn,
+  setSitePublicationFn,
   startParkingSessionFn,
   updateOperatorSiteFn,
   updateParkingNoticeStatusFn,
@@ -282,6 +283,19 @@ export function useAddSite() {
   });
 }
 
+export function useSetSitePublication() {
+  const qc = useQueryClient();
+  const setPublication = useServerFn(setSitePublicationFn);
+  return useMutation({
+    mutationFn: async (input: { site_id: string; is_public: boolean }) =>
+      setPublication({ data: input }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: KEYS.sites });
+      qc.invalidateQueries({ queryKey: ["operator-sites"] });
+    },
+  });
+}
+
 export function useIssueNotice() {
   const qc = useQueryClient();
   const issueNotice = useServerFn(issueParkingNoticeFn);
@@ -294,7 +308,7 @@ export function useIssueNotice() {
       evidence?: {
         observed_at: string;
         officer_note?: string;
-        photo_urls: string[];
+        photo_paths: string[];
       };
     }) => {
       return issueNotice({ data: n });

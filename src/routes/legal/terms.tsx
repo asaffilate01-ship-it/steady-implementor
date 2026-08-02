@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { LegalLayout } from "@/components/LegalLayout";
+import { legalConfig } from "@/lib/legal-config";
 
 export const Route = createFileRoute("/legal/terms")({
   head: () => ({
@@ -21,10 +22,11 @@ export const Route = createFileRoute("/legal/terms")({
 
 function TermsPage() {
   return (
-    <LegalLayout title="Terms of Service" updated="25 July 2026">
+    <LegalLayout title="Terms of Service" updated="2 August 2026">
       <p>
         These Terms of Service ("Terms") govern your access to and use of ParkPunkt, a parking
-        discovery, session and payment platform ("the Service") operated by ParkPunkt GmbH
+        discovery, session and payment platform ("the Service") operated by{" "}
+        {legalConfig.companyName}
         ("ParkPunkt", "we", "us").
       </p>
       <h2>1. Acceptance</h2>
@@ -62,7 +64,8 @@ function TermsPage() {
       <h2>6. Suspension and termination</h2>
       <p>
         We may suspend or terminate accounts that violate these Terms, engage in fraud, or
-        repeatedly fail to pay. You may close your account at any time from the driver app.
+        repeatedly fail to pay. You may request account closure through {legalConfig.contactEmail};
+        records subject to statutory retention will be restricted and retained only as required.
       </p>
       <h2>7. Liability</h2>
       <p>
@@ -81,7 +84,7 @@ function TermsPage() {
         use after the effective date constitutes acceptance.
       </p>
       <h2>10. Contact</h2>
-      <p>Questions about these Terms: legal@parkpunkt.example.</p>
+      <p>Questions about these Terms: {legalConfig.contactEmail}.</p>
     </LegalLayout>
   );
 }

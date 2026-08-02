@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { LegalLayout } from "@/components/LegalLayout";
+import { legalConfig } from "@/lib/legal-config";
 
 export const Route = createFileRoute("/legal/privacy")({
   head: () => ({
@@ -20,11 +21,11 @@ export const Route = createFileRoute("/legal/privacy")({
 
 function PrivacyPage() {
   return (
-    <LegalLayout title="Privacy Policy" updated="25 July 2026">
+    <LegalLayout title="Privacy Policy" updated="2 August 2026">
       <p>
-        This Privacy Policy explains how ParkPunkt GmbH ("we") collects and processes personal data
-        when you use the ParkPunkt platform. It is written to comply with the EU General Data
-        Protection Regulation (GDPR) and the German BDSG.
+        This Privacy Policy explains how {legalConfig.companyName} ("we") processes personal data
+        when you use ParkPunkt. It must be reviewed against the final production integrations,
+        sub-processors and operating procedures before launch.
       </p>
       <h2>Data we collect</h2>
       <ul>
@@ -57,9 +58,9 @@ function PrivacyPage() {
       </ul>
       <h2>Retention</h2>
       <p>
-        Session records are retained for the statutory period (6–10 years for tax purposes). ANPR
-        captures without a matching session are deleted within 24 hours. You can request deletion of
-        non-statutory data at any time.
+        We retain each category only for its documented operational or statutory period and then
+        delete or anonymise it. The final retention schedule, including any ANPR or enforcement
+        evidence periods, will be approved and published before those features are activated.
       </p>
       <h2>Sharing</h2>
       <p>
@@ -69,15 +70,21 @@ function PrivacyPage() {
       <h2>Your rights</h2>
       <p>
         You have the right to access, rectify, erase, restrict, port and object to processing of
-        your personal data, and to lodge a complaint with a supervisory authority. Contact
-        privacy@parkpunkt.example or use the export/delete tools in the driver app.
+        your personal data, and to lodge a complaint with a supervisory authority. Submit a request
+        to {legalConfig.privacyEmail}. Identity verification may be required before a request is
+        fulfilled.
       </p>
       <h2>International transfers</h2>
       <p>
-        Data is hosted in the EU. Any transfer outside the EU/EEA uses Standard Contractual Clauses.
+        The current sub-processor list identifies processing locations and transfer safeguards.
+        Where data is transferred outside the EU/EEA, we use an applicable lawful transfer mechanism
+        and assess supplementary safeguards where required.
       </p>
       <h2>Contact</h2>
-      <p>Data Protection Officer: dpo@parkpunkt.example.</p>
+      <p>
+        Controller: {legalConfig.companyName}. Privacy contact: {legalConfig.privacyEmail}. Data
+        protection officer/contact, where applicable: {legalConfig.dpo}.
+      </p>
     </LegalLayout>
   );
 }

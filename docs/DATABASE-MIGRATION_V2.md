@@ -1,6 +1,6 @@
 # ParkPunkt v2 database migration
 
-Stage 3 adds `20260802110000_secure_product_workflows.sql`. Apply it after every existing migration and before deploying the matching application build.
+The secure product workflows are in `20260802094832_4e06ce9b-848b-4b71-a530-4af3abb76eb9.sql`. The go-live safety controls are in `20260802130000_go_live_inventory_and_evidence.sql`. Apply both after every earlier migration and before deploying the matching application build.
 
 ## What changes
 
@@ -9,6 +9,9 @@ Stage 3 adds `20260802110000_secure_product_workflows.sql`. Apply it after every
 - Support case and first-message creation becomes one atomic transaction.
 - Parking sessions snapshot their tariff at start so later operator edits cannot alter an active driver's price rules.
 - Start, extension and end calculations share one tariff calculator and persist the final quote with payment metadata.
+- Seeded and imported sites remain private until an authorised operator verifies and publishes them.
+- Enforcement evidence is stored in a private, role-protected bucket instead of accepting external URLs.
+- Customer sessions and reservations are rejected for unpublished sites.
 
 ## Apply
 
