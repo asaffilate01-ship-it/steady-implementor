@@ -104,6 +104,19 @@ jobs:
         if: always() && steps.browser_runtime.outcome == 'success'
         continue-on-error: true
         run: npm run test:e2e
+      - name: Preserve blocked browser diagnostics
+        if: always() && steps.browser_smoke.outcome == 'failure'
+        run: |
+          mkdir -p release-evidence
+          diagnostic_paths=()
+          for path in playwright-report test-results; do
+            if [ -e "$path" ]; then
+              diagnostic_paths+=("$path")
+            fi
+          done
+          if [ "${#diagnostic_paths[@]}" -gt 0 ]; then
+            tar -czf release-evidence/playwright-diagnostics.tar.gz "${diagnostic_paths[@]}"
+          fi
       - id: evidence
         name: Create release evidence and production SBOM
         if: always() && steps.checkout.outcome == 'success'
