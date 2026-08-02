@@ -5,13 +5,16 @@ This runbook is the release owner’s acceptance record. Do not mark an item com
 ## 1. Repository gate
 
 - Protect `main`; require pull requests, CI, CodeQL and dependency review.
-- Run `npm ci`, `npm run check`, `npm audit --omit=dev --audit-level=critical` and Chromium E2E from a clean checkout.
+- Confirm `.env` and other local credential files are not tracked; `npm run check:repo` must pass.
+- Run `npm ci`, `npm run check`, `npm run security:audit` and Chromium E2E from a clean checkout.
 - Run the GitHub **Production release readiness** workflow using the protected `production` environment.
 - Record the approved commit SHA and rollback commit.
+- If the default branch still begins at orphan commit `df1caa1`, follow `docs/GIT_HISTORY_RECOVERY.md` without force-pushing.
 
 ## 2. Database gate
 
 - Create a fresh staging database and apply every migration in filename order.
+- Review the `20260802103229`/`20260802130000` lineage note in `docs/DATABASE-MIGRATION_V2.md`; never delete a migration already recorded by a shared database.
 - Confirm `20260802130000_go_live_inventory_and_evidence.sql` is applied.
 - Verify driver, operator, provider, enforcement and admin tenant isolation with separate accounts.
 - Confirm seeded/imported sites are drafts and cannot be quoted, reserved or started by customers.
