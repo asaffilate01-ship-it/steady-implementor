@@ -47,3 +47,41 @@ jobs:
       - run: npx playwright install --with-deps chromium
       - name: Run desktop and mobile browser smoke tests
         run: npm run test:e2e
+
+  release-candidate-evidence:
+    if: github.event_name != 'pull_request'
+    needs: [check, browser-smoke]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - name: Create verified release-candidate evidence
+        env:
+          RELEASE_EVIDENCE_DIR: release-candidate-evidence
+          RELEASE_SCOPE: release-candidate
+          RELEASE_STATUS: validated-candidate
+          RELEASE_NAME: candidate-${{ github.sha }}
+          PUBLIC_APP_URL: ${{ vars.PUBLIC_APP_URL }}
+          EVIDENCE_DEPENDENCY_INSTALL: success
+          EVIDENCE_PRODUCTION_CONFIGURATION: not-applicable
+          EVIDENCE_SOURCE_VERIFICATION: success
+          EVIDENCE_DEPENDENCY_AUDIT: success
+          EVIDENCE_BROWSER_RUNTIME: success
+          EVIDENCE_BROWSER_SMOKE: success
+          EVIDENCE_SOFTWARE_BILL_OF_MATERIALS: success
+        run: |
+          mkdir -p release-candidate-evidence
+          npm sbom --omit=dev --sbom-format=cyclonedx > release-candidate-evidence/sbom.cdx.json
+          npm run release:evidence
+      - name: Upload release-candidate evidence
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: parkpunkt-release-candidate-${{ github.sha }}
+          path: release-candidate-evidence
+          if-no-files-found: error
+          retention-days: 30

@@ -1,6 +1,6 @@
 {
   "name": "parkpunkt-web",
-  "version": "0.8.0",
+  "version": "0.9.0",
   "private": true,
   "engines": {
     "node": ">=22 <25",
@@ -16,6 +16,7 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run src",
+    "test:release-evidence": "node --test scripts/*.test.mjs",
     "test:e2e": "playwright test",
     "security:audit": "npm audit --omit=dev --audit-level=high",
     "security:audit:all": "npm audit --audit-level=high",
@@ -25,7 +26,7 @@
     "check:migrations": "node scripts/check-migrations.mjs",
     "check:release-config": "node scripts/verify-release-config.mjs",
     "release:evidence": "node scripts/write-release-evidence.mjs",
-    "check": "npm run check:repo && npm run typecheck && npm run lint && npm run test && npm run check:migrations && npm run build && npm run check:generated && npm run check:bundle",
+    "check": "npm run check:repo && npm run typecheck && npm run lint && npm run test && npm run test:release-evidence && npm run check:migrations && npm run build && npm run check:generated && npm run check:bundle",
     "format": "prettier --write ."
   },
   "dependencies": {

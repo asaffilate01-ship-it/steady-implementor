@@ -22,3 +22,5 @@ Phase 8 is a cumulative repository repair for the Phase 7 upload on `main`. It c
 5. Configure the protected `production` environment and run **Production release readiness**.
 
 Phase 8 cannot create production credentials, contracts, legal approval, a backup-restore record or a live deployment. Those remain release-owner gates in `docs/GO_LIVE_RUNBOOK.md`.
+
+Phase 9 adds automatic candidate evidence and durable blocked-run diagnostics. See `docs/PHASE_9_RELEASE.md`.

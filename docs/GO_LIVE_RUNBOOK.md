@@ -7,9 +7,12 @@ This runbook is the release owner’s acceptance record. Do not mark an item com
 - Protect `main`; require pull requests, CI, CodeQL and dependency review.
 - Confirm `.env` and other local credential files are not tracked; `npm run check:repo` must pass.
 - Run `npm ci`, `npm run check`, `npm run security:audit` and Chromium E2E from a clean checkout.
+- Retain the successful CI release-candidate artifact for the intended SHA; confirm its status is `validated-candidate`, not `eligible`.
 - Run the GitHub **Production release readiness** workflow using the protected `production` environment.
-- Download and retain the workflow's release-evidence artifact containing the approved commit SHA, sanitized configuration result and CycloneDX production SBOM.
-- Record the approved commit SHA and rollback commit.
+- Enter a human-readable release name, a previously verified rollback commit SHA and an approval/change reference.
+- Download and retain the workflow's release-evidence artifact containing the approved commit SHA, sanitized configuration result, validation outcomes, CycloneDX production SBOM and SHA-256 manifest.
+- Confirm `release-summary.json` says `releaseScope: production-web`, `releaseStatus: eligible` and `eligibleForProduction: true`. A `blocked` artifact is diagnostic evidence, not launch approval.
+- Record the approved commit SHA and rollback commit independently of the artifact.
 - If the default branch still begins at orphan commit `df1caa1`, follow `docs/GIT_HISTORY_RECOVERY.md` without force-pushing.
 
 ## 2. Database gate
@@ -57,4 +60,4 @@ This runbook is the release owner’s acceptance record. Do not mark an item com
 
 ## Release decision
 
-The release owner records: production SHA, migration version, workflow URL, retained release-evidence artifact, smoke-test evidence, rollback owner, approval time and any explicitly accepted residual risk. A failed readiness item blocks public launch.
+The release owner records: production SHA, migration version, workflow URL, retained release-evidence artifact, its SHA-256 manifest, smoke-test evidence, rollback owner, approval time and any explicitly accepted residual risk. A failed readiness item or a release artifact not marked `eligible` blocks public launch.
