@@ -83,6 +83,8 @@ npm run test:e2e
 
 Run the main verification sequence with `npm run check`.
 
+For a production promotion, configure the protected GitHub `production` environment, run the **Production release readiness** workflow, and follow [`docs/GO_LIVE_RUNBOOK.md`](docs/GO_LIVE_RUNBOOK.md). The release configuration can also be checked locally with `npm run check:release-config`; it reports only pass/fail categories and never secret values.
+
 ## External activation required
 
 The repository cannot create commercial contracts or production credentials. Before public launch, connect contracted parking inventory, ANPR/barrier providers, Stripe live mode, wallet domains, notification gateways, monitoring and backups. Complete accessibility, GDPR/ANPR, payments and German parking-law reviews with qualified specialists.

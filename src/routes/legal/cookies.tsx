@@ -21,7 +21,7 @@ export const Route = createFileRoute("/legal/cookies")({
 
 function CookiesPage() {
   return (
-    <LegalLayout title="Cookie Policy" updated="25 July 2026">
+    <LegalLayout title="Cookie Policy" updated="2 August 2026">
       <p>
         ParkPunkt uses a small number of cookies and equivalent browser storage. This page explains
         which ones, why, and how to change your choice.
@@ -52,10 +52,11 @@ function CookiesPage() {
         <li>
           <code>pp.lang</code> — language preference (stored in localStorage).
         </li>
-        <li>
-          <code>_ga</code>, <code>_gid</code> — analytics (only if you consented).
-        </li>
       </ul>
+      <p>
+        The current application does not install an analytics or marketing tracker. If one is added,
+        this table and the consent controls must be updated before it is enabled.
+      </p>
       <h2>Managing your choice</h2>
       <p>You can change your consent at any time:</p>
       <p>

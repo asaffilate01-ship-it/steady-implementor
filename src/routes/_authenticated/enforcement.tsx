@@ -47,6 +47,14 @@ import { useI18n } from "@/lib/i18n";
 import { useServerFn } from "@tanstack/react-start";
 import { checkParkingSessionFn } from "@/lib/parking.functions";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+
+const EVIDENCE_MIME_TYPES: Record<string, string> = {
+  "image/jpeg": "jpg",
+  "image/png": "png",
+  "image/webp": "webp",
+};
+const MAX_EVIDENCE_BYTES = 10 * 1024 * 1024;
 
 export const Route = createFileRoute("/_authenticated/enforcement")({
   head: () => ({
@@ -80,7 +88,8 @@ function EnforcementApp() {
   const [reason, setReason] = useState(t("enf.reason.default"));
   const [amount, setAmount] = useState(35);
   const [officerNote, setOfficerNote] = useState("");
-  const [photoUrl, setPhotoUrl] = useState("");
+  const [evidenceFile, setEvidenceFile] = useState<File | null>(null);
+  const [uploadingEvidence, setUploadingEvidence] = useState(false);
   const [appealReview, setAppealReview] = useState<{
     id: string;
     decision: "accepted" | "upheld";
@@ -222,20 +231,50 @@ function EnforcementApp() {
                 placeholder="Location, signage and observed circumstances"
               />
             </Field>
-            <Field label="Evidence photo URL (optional)">
+            <Field label="Evidence photo (optional)">
               <Input
-                type="url"
-                value={photoUrl}
-                onChange={(event) => setPhotoUrl(event.target.value)}
-                placeholder="https://secure-evidence.example/photo…"
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                capture="environment"
+                onChange={(event) => setEvidenceFile(event.target.files?.[0] ?? null)}
               />
+              <p className="mt-1 text-xs text-muted-foreground">
+                Private JPEG, PNG or WebP · maximum 10 MB. External photo URLs are rejected.
+              </p>
             </Field>
             <Button
               variant="destructive"
               className="w-full"
-              disabled={!plate || scan?.status !== "invalid" || !siteId || issue.isPending}
+              disabled={
+                !plate ||
+                scan?.status !== "invalid" ||
+                !siteId ||
+                issue.isPending ||
+                uploadingEvidence
+              }
               onClick={async () => {
+                let uploadedPath: string | null = null;
                 try {
+                  if (evidenceFile) {
+                    const extension = EVIDENCE_MIME_TYPES[evidenceFile.type];
+                    if (!extension) throw new Error("Use a JPEG, PNG or WebP evidence image");
+                    if (evidenceFile.size > MAX_EVIDENCE_BYTES) {
+                      throw new Error("Evidence image must be 10 MB or smaller");
+                    }
+                    setUploadingEvidence(true);
+                    const { data: userResult, error: userError } = await supabase.auth.getUser();
+                    if (userError || !userResult.user)
+                      throw new Error("Sign in again to upload evidence");
+                    uploadedPath = `${userResult.user.id}/${crypto.randomUUID()}.${extension}`;
+                    const { error: uploadError } = await supabase.storage
+                      .from("enforcement-evidence")
+                      .upload(uploadedPath, evidenceFile, {
+                        cacheControl: "0",
+                        contentType: evidenceFile.type,
+                        upsert: false,
+                      });
+                    if (uploadError) throw new Error(uploadError.message);
+                  }
                   await issue.mutateAsync({
                     site_id: siteId,
                     plate: plate.toUpperCase(),
@@ -244,20 +283,31 @@ function EnforcementApp() {
                     evidence: {
                       observed_at: new Date().toISOString(),
                       officer_note: officerNote.trim() || undefined,
-                      photo_urls: photoUrl.trim() ? [photoUrl.trim()] : [],
+                      photo_paths: uploadedPath ? [uploadedPath] : [],
                     },
                   });
                   toast.success(t("enf.issued"));
                   setPlate("");
                   setScan(null);
                   setOfficerNote("");
-                  setPhotoUrl("");
+                  setEvidenceFile(null);
                 } catch (error) {
+                  if (uploadedPath) {
+                    await supabase.storage.from("enforcement-evidence").remove([uploadedPath]);
+                  }
                   toast.error((error as Error).message);
+                } finally {
+                  setUploadingEvidence(false);
                 }
               }}
             >
-              {t("enf.issue")}
+              {uploadingEvidence ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Uploading evidence
+                </>
+              ) : (
+                t("enf.issue")
+              )}
             </Button>
             {scan?.status === "valid" && (
               <p className="text-xs text-muted-foreground">{t("enf.disabled")}</p>

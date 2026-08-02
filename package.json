@@ -18,7 +18,9 @@
     "test:e2e": "playwright test",
     "security:audit": "npm audit --omit=dev --audit-level=critical",
     "check:bundle": "node scripts/check-bundle-size.mjs",
-    "check": "npm run typecheck && npm run lint && npm run test && npm run build && npm run check:bundle",
+    "check:migrations": "node scripts/check-migrations.mjs",
+    "check:release-config": "node scripts/verify-release-config.mjs",
+    "check": "npm run typecheck && npm run lint && npm run test && npm run check:migrations && npm run build && npm run check:bundle",
     "format": "prettier --write ."
   },
   "dependencies": {

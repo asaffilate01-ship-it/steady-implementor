@@ -11,12 +11,20 @@ export const Route = createFileRoute("/api/public/cron/sync-providers")({
 
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
         const { runProviderSync } = await import("@/lib/provider-sync.server");
+        const { approvedProviderSlugs, isProductionRuntime } =
+          await import("@/lib/providers/approval.server");
 
-        const { data: providers, error } = await supabaseAdmin
-          .from("providers")
-          .select("*")
-          .eq("status", "active");
+        const approved = approvedProviderSlugs();
+        if (isProductionRuntime() && approved.length === 0) {
+          return json({ ok: false, error: "No providers are approved for production sync" }, 503);
+        }
+        let query = supabaseAdmin.from("providers").select("*").eq("status", "active");
+        if (approved.length > 0) query = query.in("slug", approved);
+        const { data: providers, error } = await query;
         if (error) return json({ error: error.message }, 500);
+        if (!providers?.length) {
+          return json({ ok: false, error: "No active approved providers were found" }, 503);
+        }
 
         const summary: Array<{
           slug: string;
@@ -50,7 +58,10 @@ export const Route = createFileRoute("/api/public/cron/sync-providers")({
         await supabaseAdmin.from("api_request_log").delete().lt("created_at", cutoff);
         await supabaseAdmin.from("api_rate_limit_buckets").delete().lt("bucket_start", cutoff);
 
-        return json({ ok: true, summary });
+        const failures = summary.filter((item) => item.error);
+        const ok = failures.length === 0;
+        const status = failures.length === summary.length ? 503 : failures.length > 0 ? 207 : 200;
+        return json({ ok, summary }, status);
       },
     },
   },

@@ -29,6 +29,10 @@ export const legalConfigComplete = Boolean(
   import.meta.env.VITE_LEGAL_COMPANY_NAME &&
   import.meta.env.VITE_LEGAL_STREET &&
   import.meta.env.VITE_LEGAL_CITY &&
+  import.meta.env.VITE_LEGAL_MANAGING_DIRECTORS &&
+  import.meta.env.VITE_LEGAL_REGISTER_COURT &&
+  import.meta.env.VITE_LEGAL_REGISTER_NUMBER &&
   import.meta.env.VITE_LEGAL_CONTACT_EMAIL &&
-  import.meta.env.VITE_LEGAL_PRIVACY_EMAIL,
+  import.meta.env.VITE_LEGAL_PRIVACY_EMAIL &&
+  import.meta.env.VITE_LEGAL_ADR_STATEMENT,
 );

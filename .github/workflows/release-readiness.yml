@@ -1,0 +1,68 @@
+name: Production release readiness
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: production-release-readiness
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  release-gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    environment: production
+    env:
+      APP_ENV: production
+      PUBLIC_APP_URL: ${{ vars.PUBLIC_APP_URL }}
+      VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+      VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      STRIPE_PUBLISHABLE_KEY: ${{ secrets.STRIPE_PUBLISHABLE_KEY }}
+      STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
+      STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET }}
+      PARKPUNKT_CRON_SECRET: ${{ secrets.PARKPUNKT_CRON_SECRET }}
+      PARKPUNKT_READINESS_SECRET: ${{ secrets.PARKPUNKT_READINESS_SECRET }}
+      NOTIFICATION_DELIVERY_WEBHOOK_URL: ${{ vars.NOTIFICATION_DELIVERY_WEBHOOK_URL }}
+      NOTIFICATION_DELIVERY_WEBHOOK_SECRET: ${{ secrets.NOTIFICATION_DELIVERY_WEBHOOK_SECRET }}
+      PARKPUNKT_ENABLED_PROVIDER_SLUGS: ${{ vars.PARKPUNKT_ENABLED_PROVIDER_SLUGS }}
+      BERLIN_PARKING_FEED_URL: ${{ vars.BERLIN_PARKING_FEED_URL }}
+      HAMBURG_PARKING_FEED_URL: ${{ vars.HAMBURG_PARKING_FEED_URL }}
+      SCHEDULER_CONFIGURED: ${{ vars.SCHEDULER_CONFIGURED }}
+      OBSERVABILITY_CONFIGURED: ${{ vars.OBSERVABILITY_CONFIGURED }}
+      BACKUP_VERIFIED_AT: ${{ vars.BACKUP_VERIFIED_AT }}
+      DATABASE_MIGRATIONS_VERIFIED_AT: ${{ vars.DATABASE_MIGRATIONS_VERIFIED_AT }}
+      LEGAL_REVIEWED_AT: ${{ vars.LEGAL_REVIEWED_AT }}
+      VITE_LEGAL_COMPANY_NAME: ${{ vars.VITE_LEGAL_COMPANY_NAME }}
+      VITE_LEGAL_STREET: ${{ vars.VITE_LEGAL_STREET }}
+      VITE_LEGAL_CITY: ${{ vars.VITE_LEGAL_CITY }}
+      VITE_LEGAL_MANAGING_DIRECTORS: ${{ vars.VITE_LEGAL_MANAGING_DIRECTORS }}
+      VITE_LEGAL_REGISTER_COURT: ${{ vars.VITE_LEGAL_REGISTER_COURT }}
+      VITE_LEGAL_REGISTER_NUMBER: ${{ vars.VITE_LEGAL_REGISTER_NUMBER }}
+      VITE_LEGAL_CONTACT_EMAIL: ${{ vars.VITE_LEGAL_CONTACT_EMAIL }}
+      VITE_LEGAL_PRIVACY_EMAIL: ${{ vars.VITE_LEGAL_PRIVACY_EMAIL }}
+      VITE_LEGAL_ADR_STATEMENT: ${{ vars.VITE_LEGAL_ADR_STATEMENT }}
+      VITE_FEATURE_SMART_MAP: "false"
+      VITE_FEATURE_TICKET_SCANNER: "false"
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - name: Verify production configuration
+        run: npm run check:release-config
+      - name: Verify code, tests, build and bundle budget
+        run: npm run check
+      - name: Audit production dependencies
+        run: npm audit --omit=dev --audit-level=critical
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Run browser release smoke tests
+        run: npm run test:e2e -- --project=chromium

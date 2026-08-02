@@ -130,6 +130,14 @@ const DESTINATIONS: Record<string, { lat: number; lng: number }> = {
   "Prenzlauer Berg": { lat: 52.539, lng: 13.412 },
 };
 
+function resolvePilotDestination(query: string) {
+  const normalized = query.trim().toLocaleLowerCase("de-DE");
+  const match = Object.entries(DESTINATIONS).find(
+    ([name]) => name.toLocaleLowerCase("de-DE") === normalized,
+  );
+  return match ? { name: match[0], coordinates: match[1] } : null;
+}
+
 function DriverApp() {
   const search = Route.useSearch();
   const navigate = Route.useNavigate();
@@ -296,10 +304,34 @@ function SearchScreen({
   openActive: (id: string) => void;
 }) {
   const [q, setQ] = useState("Alexanderplatz");
+  const [locating, setLocating] = useState(false);
   const { data: profile } = useMyProfile();
   const plate = profile?.plate ?? "—";
   const active = activeSession;
   const { t } = useI18n();
+  const destination = resolvePilotDestination(q);
+
+  const useCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      toast.error(t("drive.location.unsupported"));
+      return;
+    }
+    setLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setLocating(false);
+        onSearch(
+          { lat: position.coords.latitude, lng: position.coords.longitude },
+          t("drive.location.current"),
+        );
+      },
+      () => {
+        setLocating(false);
+        toast.error(t("drive.location.failed"));
+      },
+      { enableHighAccuracy: false, maximumAge: 60_000, timeout: 10_000 },
+    );
+  };
   return (
     <div className="space-y-6">
       <div>
@@ -363,16 +395,28 @@ function SearchScreen({
                 <Input
                   value={q}
                   onChange={(e) => setQ(e.target.value)}
+                  list="parkpunkt-pilot-destinations"
                   className="pl-9"
                   placeholder={t("drive.dest.placeholder")}
                 />
+                <datalist id="parkpunkt-pilot-destinations">
+                  {Object.keys(DESTINATIONS).map((name) => (
+                    <option key={name} value={name} />
+                  ))}
+                </datalist>
               </div>
               <Button
-                onClick={() => onSearch(DESTINATIONS[q] ?? DESTINATIONS["Alexanderplatz"], q)}
+                disabled={!destination}
+                onClick={() => destination && onSearch(destination.coordinates, destination.name)}
               >
                 {t("drive.search")}
               </Button>
             </div>
+            {!destination && q.trim() && (
+              <p className="text-xs text-amber-700 dark:text-amber-300">
+                {t("drive.dest.pilotOnly")}
+              </p>
+            )}
             <div className="flex flex-wrap gap-2 pt-1">
               {Object.keys(DESTINATIONS).map((k) => (
                 <button
@@ -383,6 +427,21 @@ function SearchScreen({
                   {k}
                 </button>
               ))}
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                disabled={locating}
+                onClick={useCurrentLocation}
+                className="h-7 rounded-full px-3 text-xs"
+              >
+                {locating ? (
+                  <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <Navigation className="mr-1 h-3.5 w-3.5" />
+                )}
+                {t("drive.location.use")}
+              </Button>
             </div>
           </div>
           <div className="grid grid-cols-2 gap-3 pt-2 text-sm">

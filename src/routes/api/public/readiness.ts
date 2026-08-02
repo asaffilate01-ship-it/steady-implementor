@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { isAuthorizedInternalRequest } from "@/lib/internal-auth.server";
+import { buildLaunchReadiness } from "@/lib/operations-domain";
 
 export const Route = createFileRoute("/api/public/readiness")({
   server: {
@@ -9,19 +10,38 @@ export const Route = createFileRoute("/api/public/readiness")({
           return json({ error: "Unauthorized" }, 401);
         }
         const checkedAt = new Date().toISOString();
+        const checks = buildLaunchReadiness(process.env);
         const missing = [
           "SUPABASE_URL",
           "SUPABASE_PUBLISHABLE_KEY",
           "SUPABASE_SERVICE_ROLE_KEY",
         ].filter((key) => !process.env[key]);
         if (missing.length > 0) {
-          return json({ status: "not_ready", database: "not_checked", missing, checkedAt }, 503);
+          return json(
+            {
+              status: "not_ready",
+              database: "not_checked",
+              checks: checks.map(({ key, ready }) => ({ key, ready })),
+              missing,
+              checkedAt,
+            },
+            503,
+          );
         }
         try {
           const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
           const { error } = await supabaseAdmin.from("sites").select("id").limit(1);
           if (error) throw error;
-          return json({ status: "ready", database: "ok", checkedAt });
+          const ready = checks.every((check) => check.ready);
+          return json(
+            {
+              status: ready ? "ready" : "not_ready",
+              database: "ok",
+              checks: checks.map(({ key, ready: checkReady }) => ({ key, ready: checkReady })),
+              checkedAt,
+            },
+            ready ? 200 : 503,
+          );
         } catch (error) {
           console.error(
             JSON.stringify({

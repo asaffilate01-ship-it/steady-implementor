@@ -21,6 +21,7 @@ import {
   useSessions,
   useUpdateSite,
   useAddSite,
+  useSetSitePublication,
   useMyPayments,
   usePayouts,
   useRealtimeSync,
@@ -240,7 +241,7 @@ function OperatorDashboard() {
           <CardTitle>{t("op.sites")}</CardTitle>
         </CardHeader>
         <CardContent className="overflow-x-auto p-0">
-          <div className="grid min-w-[900px] grid-cols-[1.5fr,1fr,1fr,1.2fr,120px,120px] gap-3 border-b border-border px-4 py-2 text-xs uppercase text-muted-foreground">
+          <div className="grid min-w-[1020px] grid-cols-[1.5fr,1fr,1fr,1.2fr,120px,220px] gap-3 border-b border-border px-4 py-2 text-xs uppercase text-muted-foreground">
             <div>{t("op.col.site")}</div>
             <div>{t("op.col.operator")}</div>
             <div>{t("op.col.type")}</div>
@@ -333,10 +334,16 @@ function SiteRow({ site }: { site: Site }) {
   const pct = site.capacity > 0 ? Math.round((site.occupied / site.capacity) * 100) : 0;
   const [rate, setRate] = useState(site.price_cents_per_hour / 100);
   const update = useUpdateSite();
+  const publication = useSetSitePublication();
   return (
-    <div className="grid min-w-[900px] grid-cols-[1.5fr,1fr,1fr,1.2fr,120px,120px] items-center gap-3 border-b border-border px-4 py-3 text-sm last:border-0">
+    <div className="grid min-w-[1020px] grid-cols-[1.5fr,1fr,1fr,1.2fr,120px,220px] items-center gap-3 border-b border-border px-4 py-3 text-sm last:border-0">
       <div>
-        <div className="font-medium">{site.name}</div>
+        <div className="flex items-center gap-2 font-medium">
+          {site.name}
+          <Badge variant={site.is_public ? "default" : "secondary"}>
+            {site.is_public ? "Live" : "Draft"}
+          </Badge>
+        </div>
         <div className="text-xs text-muted-foreground">{site.address}</div>
       </div>
       <div>{site.operator_name ?? "—"}</div>
@@ -369,6 +376,24 @@ function SiteRow({ site }: { site: Site }) {
         />
       </div>
       <div className="flex justify-end gap-1">
+        <Button
+          aria-label={`${site.is_public ? "Unpublish" : "Publish"} ${site.name}`}
+          size="sm"
+          variant={site.is_public ? "outline" : "default"}
+          disabled={publication.isPending}
+          onClick={() =>
+            publication.mutate(
+              { site_id: site.id, is_public: !site.is_public },
+              {
+                onSuccess: () =>
+                  toast.success(site.is_public ? "Site unpublished" : "Site published"),
+                onError: (error) => toast.error(error.message),
+              },
+            )
+          }
+        >
+          {site.is_public ? "Unpublish" : "Publish"}
+        </Button>
         <Button
           aria-label={`Decrease occupancy at ${site.name}`}
           size="sm"

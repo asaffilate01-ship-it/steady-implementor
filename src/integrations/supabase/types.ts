@@ -1288,6 +1288,9 @@ export type Database = {
           capacity: number;
           created_at: string;
           id: string;
+          inventory_source: string | null;
+          inventory_verified_at: string | null;
+          is_public: boolean;
           lat: number;
           lng: number;
           name: string;
@@ -1306,6 +1309,9 @@ export type Database = {
           capacity: number;
           created_at?: string;
           id?: string;
+          inventory_source?: string | null;
+          inventory_verified_at?: string | null;
+          is_public?: boolean;
           lat: number;
           lng: number;
           name: string;
@@ -1324,6 +1330,9 @@ export type Database = {
           capacity?: number;
           created_at?: string;
           id?: string;
+          inventory_source?: string | null;
+          inventory_verified_at?: string | null;
+          is_public?: boolean;
           lat?: number;
           lng?: number;
           name?: string;
@@ -1747,6 +1756,9 @@ export type Database = {
           capacity: number;
           created_at: string;
           id: string;
+          inventory_source: string | null;
+          inventory_verified_at: string | null;
+          is_public: boolean;
           lat: number;
           lng: number;
           name: string;
@@ -1877,6 +1889,9 @@ export type Database = {
           capacity: number;
           created_at: string;
           id: string;
+          inventory_source: string | null;
+          inventory_verified_at: string | null;
+          is_public: boolean;
           lat: number;
           lng: number;
           name: string;
@@ -1905,6 +1920,10 @@ export type Database = {
       };
       is_business_manager: { Args: { _account_id: string }; Returns: boolean };
       is_business_member: { Args: { _account_id: string }; Returns: boolean };
+      is_enforcement_evidence_linked: {
+        Args: { _path: string };
+        Returns: boolean;
+      };
       is_operator_org_member: { Args: { _org_id: string }; Returns: boolean };
       is_org_member: { Args: { _org_id: string }; Returns: boolean };
       issue_parking_notice: {
@@ -2093,6 +2112,36 @@ export type Database = {
         };
       };
       session_amount_cents: { Args: { _session_id: string }; Returns: number };
+      set_site_publication: {
+        Args: { _is_public: boolean; _site_id: string };
+        Returns: {
+          address: string;
+          amenities: string[];
+          capacity: number;
+          created_at: string;
+          id: string;
+          inventory_source: string | null;
+          inventory_verified_at: string | null;
+          is_public: boolean;
+          lat: number;
+          lng: number;
+          name: string;
+          occupied: number;
+          operator_name: string | null;
+          org_id: string | null;
+          platform_fee_bps: number | null;
+          platform_fixed_fee_cents: number | null;
+          price_cents_per_hour: number;
+          type: Database["public"]["Enums"]["site_type"];
+          updated_at: string;
+        };
+        SetofOptions: {
+          from: "*";
+          to: "sites";
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
+      };
       start_parking_session: {
         Args: {
           _minutes: number;
@@ -2135,6 +2184,9 @@ export type Database = {
           capacity: number;
           created_at: string;
           id: string;
+          inventory_source: string | null;
+          inventory_verified_at: string | null;
+          is_public: boolean;
           lat: number;
           lng: number;
           name: string;

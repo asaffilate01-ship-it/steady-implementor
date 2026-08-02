@@ -84,7 +84,7 @@ export const POSTS: BlogPost[] = [
       en: [
         "Under the GDPR, a licence plate that can be linked to a natural person is personal data. That means every camera capture, every enforcement lookup and every session record carries obligations.",
         "We minimise retention (plate captures without a matching session are dropped within 24 hours), scope access with row-level security, and expose a self-service data export in the driver app.",
-        "Cities and operators inherit those defaults — no bespoke DPIA per deployment.",
+        "Cities and operators inherit privacy-focused defaults, while each deployment still requires its own documented risk and DPIA assessment where applicable.",
       ],
       de: [
         "Nach DSGVO ist ein Kennzeichen, das einer Person zugeordnet werden kann, ein personenbezogenes Datum. Jede Aufnahme, jede Kontrollabfrage und jede Sitzung bringt Pflichten mit sich.",

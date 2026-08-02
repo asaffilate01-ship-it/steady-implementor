@@ -2,6 +2,7 @@ import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import type { Database } from "@/integrations/supabase/types";
 import { getAdapter } from "@/lib/providers/adapters";
 import { validateProviderSites } from "@/lib/providers/contract";
+import { assertProviderApproved } from "@/lib/providers/approval.server";
 
 type Provider = Database["public"]["Tables"]["providers"]["Row"];
 
@@ -17,6 +18,7 @@ export async function runProviderSync(
   provider: Provider,
   actorUserId: string | null = null,
 ): Promise<ProviderSyncResult> {
+  assertProviderApproved(provider.slug);
   const startedAt = new Date().toISOString();
   await supabaseAdmin
     .from("providers")
@@ -71,6 +73,7 @@ export async function runProviderSync(
             : "garage";
       const siteData = {
         org_id: orgId,
+        inventory_source: provider.slug,
         name: externalSite.name,
         address: externalSite.address ?? externalSite.name,
         lat: externalSite.lat,

@@ -26,4 +26,43 @@ describe("buildLaunchReadiness", () => {
       )?.ready,
     ).toBe(false);
   });
+
+  it("requires live Stripe keys in production", () => {
+    const result = buildLaunchReadiness({
+      APP_ENV: "production",
+      STRIPE_PUBLISHABLE_KEY: "pk_test_example",
+      STRIPE_SECRET_KEY: "sk_test_example",
+      STRIPE_WEBHOOK_SECRET: "whsec_example",
+    });
+    expect(result.find((item) => item.key === "payments")?.ready).toBe(false);
+
+    const live = buildLaunchReadiness({
+      APP_ENV: "production",
+      STRIPE_PUBLISHABLE_KEY: "pk_live_example",
+      STRIPE_SECRET_KEY: "sk_live_example",
+      STRIPE_WEBHOOK_SECRET: "whsec_example",
+    });
+    expect(live.find((item) => item.key === "payments")?.ready).toBe(true);
+  });
+
+  it("fails closed when prototype customer flows are enabled", () => {
+    const safe = buildLaunchReadiness({
+      VITE_FEATURE_SMART_MAP: "false",
+      VITE_FEATURE_TICKET_SCANNER: "false",
+    });
+    expect(safe.find((item) => item.key === "safe_rollout")?.ready).toBe(true);
+
+    const unsafe = buildLaunchReadiness({ VITE_FEATURE_TICKET_SCANNER: "true" });
+    expect(unsafe.find((item) => item.key === "safe_rollout")?.ready).toBe(false);
+  });
+
+  it("requires distinct internal secrets", () => {
+    const shared = "same-secret-value-that-is-at-least-32-characters";
+    const result = buildLaunchReadiness({
+      PARKPUNKT_CRON_SECRET: shared,
+      PARKPUNKT_READINESS_SECRET: shared,
+      SCHEDULER_CONFIGURED: "true",
+    });
+    expect(result.find((item) => item.key === "readiness_secret")?.ready).toBe(false);
+  });
 });

@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { LegalLayout } from "@/components/LegalLayout";
+import { legalConfig } from "@/lib/legal-config";
 
 export const Route = createFileRoute("/legal/gdpr")({
   head: () => ({
@@ -21,13 +22,16 @@ export const Route = createFileRoute("/legal/gdpr")({
 
 function GdprPage() {
   return (
-    <LegalLayout title="GDPR" updated="25 July 2026">
+    <LegalLayout title="GDPR" updated="2 August 2026">
       <p>
-        This page is maintained by ParkPunkt GmbH to answer common data-protection questions about
-        ParkPunkt. It is app-owned content and is not an independent certification.
+        This page is maintained by {legalConfig.companyName} to answer data-protection questions
+        about ParkPunkt. It is app-owned content and is not an independent certification.
       </p>
       <h2>Controller and DPO</h2>
-      <p>Controller: ParkPunkt GmbH. Data Protection Officer: dpo@parkpunkt.example.</p>
+      <p>
+        Controller: {legalConfig.companyName}. Privacy contact: {legalConfig.privacyEmail}. Data
+        protection officer/contact, where applicable: {legalConfig.dpo}.
+      </p>
       <h2>Data-subject rights</h2>
       <ul>
         <li>Access — request a copy of the personal data we hold about you.</li>
@@ -40,13 +44,16 @@ function GdprPage() {
           Landesdatenschutzbeauftragte).
         </li>
       </ul>
-      <p>Submit requests to privacy@parkpunkt.example. We respond within one month.</p>
+      <p>
+        Submit requests to {legalConfig.privacyEmail}. We respond within the period required by
+        applicable data-protection law and will explain any lawful extension.
+      </p>
       <h2>Sub-processors</h2>
       <ul>
-        <li>Cloud hosting — EU region.</li>
-        <li>PSD2 payment processor — EU.</li>
-        <li>Transactional email provider — EU.</li>
-        <li>Error monitoring — EU.</li>
+        <li>Cloud hosting and database providers.</li>
+        <li>Payment processing providers.</li>
+        <li>Transactional communications providers.</li>
+        <li>Security and error-monitoring providers.</li>
       </ul>
       <p>A full, current list is available on request.</p>
       <h2>Security</h2>
@@ -58,8 +65,9 @@ function GdprPage() {
       </ul>
       <h2>International transfers</h2>
       <p>
-        ParkPunkt processes personal data inside the EU/EEA. Any onward transfer uses the European
-        Commission's Standard Contractual Clauses.
+        Processing locations and transfer safeguards are recorded in the current sub-processor
+        register. Appropriate transfer mechanisms are used where processing occurs outside the
+        EU/EEA.
       </p>
       <h2>Data breach</h2>
       <p>
