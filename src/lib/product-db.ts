@@ -327,7 +327,12 @@ export function useCreateSupportCase() {
         data: {
           subject: input.subject,
           category: input.category as
-            "payment" | "session" | "notice" | "account" | "site" | "other",
+            | "payment"
+            | "session"
+            | "notice"
+            | "account"
+            | "site"
+            | "other",
           body: input.body,
         },
       });
