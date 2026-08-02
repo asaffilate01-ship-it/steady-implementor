@@ -69,15 +69,15 @@ export const saveTariffPlanFn = createServerFn({ method: "POST" })
   .validator((input: unknown) => tariffSchema.parse(input))
   .handler(async ({ data, context }) => {
     const result = await context.supabase.rpc("save_tariff_plan_secure", {
-      _id: data.id ?? null,
+      _id: (data.id ?? null) as unknown as string,
       _site_id: data.site_id,
       _name: data.name,
       _free_minutes: data.free_minutes,
       _minimum_charge_cents: data.minimum_charge_cents,
       _service_fee_cents: data.service_fee_cents,
       _reservation_fee_cents: data.reservation_fee_cents,
-      _daily_cap_cents: data.daily_cap_cents,
-      _max_stay_minutes: data.max_stay_minutes,
+      _daily_cap_cents: data.daily_cap_cents as unknown as number,
+      _max_stay_minutes: data.max_stay_minutes as unknown as number,
     });
     return rpcResult<TariffPlan>(result.data, result.error);
   });
