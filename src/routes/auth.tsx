@@ -151,17 +151,20 @@ function AuthPage() {
             <form onSubmit={onSubmit} className="space-y-3">
               {mode === "signup" && (
                 <div className="space-y-1">
-                  <Label>{t("auth.name")}</Label>
+                  <Label htmlFor="display-name">{t("auth.name")}</Label>
                   <Input
+                    id="display-name"
                     value={displayName}
                     onChange={(e) => setDisplayName(e.target.value)}
                     placeholder={t("auth.name.placeholder")}
+                    autoComplete="name"
                   />
                 </div>
               )}
               <div className="space-y-1">
-                <Label>{t("auth.email")}</Label>
+                <Label htmlFor="email">{t("auth.email")}</Label>
                 <Input
+                  id="email"
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -170,8 +173,9 @@ function AuthPage() {
                 />
               </div>
               <div className="space-y-1">
-                <Label>{t("auth.password")}</Label>
+                <Label htmlFor="password">{t("auth.password")}</Label>
                 <Input
+                  id="password"
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}

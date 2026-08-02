@@ -80,12 +80,13 @@ npm run lint
 npm run test
 npm run build
 npm run security:audit
+npm run security:audit:all
 npm run test:e2e
 ```
 
-Run the main verification sequence with `npm run check`. The repository-hygiene step requires a Git checkout and rejects tracked environment files, likely secret values and workflow actions that are not pinned to a full commit SHA.
+Run the main verification sequence with `npm run check`. The repository-hygiene step requires a Git checkout and rejects tracked environment files, likely secret values and workflow actions that are not pinned to a full commit SHA. The generated-source step also ensures a production build does not leave a different TanStack route tree.
 
-For a production promotion, configure the protected GitHub `production` environment, run the **Production release readiness** workflow, and follow [`docs/GO_LIVE_RUNBOOK.md`](docs/GO_LIVE_RUNBOOK.md). The release configuration can also be checked locally with `npm run check:release-config`; it reports only pass/fail categories and never secret values.
+For a production promotion, configure the protected GitHub `production` environment, run the **Production release readiness** workflow, retain its release-evidence artifact and follow [`docs/GO_LIVE_RUNBOOK.md`](docs/GO_LIVE_RUNBOOK.md). The release configuration can also be checked locally with `npm run check:release-config`; it reports only pass/fail categories and never secret values.
 
 ## External activation required
 
@@ -93,6 +94,6 @@ The repository cannot create commercial contracts or production credentials. Bef
 
 The current repository is an installable web PWA. Separate native iOS and Android applications require their own signed app projects and store-release processes.
 
-Further information is available in [`docs/PRODUCT_RELEASE.md`](docs/PRODUCT_RELEASE.md), [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) and [`docs/PHASE_7_RELEASE.md`](docs/PHASE_7_RELEASE.md).
+Further information is available in [`docs/PRODUCT_RELEASE.md`](docs/PRODUCT_RELEASE.md), [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) and [`docs/PHASE_8_RELEASE.md`](docs/PHASE_8_RELEASE.md).
 
 Partner API consumers can use [`openapi/parkpunkt-v1.yaml`](openapi/parkpunkt-v1.yaml). Compile-oriented native starter projects and their production limitations are documented in [`native/README.md`](native/README.md) and [`docs/NATIVE_READINESS.md`](docs/NATIVE_READINESS.md).

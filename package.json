@@ -1,5 +1,6 @@
 {
-  "name": "tanstack_start_ts",
+  "name": "parkpunkt-web",
+  "version": "0.8.0",
   "private": true,
   "engines": {
     "node": ">=22 <25",
@@ -17,11 +18,14 @@
     "test": "vitest run src",
     "test:e2e": "playwright test",
     "security:audit": "npm audit --omit=dev --audit-level=high",
+    "security:audit:all": "npm audit --audit-level=high",
     "check:repo": "node scripts/check-repository-hygiene.mjs",
     "check:bundle": "node scripts/check-bundle-size.mjs",
+    "check:generated": "node scripts/check-generated-files.mjs",
     "check:migrations": "node scripts/check-migrations.mjs",
     "check:release-config": "node scripts/verify-release-config.mjs",
-    "check": "npm run check:repo && npm run typecheck && npm run lint && npm run test && npm run check:migrations && npm run build && npm run check:bundle",
+    "release:evidence": "node scripts/write-release-evidence.mjs",
+    "check": "npm run check:repo && npm run typecheck && npm run lint && npm run test && npm run check:migrations && npm run build && npm run check:generated && npm run check:bundle",
     "format": "prettier --write ."
   },
   "dependencies": {
@@ -84,6 +88,7 @@
     "zod": "^3.24.2"
   },
   "devDependencies": {
+    "@axe-core/playwright": "4.12.1",
     "@eslint/js": "^9.32.0",
     "@lovable.dev/vite-tanstack-config": "2.8.5",
     "@playwright/test": "^1.62.1",
