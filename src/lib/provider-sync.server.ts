@@ -1,6 +1,7 @@
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import type { Database } from "@/integrations/supabase/types";
 import { getAdapter } from "@/lib/providers/adapters";
+import { validateProviderSites } from "@/lib/providers/contract";
 
 type Provider = Database["public"]["Tables"]["providers"]["Row"];
 
@@ -31,7 +32,7 @@ export async function runProviderSync(
   try {
     const adapter = getAdapter(provider.slug);
     if (!adapter) throw new Error(`No adapter is configured for slug "${provider.slug}"`);
-    const upstream = await adapter.listSites();
+    const upstream = validateProviderSites(provider.slug, await adapter.listSites());
     const orgCache = new Map<string, string>();
 
     const resolveOperatorOrg = async (name: string) => {

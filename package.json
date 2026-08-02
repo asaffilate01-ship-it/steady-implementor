@@ -1,6 +1,10 @@
 {
   "name": "tanstack_start_ts",
   "private": true,
+  "engines": {
+    "node": ">=22 <25",
+    "npm": ">=10"
+  },
   "sideEffects": false,
   "type": "module",
   "scripts": {
@@ -12,7 +16,9 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run src",
     "test:e2e": "playwright test",
-    "check": "npm run typecheck && npm run lint && npm run test && npm run build",
+    "security:audit": "npm audit --omit=dev --audit-level=critical",
+    "check:bundle": "node scripts/check-bundle-size.mjs",
+    "check": "npm run typecheck && npm run lint && npm run test && npm run build && npm run check:bundle",
     "format": "prettier --write ."
   },
   "dependencies": {

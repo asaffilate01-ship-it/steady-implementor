@@ -16,6 +16,18 @@ dist-ssr
 .nitro
 *.local
 
+# Environment files. Commit only the empty template.
+.env
+.env.*
+!.env.example
+
+# Native local configuration and generated build output
+native/ios/Config.xcconfig
+native/ios/*.xcodeproj/
+native/android/local.properties
+native/android/.gradle/
+native/android/**/build/
+
 # Wrangler / Cloudflare
 .wrangler/
 .dev.vars

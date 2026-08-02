@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
-import { filterAndRankQuotes, quoteAmountCents } from "@/lib/parking-domain";
+import { filterAndRankQuotes } from "@/lib/parking-domain";
 
 const inputSchema = z.object({
   lat: z.number().min(-90).max(90),
@@ -146,30 +146,50 @@ export const Route = createFileRoute("/api/public/v1/orchestrate/quote")({
           return json({ error: error.message }, 500);
         }
 
-        const candidates = await Promise.all(
-          (sites ?? []).map(async (s) => {
-            const distance_km = haversineKm({ lat: q.lat, lng: q.lng }, { lat: s.lat, lng: s.lng });
-            const amount_cents = quoteAmountCents(s.price_cents_per_hour, q.duration_minutes);
-            const split = await calculateFeeSplit(supabaseAdmin, s.id, amount_cents);
-            return {
-              site_id: s.id,
-              name: s.name,
-              address: s.address,
-              operator: s.operator_name,
-              type: s.type,
-              distance_m: Math.round(distance_km * 1000),
-              available: Math.max(0, s.capacity - s.occupied),
-              capacity: s.capacity,
-              quote: {
-                amount_cents,
-                price_cents_per_hour: s.price_cents_per_hour,
-                currency: "EUR",
-                platform_fee_cents: split.platform_fee_cents,
-                operator_net_cents: split.operator_net_cents,
-              },
-            };
-          }),
-        );
+        let candidates;
+        try {
+          candidates = await Promise.all(
+            (sites ?? []).map(async (s) => {
+              const distance_km = haversineKm(
+                { lat: q.lat, lng: q.lng },
+                { lat: s.lat, lng: s.lng },
+              );
+              const tariff = await calculateTariffQuote(supabaseAdmin, s.id, q.duration_minutes);
+              const split = await calculateFeeSplit(supabaseAdmin, s.id, tariff.total_cents);
+              return {
+                site_id: s.id,
+                name: s.name,
+                address: s.address,
+                operator: s.operator_name,
+                type: s.type,
+                distance_m: Math.round(distance_km * 1000),
+                available: Math.max(0, s.capacity - s.occupied),
+                capacity: s.capacity,
+                quote: {
+                  amount_cents: tariff.total_cents,
+                  parking_cents: tariff.parking_cents,
+                  service_fee_cents: tariff.service_fee_cents,
+                  chargeable_minutes: tariff.chargeable_minutes,
+                  free_minutes: tariff.free_minutes,
+                  capped_by_daily_cap: tariff.capped_by_daily_cap,
+                  price_cents_per_hour: s.price_cents_per_hour,
+                  currency: "EUR",
+                  platform_fee_cents: split.platform_fee_cents,
+                  operator_net_cents: split.operator_net_cents,
+                },
+              };
+            }),
+          );
+        } catch (cause) {
+          console.error("[orchestrate.quote] tariff calculation failed", (cause as Error).message);
+          await logRequest(
+            keyRow.id,
+            "/api/public/v1/orchestrate/quote",
+            503,
+            Date.now() - started,
+          );
+          return json({ error: "Tariff service unavailable." }, 503);
+        }
 
         const sorted = filterAndRankQuotes(candidates, q.radius_m, q.max_results);
 
@@ -220,6 +240,37 @@ async function calculateFeeSplit(
   // Fallback: default 5% platform fee
   const fee = Math.round(amount_cents * 0.05);
   return { platform_fee_cents: fee, operator_net_cents: amount_cents - fee };
+}
+
+async function calculateTariffQuote(
+  admin: SupabaseClient<Database>,
+  site_id: string,
+  minutes: number,
+) {
+  const { data, error } = await admin.rpc("quote_parking_tariff", {
+    _site_id: site_id,
+    _minutes: minutes,
+    _reservation: false,
+  });
+  if (error || !data || typeof data !== "object" || Array.isArray(data)) {
+    throw new Error(error?.message ?? "Invalid tariff response");
+  }
+  const quote = data as Record<string, unknown>;
+  const number = (key: string) => {
+    const value = quote[key];
+    if (typeof value !== "number" || !Number.isFinite(value)) {
+      throw new Error(`Tariff response omitted ${key}`);
+    }
+    return value;
+  };
+  return {
+    total_cents: number("total_cents"),
+    parking_cents: number("parking_cents"),
+    service_fee_cents: number("service_fee_cents"),
+    chargeable_minutes: number("chargeable_minutes"),
+    free_minutes: typeof quote.free_minutes === "number" ? quote.free_minutes : 0,
+    capped_by_daily_cap: quote.capped_by_daily_cap === true,
+  };
 }
 
 async function logRequest(

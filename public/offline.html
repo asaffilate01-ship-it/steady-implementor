@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#16345c" />
+    <title>ParkPunkt — Offline</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+      }
+      body {
+        min-height: 100vh;
+        margin: 0;
+        display: grid;
+        place-items: center;
+        background: #f4f7fb;
+        color: #13243d;
+      }
+      main {
+        width: min(34rem, calc(100% - 2rem));
+        box-sizing: border-box;
+        padding: 2rem;
+        border: 1px solid #cfdaea;
+        border-radius: 1.5rem;
+        background: white;
+        box-shadow: 0 1rem 3rem #16345c18;
+      }
+      .mark {
+        display: grid;
+        width: 3.25rem;
+        height: 3.25rem;
+        place-items: center;
+        border-radius: 1rem;
+        background: #16345c;
+        color: white;
+        font-weight: 800;
+        font-size: 1.35rem;
+      }
+      h1 {
+        margin: 1.5rem 0 0.5rem;
+        font-size: 1.6rem;
+      }
+      p {
+        line-height: 1.6;
+        color: #52657f;
+      }
+      button {
+        margin-top: 0.75rem;
+        border: 0;
+        border-radius: 0.75rem;
+        padding: 0.8rem 1rem;
+        background: #16345c;
+        color: white;
+        font: inherit;
+        font-weight: 650;
+        cursor: pointer;
+      }
+      hr {
+        border: 0;
+        border-top: 1px solid #e3e9f2;
+        margin: 1.5rem 0;
+      }
+      @media (prefers-color-scheme: dark) {
+        body {
+          background: #081525;
+          color: #f5f8fc;
+        }
+        main {
+          background: #10233a;
+          border-color: #29425e;
+        }
+        p {
+          color: #b5c4d8;
+        }
+        hr {
+          border-color: #29425e;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <div class="mark" aria-hidden="true">P</div>
+      <h1>You’re offline</h1>
+      <p>
+        ParkPunkt needs a connection to confirm live availability, start or end parking, and process
+        payment. No transaction has been submitted from this page.
+      </p>
+      <button type="button" onclick="location.reload()">Try again</button>
+      <hr />
+      <h1 lang="de">Sie sind offline</h1>
+      <p lang="de">
+        ParkPunkt benötigt eine Verbindung, um Live-Verfügbarkeit zu bestätigen, Parkvorgänge zu
+        starten oder zu beenden und Zahlungen zu verarbeiten. Von dieser Seite wurde keine
+        Transaktion gesendet.
+      </p>
+      <button lang="de" type="button" onclick="location.reload()">Erneut versuchen</button>
+    </main>
+  </body>
+</html>

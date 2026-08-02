@@ -31,7 +31,7 @@ function fixtureOrThrow(fixture: UpstreamSite[], message: string): UpstreamSite[
 // --- Berlin DATEX II (public feed, no key) ------------------------------------
 // Berlin publishes on-street and off-street parking as a DATEX II feed via the
 // Mobilithek portal. Feed URLs rotate; this adapter uses a stable mirror when
-// available and falls back to a fixture so /admin sync always returns rows.
+// available. Fixtures are permitted only when explicitly enabled outside production.
 const BERLIN_FIXTURE: UpstreamSite[] = [
   {
     external_id: "berlin-mitte-alexa",

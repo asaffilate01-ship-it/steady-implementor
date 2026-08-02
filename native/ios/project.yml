@@ -1,0 +1,39 @@
+name: ParkPunkt
+options:
+  bundleIdPrefix: com.parkpunkt
+  deploymentTarget:
+    iOS: "17.0"
+configs:
+  Debug: debug
+  Release: release
+settings:
+  base:
+    SWIFT_VERSION: 6.0
+    DEVELOPMENT_TEAM: ""
+  configs:
+    Debug:
+      baseConfiguration: Config.xcconfig
+    Release:
+      baseConfiguration: Config.xcconfig
+targets:
+  ParkPunkt:
+    type: application
+    platform: iOS
+    sources:
+      - ParkPunkt
+    info:
+      path: ParkPunkt/Info.plist
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.parkpunkt.app
+        PRODUCT_NAME: ParkPunkt
+    scheme:
+      testTargets:
+        - ParkPunktTests
+  ParkPunktTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - ParkPunktTests
+    dependencies:
+      - target: ParkPunkt

@@ -1,0 +1,171 @@
+openapi: 3.1.0
+info:
+  title: ParkPunkt Partner API
+  version: 1.0.0
+  description: |
+    Versioned server-to-server discovery contract for contracted mobility partners.
+    Partner keys are secrets and must never be embedded in a browser or native application.
+  contact:
+    name: ParkPunkt integrations
+servers:
+  - url: https://api.parkpunkt.example
+    description: Replace with the canonical production origin
+tags:
+  - name: Operations
+  - name: Orchestration
+paths:
+  /api/public/health:
+    get:
+      tags: [Operations]
+      operationId: getLiveness
+      summary: Lightweight service liveness
+      responses:
+        "200":
+          description: The web process is serving requests
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Health"
+  /api/public/v1/orchestrate/quote:
+    post:
+      tags: [Orchestration]
+      operationId: quoteParking
+      summary: Discover and quote parking inventory
+      security:
+        - partnerKey: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/QuoteRequest"
+      responses:
+        "200":
+          description: Ranked parking quotes
+          headers:
+            x-request-id:
+              schema: { type: string }
+              description: Correlation ID to include in support requests
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QuoteResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "429":
+          description: Per-key request limit exceeded
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "503":
+          description: Inventory or tariff service is unavailable; do not display a stale price as live
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+components:
+  securitySchemes:
+    partnerKey:
+      type: http
+      scheme: bearer
+      bearerFormat: pk_…
+      description: Server-side partner key with `orchestrate:quote` scope
+  responses:
+    BadRequest:
+      description: Request validation failed
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+    Unauthorized:
+      description: Missing, invalid or revoked partner key
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+    Forbidden:
+      description: Partner key lacks the required scope
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+  schemas:
+    Health:
+      type: object
+      additionalProperties: false
+      required: [status, service, checkedAt]
+      properties:
+        status: { type: string, const: ok }
+        service: { type: string, const: parkpunkt-web }
+        checkedAt: { type: string, format: date-time }
+    QuoteRequest:
+      type: object
+      additionalProperties: false
+      required: [lat, lng]
+      properties:
+        lat: { type: number, minimum: -90, maximum: 90 }
+        lng: { type: number, minimum: -180, maximum: 180 }
+        duration_minutes: { type: integer, minimum: 5, maximum: 1440, default: 60 }
+        radius_m: { type: integer, minimum: 50, maximum: 50000, default: 5000 }
+        max_results: { type: integer, minimum: 1, maximum: 50, default: 10 }
+    QuoteResponse:
+      type: object
+      additionalProperties: false
+      required: [query, count, results]
+      properties:
+        query: { $ref: "#/components/schemas/QuoteRequest" }
+        count: { type: integer, minimum: 0 }
+        results:
+          type: array
+          items: { $ref: "#/components/schemas/ParkingResult" }
+    ParkingResult:
+      type: object
+      additionalProperties: false
+      required: [site_id, name, address, type, distance_m, available, capacity, quote]
+      properties:
+        site_id: { type: string, format: uuid }
+        name: { type: string }
+        address: { type: string }
+        operator: { type: [string, "null"] }
+        type: { type: string, enum: [street, garage, lot] }
+        distance_m: { type: integer, minimum: 0 }
+        available: { type: integer, minimum: 0 }
+        capacity: { type: integer, minimum: 1 }
+        quote: { $ref: "#/components/schemas/TariffQuote" }
+    TariffQuote:
+      type: object
+      additionalProperties: false
+      required:
+        - amount_cents
+        - parking_cents
+        - service_fee_cents
+        - chargeable_minutes
+        - free_minutes
+        - capped_by_daily_cap
+        - price_cents_per_hour
+        - currency
+        - platform_fee_cents
+        - operator_net_cents
+      properties:
+        amount_cents: { type: integer, minimum: 0 }
+        parking_cents: { type: integer, minimum: 0 }
+        service_fee_cents: { type: integer, minimum: 0 }
+        chargeable_minutes: { type: integer, minimum: 0 }
+        free_minutes: { type: integer, minimum: 0 }
+        capped_by_daily_cap: { type: boolean }
+        price_cents_per_hour: { type: integer, minimum: 0 }
+        currency: { type: string, const: EUR }
+        platform_fee_cents:
+          type: integer
+          minimum: 0
+          description: Settlement allocation; already included in `amount_cents`
+        operator_net_cents:
+          type: integer
+          minimum: 0
+          description: Settlement allocation; already included in `amount_cents`
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error: { type: string }
+        details: { type: object, additionalProperties: true }

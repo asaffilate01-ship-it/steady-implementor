@@ -17,14 +17,28 @@ import {
   X,
   Home,
   BookOpen,
+  BriefcaseBusiness,
   type LucideIcon,
 } from "lucide-react";
 import type { AppRole } from "@/lib/auth.functions";
 import { LangToggle, useI18n } from "@/lib/i18n";
+import { FEATURES } from "@/lib/feature-flags";
 
-type NavItem = { to: string; labelKey: string; roles?: AppRole[]; icon: LucideIcon };
+type NavItem = {
+  to: string;
+  labelKey: string;
+  roles?: AppRole[];
+  icon: LucideIcon;
+  enabled?: boolean;
+};
 const NAV: NavItem[] = [
   { to: "/drive", labelKey: "nav.driver", icon: Car },
+  {
+    to: "/fleet",
+    labelKey: "nav.fleet",
+    icon: BriefcaseBusiness,
+    enabled: FEATURES.fleetWorkspace,
+  },
   { to: "/operator", labelKey: "nav.operator", roles: ["operator", "admin"], icon: Building2 },
   { to: "/provider", labelKey: "nav.provider", roles: ["provider", "admin"], icon: Radio },
   { to: "/enforcement", labelKey: "nav.enforcement", roles: ["enforcement", "admin"], icon: Radar },
@@ -55,7 +69,7 @@ export function AppShell({ children, anchors }: { children: ReactNode; anchors?:
   }
 
   const visibleNav = user
-    ? NAV.filter((n) => !n.roles || hasRole(rolesData?.roles, ...n.roles))
+    ? NAV.filter((n) => n.enabled !== false && (!n.roles || hasRole(rolesData?.roles, ...n.roles)))
     : [];
 
   const showWorkspace = visibleNav.length > 0;

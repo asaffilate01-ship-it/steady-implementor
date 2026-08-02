@@ -26,6 +26,22 @@ test("trusted API routes reject unsigned requests", async ({ request }) => {
 
   const webhook = await request.post("/api/public/webhooks/stripe", { data: {} });
   expect(webhook.status()).toBe(400);
+
+  const readiness = await request.get("/api/public/readiness");
+  expect(readiness.status()).toBe(401);
+});
+
+test("liveness stays lightweight and responses include browser defenses", async ({ request }) => {
+  const health = await request.get("/api/public/health", {
+    headers: { "x-request-id": "playwright-health-123" },
+  });
+  expect(health.status()).toBe(200);
+  expect(health.headers()["cache-control"]).toBe("no-store");
+  expect(health.headers()["x-request-id"]).toBe("playwright-health-123");
+  expect(health.headers()["x-content-type-options"]).toBe("nosniff");
+  expect(health.headers()["x-frame-options"]).toBe("DENY");
+  expect(health.headers()["content-security-policy"]).toContain("frame-ancestors 'none'");
+  expect(await health.json()).toMatchObject({ status: "ok", service: "parkpunkt-web" });
 });
 
 test("the mobile authentication layout has no horizontal overflow", async ({ page }) => {

@@ -23,9 +23,12 @@ import { Route as LegalComplaintsRouteImport } from './routes/legal/complaints'
 import { Route as BlogSlugRouteImport } from './routes/blog/$slug'
 import { Route as AuthenticatedProviderRouteImport } from './routes/_authenticated/provider'
 import { Route as AuthenticatedOperatorRouteImport } from './routes/_authenticated/operator'
+import { Route as AuthenticatedFleetRouteImport } from './routes/_authenticated/fleet'
 import { Route as AuthenticatedEnforcementRouteImport } from './routes/_authenticated/enforcement'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
+import { Route as ApiPublicReadinessRouteImport } from './routes/api/public/readiness'
 import { Route as ApiPublicHealthRouteImport } from './routes/api/public/health'
+import { Route as ApiPublicWebhooksStripeRouteImport } from './routes/api/public/webhooks/stripe'
 import { Route as ApiPublicCronSyncProvidersRouteImport } from './routes/api/public/cron/sync-providers'
 import { Route as ApiPublicCronDispatchNotificationsRouteImport } from './routes/api/public/cron/dispatch-notifications'
 import { Route as ApiPublicV1OrchestrateQuoteRouteImport } from './routes/api/public/v1/orchestrate/quote'
@@ -99,6 +102,11 @@ const AuthenticatedOperatorRoute = AuthenticatedOperatorRouteImport.update({
   path: '/operator',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedFleetRoute = AuthenticatedFleetRouteImport.update({
+  id: '/fleet',
+  path: '/fleet',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedEnforcementRoute =
   AuthenticatedEnforcementRouteImport.update({
     id: '/enforcement',
@@ -110,9 +118,19 @@ const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   path: '/admin',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const ApiPublicReadinessRoute = ApiPublicReadinessRouteImport.update({
+  id: '/api/public/readiness',
+  path: '/api/public/readiness',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicHealthRoute = ApiPublicHealthRouteImport.update({
   id: '/api/public/health',
   path: '/api/public/health',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicWebhooksStripeRoute = ApiPublicWebhooksStripeRouteImport.update({
+  id: '/api/public/webhooks/stripe',
+  path: '/api/public/webhooks/stripe',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicCronSyncProvidersRoute =
@@ -140,6 +158,7 @@ export interface FileRoutesByFullPath {
   '/drive': typeof DriveRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/enforcement': typeof AuthenticatedEnforcementRoute
+  '/fleet': typeof AuthenticatedFleetRoute
   '/operator': typeof AuthenticatedOperatorRoute
   '/provider': typeof AuthenticatedProviderRoute
   '/blog/$slug': typeof BlogSlugRoute
@@ -151,8 +170,10 @@ export interface FileRoutesByFullPath {
   '/legal/terms': typeof LegalTermsRoute
   '/blog/': typeof BlogIndexRoute
   '/api/public/health': typeof ApiPublicHealthRoute
+  '/api/public/readiness': typeof ApiPublicReadinessRoute
   '/api/public/cron/dispatch-notifications': typeof ApiPublicCronDispatchNotificationsRoute
   '/api/public/cron/sync-providers': typeof ApiPublicCronSyncProvidersRoute
+  '/api/public/webhooks/stripe': typeof ApiPublicWebhooksStripeRoute
   '/api/public/v1/orchestrate/quote': typeof ApiPublicV1OrchestrateQuoteRoute
 }
 export interface FileRoutesByTo {
@@ -161,6 +182,7 @@ export interface FileRoutesByTo {
   '/drive': typeof DriveRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/enforcement': typeof AuthenticatedEnforcementRoute
+  '/fleet': typeof AuthenticatedFleetRoute
   '/operator': typeof AuthenticatedOperatorRoute
   '/provider': typeof AuthenticatedProviderRoute
   '/blog/$slug': typeof BlogSlugRoute
@@ -172,8 +194,10 @@ export interface FileRoutesByTo {
   '/legal/terms': typeof LegalTermsRoute
   '/blog': typeof BlogIndexRoute
   '/api/public/health': typeof ApiPublicHealthRoute
+  '/api/public/readiness': typeof ApiPublicReadinessRoute
   '/api/public/cron/dispatch-notifications': typeof ApiPublicCronDispatchNotificationsRoute
   '/api/public/cron/sync-providers': typeof ApiPublicCronSyncProvidersRoute
+  '/api/public/webhooks/stripe': typeof ApiPublicWebhooksStripeRoute
   '/api/public/v1/orchestrate/quote': typeof ApiPublicV1OrchestrateQuoteRoute
 }
 export interface FileRoutesById {
@@ -184,6 +208,7 @@ export interface FileRoutesById {
   '/drive': typeof DriveRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/enforcement': typeof AuthenticatedEnforcementRoute
+  '/_authenticated/fleet': typeof AuthenticatedFleetRoute
   '/_authenticated/operator': typeof AuthenticatedOperatorRoute
   '/_authenticated/provider': typeof AuthenticatedProviderRoute
   '/blog/$slug': typeof BlogSlugRoute
@@ -195,8 +220,10 @@ export interface FileRoutesById {
   '/legal/terms': typeof LegalTermsRoute
   '/blog/': typeof BlogIndexRoute
   '/api/public/health': typeof ApiPublicHealthRoute
+  '/api/public/readiness': typeof ApiPublicReadinessRoute
   '/api/public/cron/dispatch-notifications': typeof ApiPublicCronDispatchNotificationsRoute
   '/api/public/cron/sync-providers': typeof ApiPublicCronSyncProvidersRoute
+  '/api/public/webhooks/stripe': typeof ApiPublicWebhooksStripeRoute
   '/api/public/v1/orchestrate/quote': typeof ApiPublicV1OrchestrateQuoteRoute
 }
 export interface FileRouteTypes {
@@ -207,6 +234,7 @@ export interface FileRouteTypes {
     | '/drive'
     | '/admin'
     | '/enforcement'
+    | '/fleet'
     | '/operator'
     | '/provider'
     | '/blog/$slug'
@@ -218,8 +246,10 @@ export interface FileRouteTypes {
     | '/legal/terms'
     | '/blog/'
     | '/api/public/health'
+    | '/api/public/readiness'
     | '/api/public/cron/dispatch-notifications'
     | '/api/public/cron/sync-providers'
+    | '/api/public/webhooks/stripe'
     | '/api/public/v1/orchestrate/quote'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -228,6 +258,7 @@ export interface FileRouteTypes {
     | '/drive'
     | '/admin'
     | '/enforcement'
+    | '/fleet'
     | '/operator'
     | '/provider'
     | '/blog/$slug'
@@ -239,8 +270,10 @@ export interface FileRouteTypes {
     | '/legal/terms'
     | '/blog'
     | '/api/public/health'
+    | '/api/public/readiness'
     | '/api/public/cron/dispatch-notifications'
     | '/api/public/cron/sync-providers'
+    | '/api/public/webhooks/stripe'
     | '/api/public/v1/orchestrate/quote'
   id:
     | '__root__'
@@ -250,6 +283,7 @@ export interface FileRouteTypes {
     | '/drive'
     | '/_authenticated/admin'
     | '/_authenticated/enforcement'
+    | '/_authenticated/fleet'
     | '/_authenticated/operator'
     | '/_authenticated/provider'
     | '/blog/$slug'
@@ -261,8 +295,10 @@ export interface FileRouteTypes {
     | '/legal/terms'
     | '/blog/'
     | '/api/public/health'
+    | '/api/public/readiness'
     | '/api/public/cron/dispatch-notifications'
     | '/api/public/cron/sync-providers'
+    | '/api/public/webhooks/stripe'
     | '/api/public/v1/orchestrate/quote'
   fileRoutesById: FileRoutesById
 }
@@ -280,8 +316,10 @@ export interface RootRouteChildren {
   LegalTermsRoute: typeof LegalTermsRoute
   BlogIndexRoute: typeof BlogIndexRoute
   ApiPublicHealthRoute: typeof ApiPublicHealthRoute
+  ApiPublicReadinessRoute: typeof ApiPublicReadinessRoute
   ApiPublicCronDispatchNotificationsRoute: typeof ApiPublicCronDispatchNotificationsRoute
   ApiPublicCronSyncProvidersRoute: typeof ApiPublicCronSyncProvidersRoute
+  ApiPublicWebhooksStripeRoute: typeof ApiPublicWebhooksStripeRoute
   ApiPublicV1OrchestrateQuoteRoute: typeof ApiPublicV1OrchestrateQuoteRoute
 }
 
@@ -385,6 +423,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedOperatorRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/fleet': {
+      id: '/_authenticated/fleet'
+      path: '/fleet'
+      fullPath: '/fleet'
+      preLoaderRoute: typeof AuthenticatedFleetRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/enforcement': {
       id: '/_authenticated/enforcement'
       path: '/enforcement'
@@ -399,11 +444,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/public/readiness': {
+      id: '/api/public/readiness'
+      path: '/api/public/readiness'
+      fullPath: '/api/public/readiness'
+      preLoaderRoute: typeof ApiPublicReadinessRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/health': {
       id: '/api/public/health'
       path: '/api/public/health'
       fullPath: '/api/public/health'
       preLoaderRoute: typeof ApiPublicHealthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/webhooks/stripe': {
+      id: '/api/public/webhooks/stripe'
+      path: '/api/public/webhooks/stripe'
+      fullPath: '/api/public/webhooks/stripe'
+      preLoaderRoute: typeof ApiPublicWebhooksStripeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/cron/sync-providers': {
@@ -433,6 +492,7 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
   AuthenticatedEnforcementRoute: typeof AuthenticatedEnforcementRoute
+  AuthenticatedFleetRoute: typeof AuthenticatedFleetRoute
   AuthenticatedOperatorRoute: typeof AuthenticatedOperatorRoute
   AuthenticatedProviderRoute: typeof AuthenticatedProviderRoute
 }
@@ -440,6 +500,7 @@ interface AuthenticatedRouteRouteChildren {
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRoute,
   AuthenticatedEnforcementRoute: AuthenticatedEnforcementRoute,
+  AuthenticatedFleetRoute: AuthenticatedFleetRoute,
   AuthenticatedOperatorRoute: AuthenticatedOperatorRoute,
   AuthenticatedProviderRoute: AuthenticatedProviderRoute,
 }
@@ -461,21 +522,13 @@ const rootRouteChildren: RootRouteChildren = {
   LegalTermsRoute: LegalTermsRoute,
   BlogIndexRoute: BlogIndexRoute,
   ApiPublicHealthRoute: ApiPublicHealthRoute,
+  ApiPublicReadinessRoute: ApiPublicReadinessRoute,
   ApiPublicCronDispatchNotificationsRoute:
     ApiPublicCronDispatchNotificationsRoute,
   ApiPublicCronSyncProvidersRoute: ApiPublicCronSyncProvidersRoute,
+  ApiPublicWebhooksStripeRoute: ApiPublicWebhooksStripeRoute,
   ApiPublicV1OrchestrateQuoteRoute: ApiPublicV1OrchestrateQuoteRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

@@ -2,6 +2,7 @@ import "./lib/error-capture";
 
 import { consumeLastCapturedError } from "./lib/error-capture";
 import { renderErrorPage } from "./lib/error-page";
+import { applySecurityHeaders, resolveRequestId } from "./lib/security-headers";
 
 type ServerEntry = {
   fetch: (request: Request, env: unknown, ctx: unknown) => Promise<Response> | Response;
@@ -46,16 +47,43 @@ function isH3SwallowedErrorBody(body: string): boolean {
 
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
+    const requestId = resolveRequestId(request);
+    const startedAt = Date.now();
+    let response: Response;
     try {
       const handler = await getServerEntry();
-      const response = await handler.fetch(request, env, ctx);
-      return await normalizeCatastrophicSsrResponse(response);
+      response = await normalizeCatastrophicSsrResponse(await handler.fetch(request, env, ctx));
     } catch (error) {
-      console.error(error);
-      return new Response(renderErrorPage(), {
+      console.error(
+        JSON.stringify({
+          level: "error",
+          event: "request.failed",
+          requestId,
+          method: request.method,
+          path: new URL(request.url).pathname,
+          error: error instanceof Error ? error.message : "Unknown error",
+        }),
+      );
+      response = new Response(renderErrorPage(), {
         status: 500,
         headers: { "content-type": "text/html; charset=utf-8" },
       });
     }
+    const secured = applySecurityHeaders(response, request, requestId, {
+      production: process.env.NODE_ENV === "production",
+      supabaseUrl: process.env.SUPABASE_URL ?? process.env.VITE_SUPABASE_URL,
+    });
+    console.info(
+      JSON.stringify({
+        level: "info",
+        event: "request.completed",
+        requestId,
+        method: request.method,
+        path: new URL(request.url).pathname,
+        status: secured.status,
+        durationMs: Date.now() - startedAt,
+      }),
+    );
+    return secured;
   },
 };

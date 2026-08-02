@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">ParkPunkt</string>
+    <string name="location_permission">ParkPunkt uses your location only when you ask to find nearby parking.</string>
+</resources>

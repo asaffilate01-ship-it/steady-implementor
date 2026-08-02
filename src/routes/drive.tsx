@@ -25,6 +25,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { PaymentCheckoutDialog } from "@/components/PaymentCheckoutDialog";
+import { SmartParkingMap, type ParkingMapSite } from "@/components/SmartParkingMap";
 import {
   euros,
   haversineKm,
@@ -48,6 +49,9 @@ import {
   type Site,
   type Session,
 } from "@/lib/parkpunkt-db";
+import { useTariffPlans } from "@/lib/product-db";
+import { computeTariffQuote } from "@/lib/product-domain";
+import { FEATURES } from "@/lib/feature-flags";
 import {
   MapPin,
   Search,
@@ -72,6 +76,13 @@ import {
   Bell,
   Gavel,
   Loader2,
+  List,
+  Map,
+  SlidersHorizontal,
+  Accessibility,
+  BatteryCharging,
+  CircleParking,
+  Info,
 } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { toast } from "sonner";
@@ -171,7 +182,11 @@ function DriverApp() {
 
   return (
     <AppShell>
-      <div className="mx-auto max-w-3xl px-4 py-6">
+      <div
+        className={`mx-auto px-4 py-6 transition-[max-width] ${
+          screen.name === "results" ? "max-w-7xl" : "max-w-3xl"
+        }`}
+      >
         <DriveStepper current={screen.name} />
         {screen.name === "search" && (
           <SearchScreen
@@ -304,19 +319,21 @@ function SearchScreen({
         </div>
         <Zap className="h-5 w-5 text-accent transition-transform group-hover:translate-x-1" />
       </button>
-      <button
-        onClick={onScan}
-        className="group relative flex w-full items-center gap-4 overflow-hidden rounded-xl border border-primary/40 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent p-5 text-left transition hover:border-primary hover:shadow-[var(--shadow-soft)]"
-      >
-        <div className="grid h-12 w-12 shrink-0 place-items-center rounded-lg bg-primary text-primary-foreground">
-          <ScanLine className="h-6 w-6" />
-        </div>
-        <div className="flex-1">
-          <div className="text-base font-semibold">{t("drive.scan.cta")}</div>
-          <div className="text-xs text-muted-foreground">{t("drive.scan.ctaSub")}</div>
-        </div>
-        <Ticket className="h-5 w-5 text-primary transition-transform group-hover:translate-x-1" />
-      </button>
+      {FEATURES.ticketScanner && (
+        <button
+          onClick={onScan}
+          className="group relative flex w-full items-center gap-4 overflow-hidden rounded-xl border border-primary/40 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent p-5 text-left transition hover:border-primary hover:shadow-[var(--shadow-soft)]"
+        >
+          <div className="grid h-12 w-12 shrink-0 place-items-center rounded-lg bg-primary text-primary-foreground">
+            <ScanLine className="h-6 w-6" />
+          </div>
+          <div className="flex-1">
+            <div className="text-base font-semibold">{t("drive.scan.cta")}</div>
+            <div className="text-xs text-muted-foreground">{t("drive.scan.ctaSub")}</div>
+          </div>
+          <Ticket className="h-5 w-5 text-primary transition-transform group-hover:translate-x-1" />
+        </button>
+      )}
       {active && (
         <Card
           className="cursor-pointer border-accent/50 bg-accent/5"
@@ -679,6 +696,9 @@ function ResultsScreen({
 }) {
   const { data: sites = [], isLoading } = useSites();
   const [sort, setSort] = useState("smart");
+  const [view, setView] = useState<"map" | "list">(FEATURES.smartMap ? "map" : "list");
+  const [selectedId, setSelectedId] = useState<string>();
+  const [filters, setFilters] = useState({ available: false, electric: false, accessible: false });
   const { t } = useI18n();
   const enriched = useMemo(
     () =>
@@ -689,8 +709,20 @@ function ResultsScreen({
       })),
     [sites, where],
   );
+  const filtered = useMemo(
+    () =>
+      enriched.filter((site) => {
+        const amenities = site.amenities.join(" ").toLowerCase();
+        if (filters.available && site.free <= 0) return false;
+        if (filters.electric && !/(ev|charge|laden)/i.test(amenities)) return false;
+        if (filters.accessible && !/(accessible|disabled|barrier.free|rollstuhl)/i.test(amenities))
+          return false;
+        return true;
+      }),
+    [enriched, filters],
+  );
   const sorted = useMemo(() => {
-    const arr = [...enriched];
+    const arr = [...filtered];
     if (sort === "price") arr.sort((a, b) => a.price_cents_per_hour - b.price_cents_per_hour);
     else if (sort === "distance") arr.sort((a, b) => a.distanceKm - b.distanceKm);
     else
@@ -702,47 +734,234 @@ function ResultsScreen({
           (b.distanceKm * 0.4 + (b.price_cents_per_hour / 100) * 0.4 + (b.free < 5 ? 5 : 0)),
       );
     return arr;
-  }, [enriched, sort]);
+  }, [filtered, sort]);
+
+  useEffect(() => {
+    if (sorted.length === 0) {
+      setSelectedId(undefined);
+      return;
+    }
+    if (!selectedId || !sorted.some((site) => site.id === selectedId)) setSelectedId(sorted[0].id);
+  }, [selectedId, sorted]);
+
+  const selected = sorted.find((site) => site.id === selectedId) ?? sorted[0];
+  const activeFilterCount = Object.values(filters).filter(Boolean).length;
+  const toggleFilter = (key: keyof typeof filters) =>
+    setFilters((current) => ({ ...current, [key]: !current[key] }));
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-3">
+      <div className="flex flex-wrap items-center gap-3">
         <Button variant="ghost" size="sm" onClick={onBack}>
           <ArrowLeft className="mr-1 h-4 w-4" />
           {t("common.back")}
         </Button>
         <div>
           <div className="text-sm text-muted-foreground">{t("drive.resultsNear")}</div>
-          <div className="font-medium">{query}</div>
+          <div className="font-medium">
+            {query} <span className="text-muted-foreground">· {sorted.length}</span>
+          </div>
         </div>
-        <div className="ml-auto w-40">
-          <Select value={sort} onValueChange={setSort}>
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="smart">{t("drive.sort.smart")}</SelectItem>
-              <SelectItem value="price">{t("drive.sort.price")}</SelectItem>
-              <SelectItem value="distance">{t("drive.sort.distance")}</SelectItem>
-            </SelectContent>
-          </Select>
+        <div className="ml-auto flex items-center gap-2">
+          {FEATURES.smartMap && (
+            <div className="inline-flex rounded-lg border border-border bg-background p-1 lg:hidden">
+              <Button
+                type="button"
+                size="sm"
+                variant={view === "map" ? "secondary" : "ghost"}
+                className="h-8 px-2.5"
+                aria-pressed={view === "map"}
+                onClick={() => setView("map")}
+              >
+                <Map className="mr-1 h-3.5 w-3.5" /> {t("drive.view.map")}
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant={view === "list" ? "secondary" : "ghost"}
+                className="h-8 px-2.5"
+                aria-pressed={view === "list"}
+                onClick={() => setView("list")}
+              >
+                <List className="mr-1 h-3.5 w-3.5" /> {t("drive.view.list")}
+              </Button>
+            </div>
+          )}
+          <div className="w-40">
+            <Select value={sort} onValueChange={setSort}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="smart">{t("drive.sort.smart")}</SelectItem>
+                <SelectItem value="price">{t("drive.sort.price")}</SelectItem>
+                <SelectItem value="distance">{t("drive.sort.distance")}</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       </div>
-      <div className="grid gap-3">
-        {isLoading && <div className="text-sm text-muted-foreground">…</div>}
-        {sorted.map((s) => (
-          <ResultRow key={s.id} site={s} onSelect={() => onSelect(s.id)} />
-        ))}
+
+      <div className="flex gap-2 overflow-x-auto pb-1" aria-label={t("drive.filters")}>
+        <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-border bg-secondary/40 px-3 py-1.5 text-xs font-medium text-muted-foreground">
+          <SlidersHorizontal className="h-3.5 w-3.5" />
+          {t("drive.filters")}
+          {activeFilterCount > 0 && (
+            <span className="grid h-4 min-w-4 place-items-center rounded-full bg-primary px-1 text-[10px] text-primary-foreground">
+              {activeFilterCount}
+            </span>
+          )}
+        </span>
+        <FilterChip
+          active={filters.available}
+          onClick={() => toggleFilter("available")}
+          icon={<CircleParking className="h-3.5 w-3.5" />}
+          label={t("drive.filter.available")}
+        />
+        <FilterChip
+          active={filters.electric}
+          onClick={() => toggleFilter("electric")}
+          icon={<BatteryCharging className="h-3.5 w-3.5" />}
+          label={t("drive.filter.ev")}
+        />
+        <FilterChip
+          active={filters.accessible}
+          onClick={() => toggleFilter("accessible")}
+          icon={<Accessibility className="h-3.5 w-3.5" />}
+          label={t("drive.filter.accessible")}
+        />
+        {activeFilterCount > 0 && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="h-8 shrink-0 rounded-full text-xs"
+            onClick={() => setFilters({ available: false, electric: false, accessible: false })}
+          >
+            {t("drive.filter.clear")}
+          </Button>
+        )}
+      </div>
+
+      <div
+        className={`grid gap-4 ${FEATURES.smartMap ? "lg:grid-cols-[minmax(0,1.15fr)_minmax(22rem,.85fr)]" : "mx-auto max-w-3xl"}`}
+      >
+        {FEATURES.smartMap && (
+          <div className={view === "map" ? "block" : "hidden lg:block"}>
+            <div className="lg:sticky lg:top-28">
+              <SmartParkingMap
+                sites={sorted as ParkingMapSite[]}
+                selectedId={selected?.id}
+                destination={query}
+                onSelect={setSelectedId}
+                labels={{
+                  mapLabel: t("drive.map.label"),
+                  destinationLabel: t("drive.destination"),
+                  free: t("common.free"),
+                  perHour: t("drive.perHour"),
+                  noResults: t("drive.noResults"),
+                }}
+              />
+              {selected && (
+                <div className="mt-3 rounded-xl border border-border bg-card p-3 shadow-sm lg:hidden">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="truncate font-semibold">{selected.name}</p>
+                      <p className="truncate text-xs text-muted-foreground">{selected.address}</p>
+                    </div>
+                    <p className="shrink-0 font-semibold">
+                      {euros(selected.price_cents_per_hour)}
+                      <span className="text-xs font-normal text-muted-foreground">/h</span>
+                    </p>
+                  </div>
+                  <Button className="mt-3 w-full" onClick={() => onSelect(selected.id)}>
+                    {t("drive.viewDetails")}
+                  </Button>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        <section
+          aria-live="polite"
+          className={!FEATURES.smartMap || view === "list" ? "block" : "hidden lg:block"}
+          aria-label={t("drive.view.list")}
+        >
+          <div className="space-y-3 lg:max-h-[calc(100vh-12rem)] lg:overflow-y-auto lg:pr-1">
+            {isLoading && (
+              <div className="rounded-xl border border-border p-6 text-sm text-muted-foreground">
+                {t("common.loading")}
+              </div>
+            )}
+            {!isLoading && sorted.length === 0 && (
+              <div className="rounded-xl border border-dashed border-border p-8 text-center">
+                <MapPin className="mx-auto h-6 w-6 text-muted-foreground" />
+                <p className="mt-2 text-sm font-medium">{t("drive.noResults")}</p>
+                <Button
+                  variant="link"
+                  size="sm"
+                  onClick={() =>
+                    setFilters({ available: false, electric: false, accessible: false })
+                  }
+                >
+                  {t("drive.filter.clear")}
+                </Button>
+              </div>
+            )}
+            {sorted.map((site) => (
+              <ResultRow
+                key={site.id}
+                site={site}
+                selected={site.id === selected?.id}
+                onPreview={() => setSelectedId(site.id)}
+                onSelect={() => onSelect(site.id)}
+              />
+            ))}
+          </div>
+        </section>
       </div>
     </div>
   );
 }
 
+function FilterChip({
+  active,
+  onClick,
+  icon,
+  label,
+}: {
+  active: boolean;
+  onClick: () => void;
+  icon: React.ReactNode;
+  label: string;
+}) {
+  return (
+    <button
+      type="button"
+      aria-pressed={active}
+      onClick={onClick}
+      className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+        active
+          ? "border-primary bg-primary text-primary-foreground"
+          : "border-border bg-background text-muted-foreground hover:border-primary/50 hover:text-foreground"
+      }`}
+    >
+      {icon}
+      {label}
+    </button>
+  );
+}
+
 function ResultRow({
   site,
+  selected,
+  onPreview,
   onSelect,
 }: {
   site: Site & { distanceKm: number; free: number };
+  selected: boolean;
+  onPreview: () => void;
   onSelect: () => void;
 }) {
   const { t } = useI18n();
@@ -759,45 +978,68 @@ function ResultRow({
       : site.free < 20
         ? "bg-yellow-500/90 text-white"
         : "bg-accent text-accent-foreground";
+  const ageMinutes = Math.max(
+    0,
+    Math.round((Date.now() - new Date(site.updated_at).getTime()) / 60000),
+  );
+  const fresh = ageMinutes <= 15;
   return (
-    <Card
-      className="cursor-pointer transition hover:shadow-[var(--shadow-soft)]"
+    <button
+      type="button"
+      className="block w-full rounded-xl text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
       onClick={onSelect}
+      onMouseEnter={onPreview}
+      onFocus={onPreview}
+      aria-label={`${site.name}, ${euros(site.price_cents_per_hour)} per hour`}
     >
-      <CardContent className="flex flex-col items-stretch gap-3 p-4 sm:flex-row sm:items-center sm:gap-4">
-        <div className="grid h-12 w-12 place-items-center rounded-lg bg-primary/10 text-primary">
-          <MapPin className="h-5 w-5" />
-        </div>
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
-            <div className="truncate font-medium">{site.name}</div>
-            <Badge className={badgeCls}>{badge}</Badge>
+      <Card
+        className={`transition duration-200 hover:-translate-y-0.5 hover:shadow-[var(--shadow-soft)] ${
+          selected ? "border-primary/60 bg-primary/[0.035] shadow-[var(--shadow-soft)]" : ""
+        }`}
+      >
+        <CardContent className="flex flex-col items-stretch gap-3 p-4 sm:flex-row sm:items-center sm:gap-4">
+          <div className="grid h-12 w-12 place-items-center rounded-lg bg-primary/10 text-primary">
+            <MapPin className="h-5 w-5" />
           </div>
-          <div className="truncate text-xs text-muted-foreground">
-            {site.address} · {site.distanceKm.toFixed(1)} km · {site.operator_name ?? "—"}
-          </div>
-          <div className="mt-1 flex flex-wrap gap-1">
-            {site.amenities.map((a) => (
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2">
+              <div className="truncate font-medium">{site.name}</div>
+              <Badge className={badgeCls}>{badge}</Badge>
+            </div>
+            <div className="truncate text-xs text-muted-foreground">
+              {site.address} · {site.distanceKm.toFixed(1)} km · {site.operator_name ?? "—"}
+            </div>
+            <div
+              className={`mt-1.5 flex items-center gap-1 text-[11px] ${fresh ? "text-accent" : "text-muted-foreground"}`}
+            >
               <span
-                key={a}
-                className="rounded bg-secondary px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-muted-foreground"
-              >
-                {a}
-              </span>
-            ))}
+                className={`h-1.5 w-1.5 rounded-full ${fresh ? "bg-accent" : "bg-muted-foreground"}`}
+              />
+              {fresh ? t("drive.data.live") : `${t("drive.data.updated")} ${ageMinutes} min`}
+            </div>
+            <div className="mt-1 flex flex-wrap gap-1">
+              {site.amenities.map((a) => (
+                <span
+                  key={a}
+                  className="rounded bg-secondary px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-muted-foreground"
+                >
+                  {a}
+                </span>
+              ))}
+            </div>
           </div>
-        </div>
-        <div className="flex items-end justify-between border-t border-border/60 pt-3 text-left sm:block sm:border-0 sm:pt-0 sm:text-right">
-          <div className="text-lg font-semibold">
-            {euros(site.price_cents_per_hour)}
-            <span className="text-xs font-normal text-muted-foreground">/h</span>
+          <div className="flex items-end justify-between border-t border-border/60 pt-3 text-left sm:block sm:border-0 sm:pt-0 sm:text-right">
+            <div className="text-lg font-semibold">
+              {euros(site.price_cents_per_hour)}
+              <span className="text-xs font-normal text-muted-foreground">/h</span>
+            </div>
+            <div className="text-xs text-muted-foreground">
+              {site.free} {t("common.free")} · {pct}% {t("common.full")}
+            </div>
           </div>
-          <div className="text-xs text-muted-foreground">
-            {site.free} {t("common.free")} · {pct}% {t("common.full")}
-          </div>
-        </div>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+    </button>
   );
 }
 
@@ -812,6 +1054,7 @@ function DetailScreen({
 }) {
   const { data: sites = [] } = useSites();
   const site = sites.find((x) => x.id === siteId);
+  const { data: tariffPlans = [] } = useTariffPlans();
   const { data: profile } = useMyProfile();
   const plate = profile?.plate ?? "";
   const pm = profile?.payment_method ?? "";
@@ -819,7 +1062,20 @@ function DetailScreen({
   const { t } = useI18n();
   const start = useStartSession();
   if (!site) return <div className="text-sm text-muted-foreground">…</div>;
-  const total = (site.price_cents_per_hour * minutes) / 60 / 100;
+  const tariff = tariffPlans.find((plan) => plan.site_id === site.id);
+  const quote = computeTariffQuote(
+    {
+      price_cents_per_hour: site.price_cents_per_hour,
+      free_minutes: tariff?.free_minutes ?? 0,
+      minimum_charge_cents: tariff?.minimum_charge_cents ?? 0,
+      service_fee_cents: tariff?.service_fee_cents ?? 0,
+      reservation_fee_cents: tariff?.reservation_fee_cents ?? 0,
+      daily_cap_cents: tariff?.daily_cap_cents ?? null,
+      max_stay_minutes: tariff?.max_stay_minutes ?? null,
+    },
+    minutes,
+  );
+  const totalCents = quote.totalCents;
   const signedIn = !!profile;
 
   return (
@@ -839,6 +1095,15 @@ function DetailScreen({
           <div className="text-sm text-muted-foreground">
             {site.address} — {t("drive.operatedBy")} {site.operator_name ?? "—"}
           </div>
+          {site.amenities.length > 0 && (
+            <div className="flex flex-wrap gap-1.5">
+              {site.amenities.map((amenity) => (
+                <Badge key={amenity} variant="secondary" className="font-normal">
+                  {amenity}
+                </Badge>
+              ))}
+            </div>
+          )}
           <div className="grid gap-2 text-sm sm:grid-cols-3">
             <Stat label={t("drive.capacity")} value={String(site.capacity)} />
             <Stat label={t("drive.freeNow")} value={String(site.capacity - site.occupied)} />
@@ -855,7 +1120,40 @@ function DetailScreen({
               step={15}
               value={[minutes]}
               onValueChange={(v) => setMinutes(v[0])}
+              aria-label={t("drive.duration")}
             />
+          </div>
+          <div className="space-y-2 rounded-xl border border-border p-4 text-sm">
+            <div className="flex items-center gap-2 font-semibold" id="price-breakdown-title">
+              <Info className="h-4 w-4 text-primary" />
+              {t("drive.priceBreakdown")}
+            </div>
+            <Row
+              label={`${t("drive.parkingTime")} · ${minutes} min`}
+              value={euros(quote.parkingCents)}
+            />
+            <Row label={t("drive.serviceFee")} value={euros(quote.serviceFeeCents)} />
+            {quote.chargeableMinutes < quote.minutes && (
+              <Row
+                label={t("drive.freeMinutes")}
+                value={`${quote.minutes - quote.chargeableMinutes} min`}
+              />
+            )}
+            <div className="border-t border-border pt-2">
+              <Row
+                label={t("drive.total")}
+                value={<span className="text-lg font-semibold">{euros(totalCents)}</span>}
+              />
+            </div>
+            <p className="text-xs text-muted-foreground">{t("drive.noHiddenFees")}</p>
+            {quote.cappedByDailyCap && (
+              <Badge variant="secondary">{t("drive.dailyCapApplied")}</Badge>
+            )}
+            {quote.exceedsMaxStay && (
+              <p className="rounded-md bg-destructive/10 p-2 text-xs font-medium text-destructive">
+                {t("drive.maxStayExceeded")}
+              </p>
+            )}
           </div>
           <div className="space-y-1 rounded-md border border-border p-3 text-sm">
             <Row
@@ -871,16 +1169,12 @@ function DetailScreen({
                 </span>
               }
             />
-            <Row
-              label={t("drive.total")}
-              value={<span className="text-lg font-semibold">€{total.toFixed(2)}</span>}
-            />
           </div>
           {signedIn ? (
             <Button
               className="w-full"
               size="lg"
-              disabled={start.isPending || !plate}
+              disabled={start.isPending || !plate || quote.exceedsMaxStay}
               onClick={async () => {
                 try {
                   const s = await start.mutateAsync({
