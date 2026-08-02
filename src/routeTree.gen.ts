@@ -26,6 +26,7 @@ import { Route as AuthenticatedOperatorRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedEnforcementRouteImport } from './routes/_authenticated/enforcement'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as ApiPublicHealthRouteImport } from './routes/api/public/health'
+import { Route as ApiPublicWebhooksStripeRouteImport } from './routes/api/public/webhooks/stripe'
 import { Route as ApiPublicCronSyncProvidersRouteImport } from './routes/api/public/cron/sync-providers'
 import { Route as ApiPublicCronDispatchNotificationsRouteImport } from './routes/api/public/cron/dispatch-notifications'
 import { Route as ApiPublicV1OrchestrateQuoteRouteImport } from './routes/api/public/v1/orchestrate/quote'
@@ -115,6 +116,11 @@ const ApiPublicHealthRoute = ApiPublicHealthRouteImport.update({
   path: '/api/public/health',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicWebhooksStripeRoute = ApiPublicWebhooksStripeRouteImport.update({
+  id: '/api/public/webhooks/stripe',
+  path: '/api/public/webhooks/stripe',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicCronSyncProvidersRoute =
   ApiPublicCronSyncProvidersRouteImport.update({
     id: '/api/public/cron/sync-providers',
@@ -153,6 +159,7 @@ export interface FileRoutesByFullPath {
   '/api/public/health': typeof ApiPublicHealthRoute
   '/api/public/cron/dispatch-notifications': typeof ApiPublicCronDispatchNotificationsRoute
   '/api/public/cron/sync-providers': typeof ApiPublicCronSyncProvidersRoute
+  '/api/public/webhooks/stripe': typeof ApiPublicWebhooksStripeRoute
   '/api/public/v1/orchestrate/quote': typeof ApiPublicV1OrchestrateQuoteRoute
 }
 export interface FileRoutesByTo {
@@ -174,6 +181,7 @@ export interface FileRoutesByTo {
   '/api/public/health': typeof ApiPublicHealthRoute
   '/api/public/cron/dispatch-notifications': typeof ApiPublicCronDispatchNotificationsRoute
   '/api/public/cron/sync-providers': typeof ApiPublicCronSyncProvidersRoute
+  '/api/public/webhooks/stripe': typeof ApiPublicWebhooksStripeRoute
   '/api/public/v1/orchestrate/quote': typeof ApiPublicV1OrchestrateQuoteRoute
 }
 export interface FileRoutesById {
@@ -197,6 +205,7 @@ export interface FileRoutesById {
   '/api/public/health': typeof ApiPublicHealthRoute
   '/api/public/cron/dispatch-notifications': typeof ApiPublicCronDispatchNotificationsRoute
   '/api/public/cron/sync-providers': typeof ApiPublicCronSyncProvidersRoute
+  '/api/public/webhooks/stripe': typeof ApiPublicWebhooksStripeRoute
   '/api/public/v1/orchestrate/quote': typeof ApiPublicV1OrchestrateQuoteRoute
 }
 export interface FileRouteTypes {
@@ -220,6 +229,7 @@ export interface FileRouteTypes {
     | '/api/public/health'
     | '/api/public/cron/dispatch-notifications'
     | '/api/public/cron/sync-providers'
+    | '/api/public/webhooks/stripe'
     | '/api/public/v1/orchestrate/quote'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -241,6 +251,7 @@ export interface FileRouteTypes {
     | '/api/public/health'
     | '/api/public/cron/dispatch-notifications'
     | '/api/public/cron/sync-providers'
+    | '/api/public/webhooks/stripe'
     | '/api/public/v1/orchestrate/quote'
   id:
     | '__root__'
@@ -263,6 +274,7 @@ export interface FileRouteTypes {
     | '/api/public/health'
     | '/api/public/cron/dispatch-notifications'
     | '/api/public/cron/sync-providers'
+    | '/api/public/webhooks/stripe'
     | '/api/public/v1/orchestrate/quote'
   fileRoutesById: FileRoutesById
 }
@@ -282,6 +294,7 @@ export interface RootRouteChildren {
   ApiPublicHealthRoute: typeof ApiPublicHealthRoute
   ApiPublicCronDispatchNotificationsRoute: typeof ApiPublicCronDispatchNotificationsRoute
   ApiPublicCronSyncProvidersRoute: typeof ApiPublicCronSyncProvidersRoute
+  ApiPublicWebhooksStripeRoute: typeof ApiPublicWebhooksStripeRoute
   ApiPublicV1OrchestrateQuoteRoute: typeof ApiPublicV1OrchestrateQuoteRoute
 }
 
@@ -406,6 +419,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHealthRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/webhooks/stripe': {
+      id: '/api/public/webhooks/stripe'
+      path: '/api/public/webhooks/stripe'
+      fullPath: '/api/public/webhooks/stripe'
+      preLoaderRoute: typeof ApiPublicWebhooksStripeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/cron/sync-providers': {
       id: '/api/public/cron/sync-providers'
       path: '/api/public/cron/sync-providers'
@@ -464,6 +484,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicCronDispatchNotificationsRoute:
     ApiPublicCronDispatchNotificationsRoute,
   ApiPublicCronSyncProvidersRoute: ApiPublicCronSyncProvidersRoute,
+  ApiPublicWebhooksStripeRoute: ApiPublicWebhooksStripeRoute,
   ApiPublicV1OrchestrateQuoteRoute: ApiPublicV1OrchestrateQuoteRoute,
 }
 export const routeTree = rootRouteImport
