@@ -1,0 +1,9 @@
+# ParkPunkt repository ownership
+* @asaffilate01-ship-it
+
+# Release and security controls always require owner visibility.
+/.github/ @asaffilate01-ship-it
+/scripts/ @asaffilate01-ship-it
+/supabase/migrations/ @asaffilate01-ship-it
+/src/lib/security-headers.ts @asaffilate01-ship-it
+/src/routes/api/ @asaffilate01-ship-it

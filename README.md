@@ -96,6 +96,6 @@ The repository cannot create commercial contracts or production credentials. Bef
 
 The current repository is an installable web PWA. Separate native iOS and Android applications require their own signed app projects and store-release processes.
 
-Further information is available in [`docs/PRODUCT_RELEASE.md`](docs/PRODUCT_RELEASE.md), [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md), [`docs/PHASE_8_RELEASE.md`](docs/PHASE_8_RELEASE.md), [`docs/PHASE_9_RELEASE.md`](docs/PHASE_9_RELEASE.md) and [`docs/PHASE_10_RELEASE.md`](docs/PHASE_10_RELEASE.md).
+Further information is available in [`docs/PRODUCT_RELEASE.md`](docs/PRODUCT_RELEASE.md), [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md), [`docs/PHASE_8_RELEASE.md`](docs/PHASE_8_RELEASE.md), [`docs/PHASE_9_RELEASE.md`](docs/PHASE_9_RELEASE.md), [`docs/PHASE_10_RELEASE.md`](docs/PHASE_10_RELEASE.md) and [`docs/PHASE_11_RELEASE.md`](docs/PHASE_11_RELEASE.md).
 
 Partner API consumers can use [`openapi/parkpunkt-v1.yaml`](openapi/parkpunkt-v1.yaml). Compile-oriented native starter projects and their production limitations are documented in [`native/README.md`](native/README.md) and [`docs/NATIVE_READINESS.md`](docs/NATIVE_READINESS.md).
